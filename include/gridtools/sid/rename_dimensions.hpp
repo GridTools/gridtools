@@ -65,17 +65,17 @@ namespace gridtools {
                 return remap<KeyMap>(sid_get_upper_bounds(obj.m_impl));
             }
 
-            template <class KeyMap, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            template <class KeyMap, class Arr, std::enable_if_t<std::is_array_v<Arr>, int> = 0>
             auto sid_get_strides(renamed_sid<KeyMap, Arr &> const &obj) {
                 return remap<KeyMap>(get_strides(obj.m_impl));
             }
 
-            template <class KeyMap, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            template <class KeyMap, class Arr, std::enable_if_t<std::is_array_v<Arr>, int> = 0>
             auto sid_get_lower_bounds(renamed_sid<KeyMap, Arr &> const &obj) {
                 return remap<KeyMap>(get_lower_bounds(obj.m_impl));
             }
 
-            template <class KeyMap, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            template <class KeyMap, class Arr, std::enable_if_t<std::is_array_v<Arr>, int> = 0>
             auto sid_get_upper_bounds(renamed_sid<KeyMap, Arr &> const &obj) {
                 return remap<KeyMap>(get_upper_bounds(obj.m_impl));
             }

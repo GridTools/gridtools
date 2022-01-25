@@ -95,8 +95,10 @@ namespace gridtools {
                 template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus>
                 struct minimal_requried_args<extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>>
                     : std::integral_constant<size_t,
-                          (KMinus > 0 || KPlus < 0 ? 3
-                                                   : JMinus > 0 || JPlus < 0 ? 2 : IMinus > 0 || IPlus < 0 ? 1 : 0)> {};
+                          (KMinus > 0 || KPlus < 0      ? 3
+                              : JMinus > 0 || JPlus < 0 ? 2
+                              : IMinus > 0 || IPlus < 0 ? 1
+                                                        : 0)> {};
 
 #ifndef NDEBUG
                 template <class Extent, size_t Dim>
@@ -156,7 +158,7 @@ namespace gridtools {
             template <uint_t Id, class Extent, intent Intent>
             class accessor<Id, Intent, Extent, 0, std::index_sequence<>> : public tuple<> {
               public:
-                static_assert(std::is_same<Extent, extent<>>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_same_v<Extent, extent<>>, GT_INTERNAL_ERROR);
 
                 using index_t = integral_constant<uint_t, Id>;
                 static constexpr intent intent_v = Intent;

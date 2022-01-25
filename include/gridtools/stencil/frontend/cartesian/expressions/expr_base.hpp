@@ -55,12 +55,12 @@ namespace gridtools {
                 }
 
                 namespace evaluation {
-                    template <class Eval, class Arg, std::enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
+                    template <class Eval, class Arg, std::enable_if_t<std::is_arithmetic_v<Arg>, int> = 0>
                     GT_FUNCTION constexpr Arg apply_eval(Eval &&, Arg arg) {
                         return arg;
                     }
 
-                    template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
+                    template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic_v<Arg>, int> = 0>
                     GT_FUNCTION constexpr decltype(auto) apply_eval(Eval &&eval, Arg arg) {
                         return std::forward<Eval>(eval)(std::move(arg));
                     }

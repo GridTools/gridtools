@@ -77,7 +77,7 @@ namespace gridtools {
                 class T,
                 class Info,
                 class Kind,
-                bool = std::is_const<T>::value,
+                bool = std::is_const_v<T>,
                 bool = traits::is_host_referenceable<Traits>>
             class data_store;
 

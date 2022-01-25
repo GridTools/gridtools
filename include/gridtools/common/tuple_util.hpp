@@ -116,7 +116,6 @@
 #include "defs.hpp"
 #include "functional.hpp"
 #include "host_device.hpp"
-#include "implicit_cast.hpp"
 
 #define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                        \
     struct class_name##_tuple_util_getter {                                                    \
@@ -134,7 +133,7 @@
         }                                                                                      \
     };                                                                                         \
     friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; }      \
-    static_assert(1, "")
+    static_assert(1)
 
 #define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) BOOST_PP_TUPLE_ELEM(0, elem) BOOST_PP_TUPLE_ELEM(1, elem);
 #define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) BOOST_PP_TUPLE_ELEM(0, elem)
@@ -414,12 +413,12 @@ namespace gridtools {
 
             template <class T, class Getter, class Types, class I>
             struct is_getter_valid<T, Getter, Types, I>
-                : std::bool_constant<std::is_same<decltype(Getter::template get<I::value>(std::declval<T const &>())),
-                                         meta::at<Types, I> const &>::value &&
-                                     std::is_same<decltype(Getter::template get<I::value>(std::declval<T &>())),
-                                         meta::at<Types, I> &>::value &&
-                                     std::is_same<decltype(Getter::template get<I::value>(std::declval<T &&>())),
-                                         meta::at<Types, I> &&>::value> {};
+                : std::bool_constant<std::is_same_v<decltype(Getter::template get<I::value>(std::declval<T const &>())),
+                                         meta::at<Types, I> const &> &&
+                                     std::is_same_v<decltype(Getter::template get<I::value>(std::declval<T &>())),
+                                         meta::at<Types, I> &> &&
+                                     std::is_same_v<decltype(Getter::template get<I::value>(std::declval<T &&>())),
+                                         meta::at<Types, I> &&>> {};
 
             template <class T,
                 class Types = traits::to_types<T>,
@@ -434,13 +433,13 @@ namespace gridtools {
                       // FromTypes metafunction is responsible for producing another `tuple_like` of the given kind from
                       // the list of types. We can not check it for all possible types but we at least can ensure that
                       // if we apply it to the current element types, we will get the current `tuple_like` type back.
-                      std::is_same<meta::rename<FromTypes::template apply, Types>, T>::value &&
+                      std::is_same_v<meta::rename<FromTypes::template apply, Types>, T> &&
                       // we should be able to construct `tuple_like` element wise
                       is_constructible_from_elements<T, Types>::value &&
                       // iff element types are all move_constructible, `tuple_like` is move constructible
-                      meta::all_of<std::is_move_constructible, Types>::value == std::is_move_constructible<T>::value &&
+                      meta::all_of<std::is_move_constructible, Types>::value == std::is_move_constructible_v<T> &&
                       // the same for copy_constructible
-                      meta::all_of<std::is_copy_constructible, Types>::value == std::is_copy_constructible<T>::value &&
+                      meta::all_of<std::is_copy_constructible, Types>::value == std::is_copy_constructible_v<T> &&
                       // check that the getters produce expected types for all indices
                       meta::all_of<meta::curry<is_getter_valid, T, Getter, Types>::template apply,
                           meta::make_indices_for<Types>>::value> {};
@@ -483,7 +482,7 @@ namespace gridtools {
     GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) name(Args &&...args) { \
         return functor()(std::forward<Args>(args)...);                        \
     }                                                                         \
-    static_assert(1, "")
+    static_assert(1)
 
 #ifdef __NVCC__
 #define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) GT_DEVICE constexpr functor name = {}

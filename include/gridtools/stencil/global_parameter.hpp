@@ -22,9 +22,11 @@ namespace gridtools {
 
             template <class T>
             struct global_parameter {
-                static_assert(std::is_trivially_copyable<T>(), "global parameter should be trivially copyable");
+                static_assert(std::is_trivially_copy_constructible_v<T>, "global parameter should be trivially copyable");
 
                 T m_value;
+
+                constexpr global_parameter(T val) : m_value(std::move(val)) {}
 
                 constexpr GT_FUNCTION global_parameter operator()() const { return *this; }
                 constexpr GT_FUNCTION T operator*() const { return m_value; }
@@ -38,7 +40,8 @@ namespace gridtools {
         using global_parameter_impl_::global_parameter;
 
         template <class T>
-        constexpr global_parameter<T> make_global_parameter(T val) {
+        [[deprecated("use global_parameter template deduction")]] constexpr global_parameter<T> make_global_parameter(
+            T val) {
             return {std::move(val)};
         }
     } // namespace stencil

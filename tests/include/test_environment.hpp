@@ -219,16 +219,12 @@ namespace gridtools {
                 using storage_type =
                     decltype(storage::builder<storage_traits_t>.dimensions(0, 0, 0).template type<FloatType>()());
 
-                template <class T = FloatType,
-                    class U,
-                    std::enable_if_t<!std::is_convertible<U const &, T>::value, int> = 0>
+                template <class T = FloatType, class U, std::enable_if_t<!std::is_convertible_v<U const &, T>, int> = 0>
                 static auto make_storage(U const &arg) {
                     return builder<T>().initializer(arg).build();
                 }
 
-                template <class T = FloatType,
-                    class U,
-                    std::enable_if_t<std::is_convertible<U const &, T>::value, int> = 0>
+                template <class T = FloatType, class U, std::enable_if_t<std::is_convertible_v<U const &, T>, int> = 0>
                 static auto make_storage(U const &arg) {
                     return builder<T>().value(arg).build();
                 }
@@ -260,7 +256,7 @@ namespace gridtools {
                 template <class T = FloatType,
                     class Location,
                     class U,
-                    std::enable_if_t<!std::is_convertible<U const &, T>::value, int> = 0>
+                    std::enable_if_t<!std::is_convertible_v<U const &, T>, int> = 0>
                 static auto icosahedral_make_storage(Location loc, U const &arg) {
                     return icosahedral_builder<T>(loc).initializer(arg).build();
                 }
@@ -268,7 +264,7 @@ namespace gridtools {
                 template <class T = FloatType,
                     class Location,
                     class U,
-                    std::enable_if_t<std::is_convertible<U const &, T>::value, int> = 0>
+                    std::enable_if_t<std::is_convertible_v<U const &, T>, int> = 0>
                 static auto icosahedral_make_storage(Location loc, U const &arg) {
                     return icosahedral_builder<T>(loc).value(arg).build();
                 }
@@ -295,9 +291,9 @@ namespace gridtools {
 
               private:
                 static auto float_type_name() {
-                    return std::is_same<FloatType, float>::value
-                               ? "float"
-                               : std::is_same<FloatType, double>::value ? "double" : typeid(FloatType).name();
+                    return std::is_same_v<FloatType, float>    ? "float"
+                           : std::is_same_v<FloatType, double> ? "double"
+                                                               : typeid(FloatType).name();
                 }
             };
         };

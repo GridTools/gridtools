@@ -36,7 +36,7 @@ namespace gridtools {
                 TEST(tmp_cuda_storage_sid, write_in_blocks) {
                     using index_info = multiplet<5>;
 
-                    auto alloc = sid::make_allocator(&std::make_unique<char[]>);
+                    auto alloc = sid::allocator(&std::make_unique<char[]>);
 
                     auto testee = make_tmp_storage<index_info>(
                         1_c, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
@@ -78,7 +78,7 @@ namespace gridtools {
                 TEST(tmp_cuda_storage_sid_block, write_in_blocks) {
                     using index_info = multiplet<6>;
 
-                    auto alloc = sid::make_allocator(&std::make_unique<char[]>);
+                    auto alloc = sid::allocator(&std::make_unique<char[]>);
 
                     auto testee = make_tmp_storage<index_info>(
                         2_c, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);

@@ -22,7 +22,7 @@
 namespace gridtools {
 
     namespace impl_ {
-        template <size_t I, class T, bool = std::is_empty<T>::value>
+        template <size_t I, class T, bool = std::is_empty_v<T>>
         struct tuple_leaf {
             T m_value;
 
@@ -33,7 +33,7 @@ namespace gridtools {
 
             constexpr GT_FUNCTION tuple_leaf() noexcept : m_value() {}
 
-            template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
+            template <class Arg, std::enable_if_t<std::is_constructible_v<T, Arg &&>, int> = 0>
             constexpr GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
         };
 
@@ -45,7 +45,7 @@ namespace gridtools {
             tuple_leaf &operator=(tuple_leaf const &) = default;
             tuple_leaf &operator=(tuple_leaf &&) = default;
 
-            template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
+            template <class Arg, std::enable_if_t<std::is_constructible_v<T, Arg &&>, int> = 0>
             constexpr GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : T(std::forward<Arg>(arg)) {}
         };
 
@@ -107,7 +107,7 @@ namespace gridtools {
 
             template <class... Args,
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                     std::conjunction<std::is_assignable<Ts &, Args const &>...>::value,
+                                     std::conjunction_v<std::is_assignable<Ts &, Args const &>...>,
                     int> = 0>
             constexpr GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> const &src) noexcept {
                 (..., (tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(src)));
@@ -115,7 +115,7 @@ namespace gridtools {
 
             template <class... Args,
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                     std::conjunction<std::is_assignable<Ts &, Args &&>...>::value,
+                                     std::conjunction_v<std::is_assignable<Ts &, Args &&>...>,
                     int> = 0>
             constexpr GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> &&src) noexcept {
                 (..., (tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(std::move(src))));
@@ -174,19 +174,19 @@ namespace gridtools {
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                 std::conjunction<std::is_constructible<Ts, Args &&>...>::value,
+                                 std::conjunction_v<std::is_constructible<Ts, Args &&>...>,
                 int> = 0>
         constexpr GT_FUNCTION tuple(Args &&...args) noexcept : m_impl(std::forward<Args>(args)...) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                 std::conjunction<std::is_constructible<Ts, Args const &>...>::value,
+                                 std::conjunction_v<std::is_constructible<Ts, Args const &>...>,
                 int> = 0>
         constexpr GT_FUNCTION tuple(tuple<Args...> const &src) noexcept : m_impl(src.m_impl) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                 std::conjunction<std::is_constructible<Ts, Args &&>...>::value,
+                                 std::conjunction_v<std::is_constructible<Ts, Args &&>...>,
                 int> = 0>
         constexpr GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : m_impl(std::move(src).m_impl) {}
 
@@ -233,19 +233,18 @@ namespace gridtools {
 
         constexpr GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
 
-        template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
+        template <class Arg, std::enable_if_t<std::is_constructible_v<T, Arg &&>, int> = 0>
         constexpr GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
 
         template <class Arg,
-            std::enable_if_t<std::is_constructible<T, Arg const &>::value &&
-                                 !std::is_convertible<tuple<Arg> const &, T>::value &&
-                                 !std::is_constructible<T, tuple<Arg> const &>::value && !std::is_same<T, Arg>::value,
+            std::enable_if_t<std::is_constructible_v<T, Arg const &> && !std::is_convertible_v<tuple<Arg> const &, T> &&
+                                 !std::is_constructible_v<T, tuple<Arg> const &> && !std::is_same_v<T, Arg>,
                 int> = 0>
         constexpr GT_FUNCTION tuple(tuple<Arg> const &src) noexcept : m_value(src.m_value) {}
 
         template <class Arg,
-            std::enable_if_t<std::is_constructible<T, Arg &&>::value && !std::is_convertible<tuple<Arg>, T>::value &&
-                                 !std::is_constructible<T, tuple<Arg>>::value && !std::is_same<T, Arg>::value,
+            std::enable_if_t<std::is_constructible_v<T, Arg &&> && !std::is_convertible_v<tuple<Arg>, T> &&
+                                 !std::is_constructible_v<T, tuple<Arg>> && !std::is_same_v<T, Arg>,
                 int> = 0>
         constexpr GT_FUNCTION tuple(tuple<Arg> &&src) noexcept : m_value(std::move(src).m_value) {}
 
@@ -254,13 +253,13 @@ namespace gridtools {
             swap(m_value, other.m_value);
         }
 
-        template <class Arg, std::enable_if_t<std::is_assignable<T &, Arg const &>::value, int> = 0>
+        template <class Arg, std::enable_if_t<std::is_assignable_v<T &, Arg const &>, int> = 0>
         constexpr GT_FUNCTION tuple &operator=(tuple<Arg> const &src) noexcept {
             m_value = src.m_value;
             return *this;
         }
 
-        template <class Arg, std::enable_if_t<std::is_assignable<T &, Arg &&>::value, int> = 0>
+        template <class Arg, std::enable_if_t<std::is_assignable_v<T &, Arg &&>, int> = 0>
         constexpr GT_FUNCTION tuple &operator=(tuple<Arg> &&src) noexcept {
             m_value = std::move(src).m_value;
             return *this;

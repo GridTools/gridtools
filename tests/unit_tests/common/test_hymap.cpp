@@ -25,21 +25,21 @@ namespace gridtools {
         struct b;
         struct c;
 
-        static_assert(!is_hymap<void>::value, "");
-        static_assert(is_hymap<std::array<int, 3>>::value, "");
-        static_assert(is_hymap<tuple<int, double>>::value, "");
-        static_assert(is_hymap<hymap::keys<>::values<>>::value, "");
-        static_assert(is_hymap<hymap::keys<a>::values<int>>::value, "");
-        static_assert(is_hymap<hymap::keys<a, b>::values<int, double>>::value, "");
+        static_assert(!is_hymap<void>::value);
+        static_assert(is_hymap<std::array<int, 3>>::value);
+        static_assert(is_hymap<tuple<int, double>>::value);
+        static_assert(is_hymap<hymap::keys<>::values<>>::value);
+        static_assert(is_hymap<hymap::keys<a>::values<int>>::value);
+        static_assert(is_hymap<hymap::keys<a, b>::values<int, double>>::value);
 
         TEST(tuple_like, smoke) {
             using testee_t = hymap::keys<a, b, c>::values<int, double, void *>;
 
-            static_assert(tuple_util::size<testee_t>::value == 3, "");
+            static_assert(tuple_util::size<testee_t>::value == 3);
 
-            static_assert(std::is_same<tuple_util::element<0, testee_t>, int>::value, "");
-            static_assert(std::is_same<tuple_util::element<1, testee_t>, double>::value, "");
-            static_assert(std::is_same<tuple_util::element<2, testee_t>, void *>::value, "");
+            static_assert(std::is_same_v<tuple_util::element<0, testee_t>, int>);
+            static_assert(std::is_same_v<tuple_util::element<1, testee_t>, double>);
+            static_assert(std::is_same_v<tuple_util::element<2, testee_t>, void *>);
 
             testee_t testee{42, 5.3, nullptr};
             EXPECT_EQ(42, tuple_util::get<0>(testee));
@@ -51,9 +51,9 @@ namespace gridtools {
             using testee_t = hymap::keys<a, b>::values<int, double>;
             testee_t testee{42, 5.3};
 
-            static_assert(has_key<testee_t, a>::value, "");
-            static_assert(has_key<testee_t, b>::value, "");
-            static_assert(!has_key<testee_t, c>::value, "");
+            static_assert(has_key<testee_t, a>::value);
+            static_assert(has_key<testee_t, b>::value);
+            static_assert(!has_key<testee_t, c>::value);
 
             EXPECT_EQ(42, at_key<a>(testee));
             EXPECT_EQ(5.3, at_key<b>(testee));
@@ -63,9 +63,9 @@ namespace gridtools {
             using testee_t = std::tuple<int, double>;
             testee_t testee{42, 5.3};
 
-            static_assert(has_key<testee_t, integral_constant<int, 0>>::value, "");
-            static_assert(has_key<testee_t, integral_constant<int, 1>>::value, "");
-            static_assert(!has_key<testee_t, integral_constant<int, 2>>::value, "");
+            static_assert(has_key<testee_t, integral_constant<int, 0>>::value);
+            static_assert(has_key<testee_t, integral_constant<int, 1>>::value);
+            static_assert(!has_key<testee_t, integral_constant<int, 2>>::value);
 
             EXPECT_EQ(42, (at_key<integral_constant<int, 0>>(testee)));
             EXPECT_EQ(5.3, (at_key<integral_constant<int, 1>>(testee)));
@@ -115,18 +115,17 @@ namespace gridtools {
             using src_t = hymap::keys<a, b>::values<int, double>;
             using dst_t = hymap::to_meta_map<src_t>;
 
-            static_assert(std::is_same<meta::second<meta::mp_find<dst_t, a>>, int>(), "");
-            static_assert(std::is_same<meta::second<meta::mp_find<dst_t, b>>, double>(), "");
+            static_assert(std::is_same_v<meta::second<meta::mp_find<dst_t, a>>, int>);
+            static_assert(std::is_same_v<meta::second<meta::mp_find<dst_t, b>>, double>);
         }
 
         TEST(from_meta_map, smoke) {
             using src_t = meta::list<meta::list<a, int>, meta::list<b, double>>;
             using dst_t = hymap::from_meta_map<src_t>;
 
+            static_assert(std::is_same_v<typename std::decay<decltype(at_key<a>(std::declval<dst_t>()))>::type, int>);
             static_assert(
-                std::is_same<typename std::decay<decltype(at_key<a>(std::declval<dst_t>()))>::type, int>(), "");
-            static_assert(
-                std::is_same<typename std::decay<decltype(at_key<b>(std::declval<dst_t>()))>::type, double>(), "");
+                std::is_same_v<typename std::decay<decltype(at_key<b>(std::declval<dst_t>()))>::type, double>);
         }
 
         TEST(from_meta_map, empty) {

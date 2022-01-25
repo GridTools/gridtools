@@ -139,7 +139,7 @@ namespace gridtools {
                 \param jobs Variadic list of jobs
             */
             template <typename... Jobs>
-            void boundary_only(Jobs const &... jobs) {
+            void boundary_only(Jobs const &...jobs) {
                 using execute_in_order = int[];
                 m_meter_bc.start();
                 (void)execute_in_order{(apply_boundary(jobs), 0)...};
@@ -158,7 +158,7 @@ namespace gridtools {
                 \param jobs Variadic list of jobs
             */
             template <typename... Jobs>
-            void exchange(Jobs const &... jobs) {
+            void exchange(Jobs const &...jobs) {
                 auto all_stores_for_exc = std::tuple_cat(collect_stores(jobs)...);
                 if (m_max_stores < sizeof...(jobs)) {
                     std::string err{"Too many data stores to be exchanged" + std::to_string(sizeof...(jobs)) +
@@ -211,7 +211,7 @@ namespace gridtools {
                 call_apply(make_boundary<typename CTraits::comm_arch_type>(
                                m_halos, bcapply.boundary_to_apply(), make_proc_grid_predicate(m_he->comm())),
                     bcapply.stores(),
-                    std::make_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
+                    std::make_integer_sequence<uint_t, std::tuple_size_v<typename BCApply::stores_type>>{});
             }
 
             template <typename BCApply>

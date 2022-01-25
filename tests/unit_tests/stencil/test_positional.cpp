@@ -20,7 +20,7 @@ namespace gridtools {
             struct d;
             using testee_t = positional<d>;
 
-            static_assert(is_sid<testee_t>(), "");
+            static_assert(is_sid<testee_t>());
 
             TEST(positional, smoke) {
                 testee_t testee{1};

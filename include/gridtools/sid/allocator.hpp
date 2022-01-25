@@ -47,15 +47,13 @@
  *
  *  Both are templated with the functor that takes the size in bytes and returns `std::unique_ptr`
  *
- *  There are also correspondent generators: `make_allocator` and `make_cached_allocator`.
- *
  *  Semantics:
  *    - `allocator` keeps the resources that are allocated and releases them in dtor.
  *    - `cached_allocator` keeps resources during its lifetime. On dtor it stashes the resources in the internal static
  *      storage. The newly created instances of `cached_allocator` will attempt to reuse the stashed resources.
  *
  *  To make the simplest possible allocator one can do:
- *    `auto alloc = make_allocator(&std::make_unique<char[]>);`
+ *    `auto alloc = allocator(&std::make_unique<char[]>);`
  *
  */
 
@@ -129,6 +127,9 @@ namespace gridtools {
                     return make_simple_ptr_holder(reinterpret_cast<type *>(self.m_buffers.back().get()));
                 }
             };
+
+            template <class Impl>
+            allocator(Impl) -> allocator<Impl>;
 
             template <class Impl>
             struct cached_allocator : allocator<allocator_impl_::cached_proxy_f<Impl>> {

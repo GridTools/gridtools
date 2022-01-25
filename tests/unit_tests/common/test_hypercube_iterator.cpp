@@ -73,7 +73,7 @@ TEST_F(hypercube_iteration, from_one_to_one) {
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_range) {
     int count = 0;
     for (auto it : make_hypercube_view(array<pair<size_t, size_t>, 0>())) {
-        static_assert(tuple_util::size<decltype(it)>::value == 0, "");
+        static_assert(tuple_util::size<decltype(it)>::value == 0);
         ++count;
     }
     EXPECT_EQ(1, count);
@@ -82,7 +82,7 @@ TEST(hypercube_view_empty_iteration_space, zero_dimensional_range) {
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_size) {
     int count = 0;
     for (auto it : make_hypercube_view(array<size_t, 0>())) {
-        static_assert(tuple_util::size<decltype(it)>::value == 0, "");
+        static_assert(tuple_util::size<decltype(it)>::value == 0);
         ++count;
     }
     EXPECT_EQ(1, count);

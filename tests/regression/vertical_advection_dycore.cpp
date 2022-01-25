@@ -136,7 +136,7 @@ namespace {
                         wcon = TypeParam::make_storage(repo.wcon),
                         u_pos = TypeParam::make_storage(repo.u_pos),
                         utens = TypeParam::make_storage(repo.utens),
-                        dtr_stage = make_global_parameter(typename TypeParam::float_t(repo.dtr_stage))] {
+                        dtr_stage = global_parameter(typename TypeParam::float_t(repo.dtr_stage))] {
             const auto spec = [](auto utens_stage, auto u_stage, auto wcon, auto u_pos, auto utens, auto dtr_stage) {
                 GT_DECLARE_TMP(typename TypeParam::float_t, ccol, dcol, data_col);
                 return multi_pass(

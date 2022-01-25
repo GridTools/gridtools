@@ -27,13 +27,13 @@ namespace gridtools {
         namespace cartesian {
             namespace call_interfaces_impl_ {
                 template <class Functor, class Region, class Eval>
-                GT_FUNCTION std::enable_if_t<!std::is_void<Region>::value> call_functor(Eval eval) {
+                GT_FUNCTION std::enable_if_t<!std::is_void_v<Region>> call_functor(Eval eval) {
                     Functor::template apply<Eval &>(eval, Region());
                 }
 
                 // overload for the default interval (Functor with one argument)
                 template <class Functor, class Region, class Eval>
-                GT_FUNCTION std::enable_if_t<std::is_void<Region>::value> call_functor(Eval eval) {
+                GT_FUNCTION std::enable_if_t<std::is_void_v<Region>> call_functor(Eval eval) {
                     Functor::template apply<Eval &>(eval);
                 }
 
@@ -52,8 +52,7 @@ namespace gridtools {
                 template <class Res, class Lhs, class Rhs>
                 GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs rhs) {
                     using generators_t = meta::transform<sum_offset_generator_f, get_keys<Res>>;
-                    return tuple_util::host_device::generate<generators_t, Res>(
-                        std::forward<Lhs>(lhs), std::move(rhs));
+                    return tuple_util::host_device::generate<generators_t, Res>(std::forward<Lhs>(lhs), std::move(rhs));
                 }
 
                 template <int_t I, int_t J, int_t K, class Accessor>
@@ -127,7 +126,7 @@ namespace gridtools {
                  * @brief Use forced return type (if not void) or deduce the return type.
                  */
                 template <class Eval, class ReturnType, class Arg, class...>
-                struct get_result_type : std::conditional<std::is_void<ReturnType>::value,
+                struct get_result_type : std::conditional<std::is_void_v<ReturnType>,
                                              typename deduce_result_type<Eval, Arg>::type,
                                              ReturnType> {};
 
@@ -154,7 +153,7 @@ namespace gridtools {
                 int_t OffJ = 0,
                 int_t OffK = 0>
             class call {
-                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void<Region>::value,
+                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void_v<Region>,
                     "Region should be a valid interval tag or void (default interval) to select the apply "
                     "specialization "
                     "in "
@@ -190,7 +189,7 @@ namespace gridtools {
                     class Res =
                         typename call_interfaces_impl_::get_result_type<Eval, ReturnType, std::decay_t<Args>...>::type,
                     std::enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
-                GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
+                GT_FUNCTION static Res with(Eval &eval, Args &&...args) {
                     Res res;
                     call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
                         tuple_util::host_device::insert<out_param_index>(
@@ -218,7 +217,7 @@ namespace gridtools {
             template <class Functor, class Region = void, int_t OffI = 0, int_t OffJ = 0, int_t OffK = 0>
             struct call_proc {
 
-                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void<Region>::value,
+                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void_v<Region>,
                     "Region should be a valid interval tag or void (default interval) to select the apply "
                     "specialization "
                     "in "
@@ -236,7 +235,7 @@ namespace gridtools {
                 template <class Eval, class... Args>
                 GT_FUNCTION static std::enable_if_t<sizeof...(Args) ==
                                                     meta::length<typename Functor::param_list>::value>
-                with(Eval &eval, Args &&... args) {
+                with(Eval &eval, Args &&...args) {
                     call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
                         eval, tuple<Args &&...>{std::forward<Args>(args)...});
                 }

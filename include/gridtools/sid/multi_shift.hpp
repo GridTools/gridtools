@@ -27,9 +27,7 @@ namespace gridtools {
             struct for_each_dim<L<Dims...>> {
                 template <class Ptr, class Strides, class Offsets>
                 GT_FUNCTION for_each_dim(Ptr &ptr, Strides const &strides, Offsets offsets) {
-                    using array_t = int[sizeof...(Dims)];
-                    (void)array_t{
-                        (shift(ptr, get_stride<Dims>(strides), gridtools::host_device::at_key<Dims>(offsets)), 0)...};
+                    (..., shift(ptr, get_stride<Dims>(strides), gridtools::host_device::at_key<Dims>(offsets)));
                 }
             };
 
@@ -46,11 +44,10 @@ namespace gridtools {
             struct for_each_dim_a<Arg, L<Dims...>> {
                 template <class Ptr, class Strides, class Offsets>
                 GT_FUNCTION for_each_dim_a(Ptr &ptr, Strides const &strides, Offsets offsets) {
-                    using array_t = int[sizeof...(Dims)];
-                    (void)array_t{(
-                        shift(
-                            ptr, get_stride_element<Arg, Dims>(strides), gridtools::host_device::at_key<Dims>(offsets)),
-                        0)...};
+                    (...,
+                        shift(ptr,
+                            get_stride_element<Arg, Dims>(strides),
+                            gridtools::host_device::at_key<Dims>(offsets)));
                 }
             };
 

@@ -56,7 +56,7 @@ namespace gridtools {
     constexpr GT_FUNCTION integral_constant<decltype(op V), (op V)> operator op(integral_constant<T, V> &&) noexcept { \
         return {};                                                                                                     \
     }                                                                                                                  \
-    static_assert(1, "")
+    static_assert(1)
 
     GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(+, T);
     GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(-, T);
@@ -71,7 +71,7 @@ namespace gridtools {
         integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                   \
         return {};                                                                       \
     }                                                                                    \
-    static_assert(1, "")
+    static_assert(1)
 
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+, (std::common_type_t<T, U>));
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(-, (std::common_type_t<T, U>));

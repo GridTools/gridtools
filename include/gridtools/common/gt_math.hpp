@@ -166,7 +166,7 @@ namespace gridtools {
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) trunc(float val) { return ::truncf(val); }
 
-        template <class Value, std::enable_if_t<std::is_convertible<Value, double>::value, int> = 0>
+        template <class Value, std::enable_if_t<std::is_convertible_v<Value, double>, int> = 0>
         GT_FUNCTION decltype(auto) trunc(Value val) {
             return ::trunc(val);
         }

@@ -44,20 +44,20 @@ namespace gridtools {
         template <class U1, class U2>
         constexpr GT_FUNCTION pair(U1 &&t1_, U2 &&t2_) : first(std::forward<U1>(t1_)), second(std::forward<U2>(t2_)) {}
 
-        template <class U1, class U2, std::enable_if_t<!std::is_same<pair<U1, U2>, pair>::value, int> = 0>
+        template <class U1, class U2, std::enable_if_t<!std::is_same_v<pair<U1, U2>, pair>, int> = 0>
         constexpr GT_FUNCTION pair(pair<U1, U2> const &p) : first(p.first), second(p.second) {}
 
-        template <class U1, class U2, std::enable_if_t<!std::is_same<pair<U1, U2>, pair>::value, int> = 0>
+        template <class U1, class U2, std::enable_if_t<!std::is_same_v<pair<U1, U2>, pair>, int> = 0>
         constexpr GT_FUNCTION pair(pair<U1, U2> &&p) : first(std::move(p.first)), second(std::move(p.second)) {}
 
-        template <typename U1, typename U2, std::enable_if_t<!std::is_same<pair<U1, U2>, pair>::value, int> = 0>
+        template <typename U1, typename U2, std::enable_if_t<!std::is_same_v<pair<U1, U2>, pair>, int> = 0>
         GT_FUNCTION pair &operator=(const pair<U1, U2> &other) {
             first = other.first;
             second = other.second;
             return *this;
         }
 
-        template <typename U1, typename U2, std::enable_if_t<!std::is_same<pair<U1, U2>, pair>::value, int> = 0>
+        template <typename U1, typename U2, std::enable_if_t<!std::is_same_v<pair<U1, U2>, pair>, int> = 0>
         GT_FUNCTION pair &operator=(pair<U1, U2> &&other) noexcept {
             first = std::move(other.first);
             second = std::move(other.second);

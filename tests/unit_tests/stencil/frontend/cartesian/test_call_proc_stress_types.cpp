@@ -43,8 +43,8 @@ struct triple_nesting_with_type_switching_third_stage {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
-        static_assert(check_acceessor<Evaluation, out, out_tag>::value, "");
-        static_assert(check_acceessor<Evaluation, local, local_tag>::value, "");
+        static_assert(check_acceessor<Evaluation, out, out_tag>::value);
+        static_assert(check_acceessor<Evaluation, local, local_tag>::value);
     }
 };
 
@@ -55,8 +55,8 @@ struct triple_nesting_with_type_switching_second_stage {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
-        static_assert(check_acceessor<Evaluation, out, out_tag>::value, "");
-        static_assert(check_acceessor<Evaluation, in, in_tag>::value, "");
+        static_assert(check_acceessor<Evaluation, out, out_tag>::value);
+        static_assert(check_acceessor<Evaluation, in, in_tag>::value);
 
         local_tag local;
         call_proc<triple_nesting_with_type_switching_third_stage>::with(eval, out(), local);
@@ -70,8 +70,8 @@ struct triple_nesting_with_type_switching_first_stage {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
-        static_assert(check_acceessor<Evaluation, out, out_tag>::value, "");
-        static_assert(check_acceessor<Evaluation, in, in_tag>::value, "");
+        static_assert(check_acceessor<Evaluation, out, out_tag>::value);
+        static_assert(check_acceessor<Evaluation, in, in_tag>::value);
 
         call_proc<triple_nesting_with_type_switching_second_stage>::with(eval, in(), out());
     }

@@ -66,7 +66,7 @@ namespace gridtools {
 
         template <class T>
         using is_integral_or_gr_integral_constant =
-            std::bool_constant<std::is_integral<T>::value || is_gr_integral_constant<T>::value>;
+            std::bool_constant<std::is_integral_v<T> || is_gr_integral_constant<T>::value>;
 
         template <class T>
         using elements_are_integral_or_gr_integral_constant =

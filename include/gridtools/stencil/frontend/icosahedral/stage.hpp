@@ -95,8 +95,8 @@ namespace gridtools {
                     template <class Fun, class Accessor, class... Accessors>
                     GT_FUNCTION void for_neighbors(Fun &&fun, Accessor, Accessors...) const {
                         static_assert(
-                            std::conjunction<
-                                std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
+                            std::conjunction_v<
+                                std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>,
                             "All accessors should be of the same location");
                         host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
                             [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });

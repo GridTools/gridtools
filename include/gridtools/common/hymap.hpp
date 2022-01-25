@@ -121,10 +121,10 @@ namespace gridtools {
         not_provided hymap_get_keys(...);
 
         template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
-        std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_keys_fun(T const &);
+        std::enable_if_t<!std::is_same_v<Res, not_provided>, Res> get_keys_fun(T const &);
 
         template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
-        std::enable_if_t<std::is_same<Res, not_provided>::value, default_keys<T>> get_keys_fun(T const &);
+        std::enable_if_t<std::is_same_v<Res, not_provided>, default_keys<T>> get_keys_fun(T const &);
 
         template <class T>
         using get_keys = decltype(::gridtools::hymap_impl_::get_keys_fun(std::declval<T const &>()));
@@ -134,8 +134,7 @@ namespace gridtools {
 
         template <template <class...> class L, class... Values>
         struct values_are_nested_in_keys<L<Values...>,
-            std::enable_if_t<
-                std::is_same<L<Values...>, typename get_keys<L<Values...>>::template values<Values...>>::value>>
+            std::enable_if_t<std::is_same_v<L<Values...>, typename get_keys<L<Values...>>::template values<Values...>>>>
             : std::true_type {};
 
         template <template <class...> class Ctor>
@@ -150,10 +149,10 @@ namespace gridtools {
         not_provided hymap_from_keys_values(...);
 
         template <class T, class Res = decltype(hymap_from_keys_values(std::declval<T const &>()))>
-        std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_from_keys_values_fun(T const &);
+        std::enable_if_t<!std::is_same_v<Res, not_provided>, Res> get_from_keys_values_fun(T const &);
 
         template <class T, class Res = decltype(hymap_from_keys_values(std::declval<T const &>()))>
-        std::enable_if_t<std::is_same<Res, not_provided>::value && values_are_nested_in_keys<T>::value,
+        std::enable_if_t<std::is_same_v<Res, not_provided> && values_are_nested_in_keys<T>::value,
             default_from_keys_values<T>>
         get_from_keys_values_fun(T const &);
 

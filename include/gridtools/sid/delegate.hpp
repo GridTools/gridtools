@@ -58,10 +58,10 @@ namespace gridtools {
             static_assert(is_sid<Sid>::value, GT_INTERNAL_ERROR);
             Sid m_impl;
 
-            template <bool IsRef = std::is_reference<Sid>::value, std::enable_if_t<!IsRef, int> = 0>
+            template <bool IsRef = std::is_reference_v<Sid>, std::enable_if_t<!IsRef, int> = 0>
             delegate(Sid impl) : m_impl(std::move(impl)) {}
 
-            template <bool IsRef = std::is_reference<Sid>::value, std::enable_if_t<IsRef, int> = 0>
+            template <bool IsRef = std::is_reference_v<Sid>, std::enable_if_t<IsRef, int> = 0>
             delegate(Sid impl) : m_impl(impl) {}
         };
 
@@ -92,19 +92,19 @@ namespace gridtools {
             return sid_get_upper_bounds(obj.m_impl);
         }
 
-        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        template <class Arr, std::enable_if_t<std::is_array_v<Arr>, int> = 0>
         auto sid_get_origin(delegate<Arr &> &obj) {
             return sid::get_origin(obj.m_impl);
         }
-        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        template <class Arr, std::enable_if_t<std::is_array_v<Arr>, int> = 0>
         auto sid_get_strides(delegate<Arr &> const &obj) {
             return get_strides(obj.m_impl);
         }
-        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        template <class Arr, std::enable_if_t<std::is_array_v<Arr>, int> = 0>
         auto sid_get_lower_bounds(delegate<Arr &> const &obj) {
             return get_lower_bounds(obj.m_impl);
         }
-        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        template <class Arr, std::enable_if_t<std::is_array_v<Arr>, int> = 0>
         auto sid_get_upper_bounds(delegate<Arr &> const &obj) {
             return get_upper_bounds(obj.m_impl);
         }

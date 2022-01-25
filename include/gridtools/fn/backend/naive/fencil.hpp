@@ -58,7 +58,7 @@ namespace gridtools::fn {
                 using tree_t = ast::popup_tmps<raw_tree_t>;
                 using specs_t = ast::flatten_tmps_tree<tree_t, input_types_t>;
                 using stages_t = meta::transform<make_stage_from_spec, specs_t>;
-                auto alloc = sid::make_allocator(&std::make_unique<char[]>);
+                auto alloc = sid::allocator(&std::make_unique<char[]>);
                 auto tmps = make_tmps<meta::pop_back<specs_t>>(alloc, domain);
                 fn_fencil(naive(), stages_t(), domain, tuple_util::push_back(tuple_util::concat(inputs, tmps), output));
             } else {

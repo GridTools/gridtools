@@ -117,7 +117,7 @@ namespace gridtools {
                 struct collect_indices<I,
                     std::index_sequence<Is...>,
                     std::tuple<First, Elems...>,
-                    std::enable_if_t<(std::is_placeholder<First>::value == 0), void>> {
+                    std::enable_if_t<std::is_placeholder_v<First> == 0, void>> {
                     using type =
                         typename collect_indices<I + 1, std::index_sequence<Is..., I>, std::tuple<Elems...>>::type;
                 };
@@ -126,7 +126,7 @@ namespace gridtools {
                 struct collect_indices<I,
                     ISeq,
                     std::tuple<First, Elems...>,
-                    std::enable_if_t<(std::is_placeholder<First>::value > 0), void>> {
+                    std::enable_if_t<(std::is_placeholder_v<First> > 0), void>> {
                     using type = typename collect_indices<I + 1, ISeq, std::tuple<Elems...>>::type;
                 };
 
@@ -140,13 +140,12 @@ namespace gridtools {
             struct contains_placeholders<std::tuple<>> : std::false_type {};
 
             template <typename T, typename... Ts>
-            struct contains_placeholders<std::tuple<T, Ts...>,
-                std::enable_if_t<(std::is_placeholder<T>::value == 0), void>>
+            struct contains_placeholders<std::tuple<T, Ts...>, std::enable_if_t<std::is_placeholder_v<T> == 0, void>>
                 : contains_placeholders<std::tuple<Ts...>>::type {};
 
             template <typename T, typename... Ts>
-            struct contains_placeholders<std::tuple<T, Ts...>,
-                std::enable_if_t<(std::is_placeholder<T>::value > 0), void>> : std::true_type {};
+            struct contains_placeholders<std::tuple<T, Ts...>, std::enable_if_t<(std::is_placeholder_v<T> > 0), void>>
+                : std::true_type {};
 
             /** @} */
 
@@ -228,15 +227,15 @@ namespace gridtools {
              * \param ro_stores Variadic pack with the data stores to associate to placeholders
              */
             template <typename... ReadOnly>
-            auto associate(ReadOnly &&... ro_stores) const -> bound_bc<BCApply,
+            auto associate(ReadOnly &&...ro_stores) const -> bound_bc<BCApply,
                 decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                     m_stores,
-                    std::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{})),
+                    std::make_index_sequence<std::tuple_size_v<decltype(m_stores)>>{})),
                 typename _impl::comm_indices<stores_type>::type> {
                 auto ro_store_tuple = std::forward_as_tuple(ro_stores...);
                 // we need to substitute the placeholders with the
                 auto full_list = _impl::substitute_placeholders(
-                    ro_store_tuple, m_stores, std::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{});
+                    ro_store_tuple, m_stores, std::make_index_sequence<std::tuple_size_v<decltype(m_stores)>>{});
 
                 return bound_bc<BCApply, decltype(full_list), typename _impl::comm_indices<stores_type>::type>{
                     m_bcapply, std::move(full_list)};
@@ -260,13 +259,13 @@ namespace gridtools {
          */
         template <typename BCApply, typename... DataStores>
         bound_bc<BCApply, std::tuple<std::decay_t<DataStores>...>, std::index_sequence_for<DataStores...>> bind_bc(
-            BCApply bc_apply, DataStores &&... stores) {
+            BCApply bc_apply, DataStores &&...stores) {
 
             // Concept checking on BCApply is not ready yet.
             // Check that the stores... are either data stores or placeholders
-            static_assert(
-                std::conjunction<std::bool_constant<storage::is_data_store_ptr<typename std::decay_t<DataStores>>::value or
-                                               std::is_placeholder<std::decay_t<DataStores>>::value>...>::value,
+            static_assert(std::conjunction<
+                              std::bool_constant<storage::is_data_store_ptr<typename std::decay_t<DataStores>>::value or
+                                                 std::is_placeholder<std::decay_t<DataStores>>::value>...>::value,
                 "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
             return {bc_apply, std::forward_as_tuple(stores...)};
         }

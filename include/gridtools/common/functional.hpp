@@ -46,7 +46,7 @@ namespace gridtools {
         template <typename T>
         struct ctor {
             template <typename... Args>
-            GT_TARGET GT_FORCE_INLINE constexpr T operator()(Args &&... args) const {
+            GT_TARGET GT_FORCE_INLINE constexpr T operator()(Args &&...args) const {
                 return {std::forward<Args>(args)...};
             }
         };
@@ -76,27 +76,11 @@ namespace gridtools {
             }
         };
 
-        template <class...>
-        struct overloaded_f;
-
-        template <class F>
-        struct overloaded_f<F> : F {
-            GT_TARGET GT_FORCE_INLINE constexpr overloaded_f(F f) : F(std::move(f)) {}
-            using F::operator();
+        template <class... Fs>
+        struct overload : Fs... {
+            constexpr GT_TARGET GT_FORCE_INLINE overload(Fs... fs) : Fs(std::move(fs))... {}
+            using Fs::operator()...;
         };
-
-        template <class F, class... Fs>
-        struct overloaded_f<F, Fs...> : F, overloaded_f<Fs...> {
-            GT_TARGET GT_FORCE_INLINE constexpr overloaded_f(F f, Fs... fs)
-                : F(std::move(f)), overloaded_f<Fs...>(std::move(fs)...) {}
-            using F::operator();
-            using overloaded_f<Fs...>::operator();
-        };
-
-        template <class... Funs>
-        GT_TARGET GT_FORCE_INLINE constexpr overloaded_f<Funs...> overload(Funs... funs) {
-            return {std::move(funs)...};
-        }
     }
     /** @} */
     /** @} */

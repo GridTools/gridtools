@@ -27,7 +27,7 @@ namespace gridtools {
 
             template <class Key, class T>
             struct generic_loop {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 T m_num_steps;
                 T m_step;
@@ -104,7 +104,7 @@ namespace gridtools {
 
             template <class Key, class T, ptrdiff_t Step>
             struct known_step_loop {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 T m_num_steps;
 
@@ -178,7 +178,7 @@ namespace gridtools {
 
             template <class Key, class T>
             struct known_step_loop<Key, T, 0> {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 T m_num_steps;
 
@@ -241,7 +241,7 @@ namespace gridtools {
 
             template <class Key, class T, T NumSteps>
             struct known_num_steps_loop {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 T m_step;
 
@@ -312,7 +312,7 @@ namespace gridtools {
 
             template <class Key, class T, ptrdiff_t NumSteps, ptrdiff_t Step>
             struct all_known_loop {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 struct loop_f {
@@ -376,7 +376,7 @@ namespace gridtools {
 
             template <class Key, class T, ptrdiff_t NumSteps>
             struct all_known_loop<Key, T, NumSteps, 0> {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 struct loop_f {
@@ -431,7 +431,7 @@ namespace gridtools {
 
             template <class Key, class T>
             struct all_known_loop<Key, T, 1, 0> {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 constexpr GT_FUNCTION Fun operator()(Fun &&fun) const {
@@ -459,7 +459,7 @@ namespace gridtools {
 
             template <class Key, class T>
             struct all_known_loop<Key, T, 0, 0> {
-                static_assert(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_signed_v<T>, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 constexpr GT_FUNCTION gridtools::host_device::noop operator()(Fun &&) const {
@@ -586,7 +586,7 @@ namespace gridtools {
             class T1,
             class T2,
             class T = std::common_type_t<T1, T2>,
-            std::enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
+            std::enable_if_t<std::is_integral_v<T1> && std::is_integral_v<T2>, int> = 0>
         constexpr GT_FUNCTION loop_impl_::generic_loop<Key, std::make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
             return {std::make_signed_t<T>(num_steps), step};
         }
@@ -596,7 +596,7 @@ namespace gridtools {
             class T2 = int,
             T2 Step = 1,
             class T = std::common_type_t<T1, T2>,
-            std::enable_if_t<std::is_integral<T1>::value, int> = 0>
+            std::enable_if_t<std::is_integral_v<T1>, int> = 0>
         constexpr GT_FUNCTION loop_impl_::known_step_loop<Key, std::make_signed_t<T>, Step> make_loop(
             T1 num_steps, std::integral_constant<T2, Step> = {}) {
             return {std::make_signed_t<T>(num_steps)};
@@ -607,7 +607,7 @@ namespace gridtools {
             T1 NumStepsV,
             class T2,
             class T = std::common_type_t<T1, T2>,
-            std::enable_if_t<std::is_integral<T1>::value && (NumStepsV > 1), int> = 0>
+            std::enable_if_t<std::is_integral_v<T1> && (NumStepsV > 1), int> = 0>
         constexpr GT_FUNCTION loop_impl_::known_num_steps_loop<Key, std::make_signed_t<T>, NumStepsV> make_loop(
             std::integral_constant<T1, NumStepsV>, T2 step) {
             return {step};
@@ -618,7 +618,7 @@ namespace gridtools {
             T1 NumStepsV,
             class T2,
             class T = std::common_type_t<T1, T2>,
-            std::enable_if_t<std::is_integral<T1>::value && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
+            std::enable_if_t<std::is_integral_v<T1> && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
         constexpr GT_FUNCTION loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, 0> make_loop(
             std::integral_constant<T1, NumStepsV>, T2) {
             return {};
@@ -631,8 +631,8 @@ namespace gridtools {
             T2 StepV = 1,
             class T = std::common_type_t<T1, T2>,
             std::enable_if_t<(NumStepsV >= 0), int> = 0>
-        constexpr
-            GT_FUNCTION loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
+        constexpr GT_FUNCTION
+            loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
             make_loop(std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
             return {};
         }
@@ -653,7 +653,7 @@ namespace gridtools {
          */
         template <class Ptr, class Strides, class OuterMostLoop, class... Loops>
         constexpr GT_FUNCTION auto make_range(
-            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops) {
+            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&...loops) {
             return loop_impl_::make_range(std::move(ptr),
                 strides,
                 loop_impl_::make_cursor(tuple<OuterMostLoop, Loops...>{

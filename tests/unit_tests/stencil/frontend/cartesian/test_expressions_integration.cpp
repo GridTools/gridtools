@@ -107,8 +107,8 @@ namespace {
         run_single_stage(test_functor(),
             naive(),
             env_t::make_grid(),
-            make_global_parameter(2.),
-            make_global_parameter(3.),
+            global_parameter(2.),
+            global_parameter(3.),
             out,
             positional<dim::i>());
         env_t::verify(0, out);

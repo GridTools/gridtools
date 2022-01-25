@@ -99,9 +99,8 @@ namespace gridtools {
                 struct item_generator<L<Key, PrimaryIndex, SecondaryIndices...>> {
                     template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
                     decltype(auto) operator()(Args const &args) const noexcept {
-                        static_assert(
-                            std::conjunction<
-                                std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value,
+                        static_assert(std::conjunction_v<
+                                          std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>,
                             GT_INTERNAL_ERROR);
                         assert((are_secondaries_equal_to_primary<SecondaryIndices...>(
                             tuple_util::get<PrimaryIndex::value>(args), args)));
@@ -377,8 +376,7 @@ namespace gridtools {
                 static_assert(std::conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
                 static_assert(meta::all<meta::mp_make<impl_::check_strides_of_the_same_kind,
-                                  meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>(),
-                    "");
+                        meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>());
 
                 tuple<Sids...> m_sids;
 

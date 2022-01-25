@@ -43,14 +43,14 @@ namespace gridtools {
         return impl_::default_precision_impl<T>::value;
     }
 
-    template <class T, std::enable_if_t<std::is_floating_point<T>::value, int> = 0>
+    template <class T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
     GT_FUNCTION bool expect_with_threshold(T expected, T actual, double precision = default_precision<T>()) {
         auto abs_error = math::fabs(expected - actual);
         auto abs_max = math::max(math::fabs(expected), math::fabs(actual));
         return abs_error < precision || abs_error < abs_max * precision;
     }
 
-    template <class T, std::enable_if_t<!std::is_floating_point<T>::value, int> = 0>
+    template <class T, std::enable_if_t<!std::is_floating_point_v<T>, int> = 0>
     GT_FUNCTION bool expect_with_threshold(T const &expected, T const &actual, double = 0) {
         return actual == expected;
     }

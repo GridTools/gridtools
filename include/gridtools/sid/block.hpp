@@ -38,12 +38,12 @@ namespace gridtools {
                     ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset);
             }
 
-            template <class Stride, class BlockSize, std::enable_if_t<!std::is_integral<Stride>::value, int> = 0>
+            template <class Stride, class BlockSize, std::enable_if_t<!std::is_integral_v<Stride>, int> = 0>
             blocked_stride<Stride, BlockSize> block_stride(Stride const &stride, BlockSize const &block_size) {
                 return {stride, block_size};
             }
 
-            template <class Stride, class BlockSize, std::enable_if_t<std::is_integral<Stride>::value, int> = 0>
+            template <class Stride, class BlockSize, std::enable_if_t<std::is_integral_v<Stride>, int> = 0>
             auto block_stride(Stride const &stride, BlockSize const &block_size) {
                 return stride * block_size;
             }
