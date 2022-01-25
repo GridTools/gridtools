@@ -13,7 +13,6 @@
 
 #include <gridtools/fn/backend2/naive.hpp>
 #include <gridtools/sid/synthetic.hpp>
-#include <gridtools/stencil/positional.hpp>
 
 namespace gridtools::fn {
     namespace {
