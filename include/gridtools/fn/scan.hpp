@@ -16,6 +16,7 @@
 #include "../common/functional.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta/is_instantiation_of.hpp"
 #include "../sid/concept.hpp"
 
@@ -25,7 +26,7 @@ namespace gridtools::fn {
         struct scan_pass {
             F m_f;
             Projector m_p;
-            constexpr scan_pass(F f, Projector p = {}) : m_f(f), m_p(p) {}
+            constexpr GT_FUNCTION scan_pass(F f, Projector p = {}) : m_f(f), m_p(p) {}
         };
 
         template <class T>
