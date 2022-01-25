@@ -17,6 +17,10 @@ if(TARGET _gridtools_cuda)
             SOURCES test_fn_backend_gpu.cu
             LIBRARIES _gridtools_cuda
             LABELS cuda)
+    gridtools_add_unit_test(test_fn_cartesian_gpu_cuda
+            SOURCES test_fn_cartesian_gpu.cu
+            LIBRARIES _gridtools_cuda
+            LABELS cuda)
     gridtools_add_unit_test(test_fn_scan_cuda
             SOURCES test_fn_scan.cu
             LIBRARIES _gridtools_cuda

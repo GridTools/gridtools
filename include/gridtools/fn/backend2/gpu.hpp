@@ -118,14 +118,14 @@ namespace gridtools::fn::backend {
             MakeIterator m_make_iterator;
 
             template <class Ptr, class Strides>
-            GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides) const {
-                StencilStage()(m_make_iterator(), std::move(ptr), strides);
+            GT_FUNCTION_DEVICE void operator()(Ptr &ptr, Strides const &strides) const {
+                StencilStage()(m_make_iterator(), ptr, strides);
             }
         };
 
         template <class BlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
         void apply_stencil_stage(
-            gpu<BlockSizes>, Sizes const &sizes, StencilStage, MakeIterator &&make_iterator, Composite &&composite) {
+            gpu<BlockSizes>, Sizes const &sizes, StencilStage, MakeIterator make_iterator, Composite &&composite) {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
 
@@ -133,18 +133,22 @@ namespace gridtools::fn::backend {
             cuda_util::launch(blocks,
                 threads,
                 0,
-                kernel<BlockSizes, decltype(ptr_holder), decltype(strides), stencil_fun_f<StencilStage, MakeIterator>>,
+                kernel<BlockSizes,
+                    Sizes,
+                    decltype(ptr_holder),
+                    decltype(strides),
+                    stencil_fun_f<StencilStage, MakeIterator>>,
                 sizes,
                 ptr_holder,
                 strides,
-                stencil_fun_f<StencilStage, MakeIterator>{std::forward(make_iterator)});
+                stencil_fun_f<StencilStage, MakeIterator>{std::move(make_iterator)});
         }
 
         template <class ColumnStage, class MakeIterator, class Seed>
         struct column_fun_f {
             MakeIterator m_make_iterator;
             Seed m_seed;
-            std::size_t m_v_size;
+            int m_v_size;
 
             template <class Ptr, class Strides>
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides) const {
@@ -162,7 +166,7 @@ namespace gridtools::fn::backend {
         void apply_column_stage(gpu<BlockSizes>,
             Sizes const &sizes,
             ColumnStage,
-            MakeIterator &&make_iterator,
+            MakeIterator make_iterator,
             Composite &&composite,
             Vertical,
             Seed seed) {
@@ -183,8 +187,7 @@ namespace gridtools::fn::backend {
                 h_sizes,
                 ptr_holder,
                 strides,
-                column_fun_f<ColumnStage, MakeIterator, Seed>{
-                    std::forward<MakeIterator>(make_iterator), std::move(seed), v_size});
+                column_fun_f<ColumnStage, MakeIterator, Seed>{std::move(make_iterator), std::move(seed), v_size});
         }
 
         template <class BlockSizes>

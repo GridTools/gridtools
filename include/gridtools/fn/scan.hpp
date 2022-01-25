@@ -77,10 +77,13 @@ namespace gridtools::fn {
 
         template <class... ColumnStages>
         struct merged_column_stage {
-            template <class Seed, class Ptr, class Strides>
-            GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
+            template <class Seed, class MakeIterator, class Ptr, class Strides>
+            GT_FUNCTION auto operator()(
+                Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 return tuple_util::host_device::fold(
-                    [&](auto acc, auto stage) { return stage(wstd::move(acc), size, ptr, strides); },
+                    [&](auto acc, auto stage) {
+                        return stage(wstd::move(acc), size, wstd::forward<MakeIterator>(make_iterator), ptr, strides);
+                    },
                     wstd::move(seed),
                     tuple(ColumnStages()...));
             }
