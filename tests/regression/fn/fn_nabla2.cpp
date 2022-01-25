@@ -38,7 +38,7 @@ constexpr auto nb_tuple_dot(Z const &z, Sign const &sign) {
     tuple_util::for_each(
         [&](auto offset) {
             auto shifted_z = shift(z, C(), offset);
-            auto shifted_sign = shift(sign, unstructured::dim::neighbor(), offset);
+            auto shifted_sign = shift(sign, C(), offset);
             if (can_deref(shifted_z) && can_deref(shifted_sign)) {
                 res = {get<0>(res) + get<0>(deref(shifted_z)) * deref(shifted_sign),
                     get<1>(res) + get<1>(deref(shifted_z)) * deref(shifted_sign)};
@@ -155,10 +155,9 @@ TEST(unstructured, nabla) {
     auto pp_s = sid::synthetic()
                     .set<property::origin>(sid::host::make_simple_ptr_holder(&pp[0][0]))
                     .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(K, 1_c));
-    auto sign_s =
-        sid::synthetic()
-            .set<property::origin>(sid::host::make_simple_ptr_holder(&sign[0][0]))
-            .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::make_values(n_v2e, 1_c));
+    auto sign_s = sid::synthetic()
+                      .set<property::origin>(sid::host::make_simple_ptr_holder(&sign[0][0]))
+                      .set<property::strides>(hymap::keys<vertex, v2e_t>::make_values(n_v2e, 1_c));
     auto vol_s = sid::synthetic()
                      .set<property::origin>(sid::host::make_simple_ptr_holder(&vol[0]))
                      .set<property::strides>(hymap::keys<vertex>::make_values(1_c));

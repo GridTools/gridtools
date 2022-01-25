@@ -101,9 +101,20 @@ namespace gridtools::fn {
             return shifted;
         }
 
+        template <class Stride, class Tag, class = void>
+        struct has_horizontal_stride : std::false_type {};
+
+        template <class Stride, class Tag>
+        struct has_horizontal_stride<Stride,
+            Tag,
+            std::enable_if_t<!std::is_same_v<std::decay_t<decltype(at_key<Tag>(std::declval<Stride>()))>,
+                integral_constant<int, 0>>>> : std::true_type {};
+
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
         GT_FUNCTION auto shift(iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
-            if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>()) {
+            using stride_t = std::decay_t<decltype(sid::get_stride<Dim>(std::declval<Strides>()))>;
+            using has_horizontal_stride_t = has_horizontal_stride<stride_t, Tag>;
+            if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>() && !has_horizontal_stride_t()) {
                 return shift(horizontal_shift(it, Dim(), offset), offsets...);
             } else {
                 return shift(non_horizontal_shift(it, Dim(), offset), offsets...);
