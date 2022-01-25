@@ -1,3 +1,6 @@
+add_executable(fn_nabla2 fn_nabla2.cpp)
+target_link_libraries(fn_nabla2 gtest_main gmock gridtools)
+add_test(NAME fn_nabla2 COMMAND $<TARGET_FILE:fn_nabla2>)
 if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     add_executable(fn_lap fn_lap.cpp)
     target_link_libraries(fn_lap gtest_main gmock gridtools)
