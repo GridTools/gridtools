@@ -136,16 +136,6 @@ namespace gridtools {
                 cached_allocator() = default;
                 cached_allocator(Impl impl) : cached_allocator::allocator({std::move(impl)}) {}
             };
-
-            template <class Impl>
-            allocator<Impl> make_allocator(Impl impl) {
-                return {std::move(impl)};
-            }
-
-            template <class Impl>
-            cached_allocator<Impl> make_cached_allocator(Impl impl) {
-                return {std::move(impl)};
-            }
         }
     } // namespace sid
 } // namespace gridtools
