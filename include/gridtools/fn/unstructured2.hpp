@@ -10,6 +10,7 @@
 #include "../common/hymap.hpp"
 #include "../sid/concept.hpp"
 #include "../stencil/positional.hpp"
+#include "./backend2/common.hpp"
 #include "./executor.hpp"
 
 namespace gridtools::fn {
@@ -21,6 +22,7 @@ namespace gridtools::fn {
     namespace unstructured_impl_ {
         using gridtools::stencil::positional;
         namespace dim = unstructured::dim;
+        using backend::data_type;
 
         template <class Tag, class From, class To, class PtrHolder, class Strides, int MaxNeighbors>
         struct connectivity_table {
@@ -129,9 +131,16 @@ namespace gridtools::fn {
         template <class Backend, class Domain>
         using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes), 1>;
 
-        template <class Backend, class Domain>
+        template <class Backend, class Domain, class TmpAllocator>
         struct backend {
             Domain m_domain;
+            TmpAllocator m_allocator;
+
+            template <class Sid>
+            auto make_tmp_like(Sid const &) {
+                using element_t = sid::element_type<Sid>;
+                return allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<element_t>());
+            }
 
             auto stencil_executor() const {
                 using horizontal_t = meta::at_c<get_keys<std::remove_reference_t<decltype(m_domain.m_sizes)>>, 0>;
@@ -144,7 +153,8 @@ namespace gridtools::fn {
 
         template <class Backend, class Tables, class Sizes>
         auto make_backend(Backend, domain<Tables, Sizes> const &d) {
-            return backend<Backend, domain<Tables, Sizes>>{d};
+            auto allocator = tmp_allocator(Backend());
+            return backend<Backend, domain<Tables, Sizes>, decltype(allocator)>{d, std::move(allocator)};
         }
     } // namespace unstructured_impl_
 
