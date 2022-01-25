@@ -32,7 +32,7 @@ namespace gridtools {
          * The use of identity creates a non-deduced form, so that the explicit template argument must be supplied
          */
         template <class T>
-        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR T implicit_cast(typename meta::lazy::id<T>::type x) {
+        GT_TARGET GT_FORCE_INLINE constexpr T implicit_cast(typename meta::lazy::id<T>::type x) {
             return x;
         }
     }

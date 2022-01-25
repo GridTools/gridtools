@@ -11,6 +11,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <utility>
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
@@ -465,7 +466,7 @@ namespace gridtools {
                                      !is_default_shiftable<T, std::decay_t<Stride>>::value,
                     int> = 0>
             GT_FUNCTION decltype(auto) shift(T &obj, Stride &&stride, Offset offset) {
-                return sid_shift(obj, wstd::forward<Stride>(stride), offset);
+                return sid_shift(obj, std::forward<Stride>(stride), offset);
             }
 
             /**
@@ -565,7 +566,7 @@ namespace gridtools {
                 !(has_dec_assignment<T, Decayed>::value &&
                     (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
             shift(T &obj, Stride &&stride, Offset offset) {
-                obj += wstd::forward<Stride>(stride) * offset;
+                obj += std::forward<Stride>(stride) * offset;
             }
 
             // END `shift` PART
@@ -692,8 +693,8 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
-            return gridtools::host_device::at_key_with_default<Key, default_stride>(wstd::forward<Strides>(strides));
+        constexpr GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
+            return gridtools::host_device::at_key_with_default<Key, default_stride>(std::forward<Strides>(strides));
         }
 
         /**
@@ -704,16 +705,16 @@ namespace gridtools {
             class Dim,
             class Strides,
             std::enable_if_t<has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride_element(Strides &&strides) {
+        constexpr GT_FUNCTION decltype(auto) get_stride_element(Strides &&strides) {
             return gridtools::host_device::at_key<Key>(
-                gridtools::host_device::at_key<Dim>(wstd::forward<Strides>(strides)));
+                gridtools::host_device::at_key<Dim>(std::forward<Strides>(strides)));
         }
 
         template <class Key,
             class Dim,
             class Strides,
             std::enable_if_t<!has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
+        constexpr GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
             return {};
         }
 
@@ -725,12 +726,12 @@ namespace gridtools {
         template <class Key, class Bounds>
         decltype(auto) get_lower_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
-                integral_constant<int_t, std::numeric_limits<int_t>::min()>>(wstd::forward<Bounds>(bounds));
+                integral_constant<int_t, std::numeric_limits<int_t>::min()>>(std::forward<Bounds>(bounds));
         }
         template <class Key, class Bounds>
         decltype(auto) get_upper_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
-                integral_constant<int_t, std::numeric_limits<int_t>::max()>>(wstd::forward<Bounds>(bounds));
+                integral_constant<int_t, std::numeric_limits<int_t>::max()>>(std::forward<Bounds>(bounds));
         }
 
         template <class T, class Stride, class Offset>

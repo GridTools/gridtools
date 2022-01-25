@@ -77,7 +77,7 @@ namespace gridtools {
 
         struct add_2_f {
             template <class T>
-            GT_FUNCTION GT_CONSTEXPR T operator()(T val) const {
+            GT_FUNCTION constexpr T operator()(T val) const {
                 return val + 2;
             }
         };
@@ -130,7 +130,7 @@ namespace gridtools {
 
         struct add_index_f {
             template <size_t I, class T>
-            GT_FUNCTION GT_CONSTEXPR T operator()(T val) const {
+            GT_FUNCTION constexpr T operator()(T val) const {
                 return val + I;
             }
         };

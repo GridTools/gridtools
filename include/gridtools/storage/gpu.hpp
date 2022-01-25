@@ -19,7 +19,6 @@
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
-#include "../common/utility.hpp"
 
 namespace gridtools {
     namespace storage {
@@ -57,8 +56,8 @@ namespace gridtools {
 
                 template <class... Args>
                 GT_FUNCTION_DEVICE auto operator()(Args &&... args) const
-                    -> decltype(m_ptr[m_info.index(wstd::forward<Args>(args)...)]) {
-                    return m_ptr[m_info.index(wstd::forward<Args>(args)...)];
+                    -> decltype(m_ptr[m_info.index(std::forward<Args>(args)...)]) {
+                    return m_ptr[m_info.index(std::forward<Args>(args)...)];
                 }
 
                 GT_FUNCTION_DEVICE decltype(auto) operator()(array<int, Info::ndims> const &arg) const {

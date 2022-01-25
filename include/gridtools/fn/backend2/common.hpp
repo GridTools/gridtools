@@ -17,7 +17,7 @@
 namespace gridtools::fn::backend::common {
 
     template <class Dims, class Sizes>
-    GT_CONSTEXPR GT_FUNCTION auto make_loops(Sizes const &sizes) {
+    constexpr GT_FUNCTION auto make_loops(Sizes const &sizes) {
         return tuple_util::host_device::fold(
             [&](auto outer, auto dim) {
                 return [outer = std::move(outer),
@@ -29,7 +29,7 @@ namespace gridtools::fn::backend::common {
     }
 
     template <class Sizes>
-    GT_CONSTEXPR GT_FUNCTION auto make_loops(Sizes const &sizes) {
+    constexpr GT_FUNCTION auto make_loops(Sizes const &sizes) {
         return make_loops<get_keys<Sizes>>(sizes);
     }
 

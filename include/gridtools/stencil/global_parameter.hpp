@@ -26,19 +26,19 @@ namespace gridtools {
 
                 T m_value;
 
-                GT_CONSTEXPR GT_FUNCTION global_parameter operator()() const { return *this; }
-                GT_CONSTEXPR GT_FUNCTION T operator*() const { return m_value; }
+                constexpr GT_FUNCTION global_parameter operator()() const { return *this; }
+                constexpr GT_FUNCTION T operator*() const { return m_value; }
 
-                friend GT_FUNCTION global_parameter operator+(global_parameter obj, ptr_diff) { return obj; }
-                friend global_parameter sid_get_origin(global_parameter const &obj) { return obj; }
-                friend ptr_diff sid_get_ptr_diff(global_parameter) { return {}; }
+                friend constexpr GT_FUNCTION global_parameter operator+(global_parameter obj, ptr_diff) { return obj; }
+                friend constexpr global_parameter sid_get_origin(global_parameter const &obj) { return obj; }
+                friend constexpr ptr_diff sid_get_ptr_diff(global_parameter) { return {}; }
             };
         } // namespace global_parameter_impl_
 
         using global_parameter_impl_::global_parameter;
 
         template <class T>
-        global_parameter<T> make_global_parameter(T val) {
+        constexpr global_parameter<T> make_global_parameter(T val) {
             return {std::move(val)};
         }
     } // namespace stencil

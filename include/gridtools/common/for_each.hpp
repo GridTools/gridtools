@@ -30,7 +30,7 @@ namespace gridtools {
             template <template <class...> class L, class... Ts>
             struct for_each_f<L<Ts...>> {
                 template <class F>
-                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void operator()(F &&f) const {
+                GT_TARGET GT_FORCE_INLINE constexpr void operator()(F &&f) const {
                     (..., f(Ts()));
                 }
             };
