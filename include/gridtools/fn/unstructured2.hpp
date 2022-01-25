@@ -24,14 +24,13 @@ namespace gridtools::fn {
         namespace dim = unstructured::dim;
         using backend::data_type;
 
-        template <class Tag, class From, class To, class PtrHolder, class Strides, int MaxNeighbors>
+        template <class Tag, class From, class To, class PtrHolder, class Strides>
         struct connectivity_table {
             PtrHolder m_ptr_holder;
             Strides m_strides;
             using from_t = From;
             using to_t = To;
             using tag_t = Tag;
-            using max_neighbors_t = integral_constant<int, MaxNeighbors>;
         };
 
         template <class Tables, class Sizes>
@@ -40,11 +39,11 @@ namespace gridtools::fn {
             Sizes m_sizes;
         };
 
-        template <class Tag, class From, class To, class Sid, int I>
-        auto connectivity(Sid const &s, integral_constant<int, I>) {
+        template <class Tag, class From, class To, class Sid>
+        auto connectivity(Sid const &s) {
             auto ptr_holder = sid::get_origin(s);
             auto strides = sid::get_strides(s);
-            return connectivity_table<Tag, From, To, decltype(ptr_holder), decltype(strides), I>{
+            return connectivity_table<Tag, From, To, decltype(ptr_holder), decltype(strides)>{
                 std::move(ptr_holder), std::move(strides)};
         }
 
@@ -65,17 +64,18 @@ namespace gridtools::fn {
         };
 
         template <class Tag, class Ptr, class Strides, class Domain>
-        bool can_deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
+        GT_FUNCTION constexpr bool can_deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return it.m_index != -1;
         }
 
         template <class Tag, class Ptr, class Strides, class Domain>
-        auto deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
+        GT_FUNCTION constexpr auto deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return *it.m_ptr;
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
-        GT_FUNCTION auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset offset) {
+        GT_FUNCTION constexpr auto horizontal_shift(
+            iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset offset) {
             auto const &table = at_key<Conn>(it.m_domain.m_tables);
             using from_t = typename std::remove_reference_t<decltype(table)>::from_t;
             using to_t = typename std::remove_reference_t<decltype(table)>::to_t;
@@ -95,7 +95,8 @@ namespace gridtools::fn {
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset>
-        GT_FUNCTION auto non_horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset) {
+        GT_FUNCTION constexpr auto non_horizontal_shift(
+            iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset) {
             auto shifted = it;
             sid::shift(shifted.m_ptr, at_key<Tag>(sid::get_stride<Dim>(shifted.m_strides)), offset);
             return shifted;
@@ -111,7 +112,8 @@ namespace gridtools::fn {
                 integral_constant<int, 0>>>> : std::true_type {};
 
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
-        GT_FUNCTION auto shift(iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
+        GT_FUNCTION constexpr auto shift(
+            iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
             using stride_t = std::decay_t<decltype(sid::get_stride<Dim>(std::declval<Strides>()))>;
             using has_horizontal_stride_t = has_horizontal_stride<stride_t, Tag>;
             if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>() && !has_horizontal_stride_t()) {
@@ -121,8 +123,20 @@ namespace gridtools::fn {
             }
         }
         template <class Tag, class Ptr, class Strides, class Domain>
-        GT_FUNCTION auto shift(iterator<Tag, Ptr, Strides, Domain> const &it) {
+        GT_FUNCTION constexpr auto shift(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return it;
+        }
+
+        template <class Conn, class F, class Init, class... Tags, class... Ptrs, class... Strides, class... Domains>
+        GT_FUNCTION constexpr auto reduce(Conn, F f, Init init, iterator<Tags, Ptrs, Strides, Domains> const &...its) {
+            auto res = std::move(init);
+            tuple_util::for_each(
+                [&](auto offset) {
+                    if ((... && can_deref(shift(its, Conn(), offset))))
+                        res = f(res, deref(shift(its, Conn(), offset))...);
+                },
+                meta::rename<tuple, meta::make_indices_c<Conn::max_neighbors>>());
+            return res;
         }
 
         template <class Domain>

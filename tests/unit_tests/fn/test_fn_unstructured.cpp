@@ -19,33 +19,28 @@ namespace gridtools::fn {
         using namespace literals;
         using sid::property;
 
-        template <class C, int MaxNeighbors>
+        template <class C>
         struct stencil {
             constexpr auto operator()() const {
-                return [](auto const &in) {
-                    int sum = 0;
-                    tuple_util::for_each(
-                        [&](auto offset) {
-                            if (can_deref(shift(in, C(), offset)))
-                                sum += deref(shift(in, C(), offset));
-                        },
-                        meta::rename<tuple, meta::make_indices_c<MaxNeighbors>>());
-                    return sum;
-                };
+                return [](auto const &in) { return reduce(C(), std::plus(), 0, in); };
             }
         };
 
         struct vertex {};
         struct edge {};
-        struct v2v {};
-        struct v2e {};
+        struct v2v {
+            static constexpr int max_neighbors = 3;
+        };
+        struct v2e {
+            static constexpr int max_neighbors = 2;
+        };
 
         TEST(unstructured, v2v_sum) {
             auto apply_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, stencil<v2v, 3>(), 1_c);
+                executor().arg(out).arg(in).assign(0_c, stencil<v2v>(), 1_c);
             };
             auto fencil = [&](auto const &v2v_table, int nvertices, int nlevels, auto &out, auto const &in) {
-                auto v2v_conn = connectivity<v2v, vertex, vertex>(v2v_table, 3_c);
+                auto v2v_conn = connectivity<v2v, vertex, vertex>(v2v_table);
                 auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2v_conn);
                 auto backend = make_backend(backend::naive(), domain);
                 apply_stencil(backend.stencil_executor(), out, in);
@@ -86,10 +81,10 @@ namespace gridtools::fn {
 
         TEST(unstructured, v2e_sum) {
             auto apply_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, stencil<v2e, 2>(), 1_c);
+                executor().arg(out).arg(in).assign(0_c, stencil<v2e>(), 1_c);
             };
             auto fencil = [&](auto const &v2e_table, int nvertices, int nlevels, auto &out, auto const &in) {
-                auto v2e_conn = connectivity<v2e, vertex, edge>(v2e_table, 3_c);
+                auto v2e_conn = connectivity<v2e, vertex, edge>(v2e_table);
                 auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2e_conn);
                 auto backend = make_backend(backend::naive(), domain);
                 apply_stencil(backend.stencil_executor(), out, in);

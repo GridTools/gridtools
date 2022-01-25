@@ -19,44 +19,19 @@ using namespace fn;
 using namespace literals;
 using sid::property;
 
-template <class C, int MaxNeighbors, class It>
-constexpr auto nb_sum(It const &it) {
-    double sum = 0;
-    tuple_util::for_each(
-        [&](auto offset) {
-            auto shifted = shift(it, C(), offset);
-            if (can_deref(shifted))
-                sum += deref(shifted);
-        },
-        meta::rename<tuple, meta::make_indices_c<MaxNeighbors>>());
-    return sum;
-}
-
-template <class C, int MaxNeighbors, class Z, class Sign>
-constexpr auto nb_tuple_dot(Z const &z, Sign const &sign) {
-    tuple<double, double> res = {0.0, 0.0};
-    tuple_util::for_each(
-        [&](auto offset) {
-            auto shifted_z = shift(z, C(), offset);
-            auto shifted_sign = shift(sign, C(), offset);
-            if (can_deref(shifted_z) && can_deref(shifted_sign)) {
-                res = {get<0>(res) + get<0>(deref(shifted_z)) * deref(shifted_sign),
-                    get<1>(res) + get<1>(deref(shifted_z)) * deref(shifted_sign)};
-            }
-        },
-        meta::rename<tuple, meta::make_indices_c<MaxNeighbors>>());
-    return res;
-}
-
-struct e2v_t {};
-struct v2e_t {};
+struct e2v_t {
+    static constexpr int max_neighbors = 2;
+};
+struct v2e_t {
+    static constexpr int max_neighbors = 6;
+};
 struct vertex {};
 struct edge {};
 
 struct zavg_stencil {
     constexpr auto operator()() const {
         return [](auto const &pp, auto const &s) -> tuple<double, double> {
-            auto tmp = nb_sum<e2v_t, 2>(pp) / 2;
+            auto tmp = reduce(e2v_t(), std::plus(), 0.0, pp) / 2;
             auto ss = deref(s);
             return {tmp * get<0>(ss), tmp * get<1>(ss)};
         };
@@ -66,7 +41,14 @@ struct zavg_stencil {
 struct nabla_stencil {
     constexpr auto operator()() const {
         return [](auto const &zavg, auto const &sign, auto const &vol) -> tuple<double, double> {
-            auto tmp = nb_tuple_dot<v2e_t, 6>(zavg, sign);
+            auto tmp = reduce(
+                v2e_t(),
+                [](auto acc, auto const &zavg, auto const &sign) {
+                    return tuple(get<0>(acc) + get<0>(zavg) * sign, get<1>(acc) + get<1>(zavg) * sign);
+                },
+                tuple(0.0, 0.0),
+                zavg,
+                sign);
             auto v = deref(vol);
             return {get<0>(tmp) / v, get<1>(tmp) / v};
         };
@@ -135,8 +117,8 @@ TEST(unstructured, nabla) {
                       auto const &s,
                       auto const &sign,
                       auto const &vol) {
-        auto v2e_conn = connectivity<v2e_t, vertex, edge>(v2e_table, n_v2e);
-        auto e2v_conn = connectivity<e2v_t, edge, vertex>(e2v_table, n_e2v);
+        auto v2e_conn = connectivity<v2e_t, vertex, edge>(v2e_table);
+        auto e2v_conn = connectivity<e2v_t, edge, vertex>(e2v_table);
         auto edge_domain = unstructured_domain<edge>(n_edges, K, e2v_conn);
         auto vertex_domain = unstructured_domain<vertex>(n_vertices, K, v2e_conn);
         auto edge_backend = make_backend(backend::naive(), edge_domain);
