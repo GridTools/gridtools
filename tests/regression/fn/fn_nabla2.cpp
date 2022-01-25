@@ -131,7 +131,6 @@ TEST(unstructured, nabla) {
     auto fencil = [&](auto const &v2e_table,
                       auto const &e2v_table,
                       auto &nabla,
-                      auto &zavg,
                       auto const &pp,
                       auto const &s,
                       auto const &sign,
@@ -142,7 +141,7 @@ TEST(unstructured, nabla) {
         auto vertex_domain = unstructured_domain<vertex>(n_vertices, K, v2e_conn);
         auto edge_backend = make_backend(backend::naive(), edge_domain);
         auto vertex_backend = make_backend(backend::naive(), vertex_domain);
-        // auto zavg = edge_backend.make_tmp_like(nabla);
+        auto zavg = edge_backend.make_tmp_like(nabla);
         apply_zavg(edge_backend.stencil_executor(), zavg, pp, s);
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };
@@ -168,16 +167,7 @@ TEST(unstructured, nabla) {
                         .set<property::origin>(sid::host::make_simple_ptr_holder(&actual[0][0]))
                         .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(K, 1_c));
 
-    tuple<double, double> zavgvals[n_edges][K] = {};
-    auto zavg_s = sid::synthetic()
-                      .set<property::origin>(sid::host::make_simple_ptr_holder(&zavgvals[0][0]))
-                      .set<property::strides>(hymap::keys<edge, unstructured::dim::k>::make_values(K, 1_c));
-    fencil(v2e_s, e2v_s, actual_s, zavg_s, pp_s, s_s, sign_s, vol_s);
-
-    for (int h = 0; h < n_edges; ++h)
-        for (int v = 0; v < K; ++v)
-            tuple_util::for_each(
-                [](auto actual, auto expected) { EXPECT_DOUBLE_EQ(actual, expected); }, zavgvals[h][v], zavg(h, v));
+    fencil(v2e_s, e2v_s, actual_s, pp_s, s_s, sign_s, vol_s);
 
     for (int h = 0; h < n_vertices; ++h)
         for (int v = 0; v < K; ++v)
