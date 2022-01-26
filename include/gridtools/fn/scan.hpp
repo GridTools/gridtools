@@ -52,17 +52,18 @@ namespace gridtools::fn {
                 auto const &v_stride = sid::get_stride<Vertical>(strides);
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };
                 auto next = [&](auto acc, auto pass) {
+                    using acc_t = decltype(acc);
                     if constexpr (is_scan_pass<decltype(pass)>()) {
                         // scan
-                        auto res =
-                            pass.m_f(std::move(acc), MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res = pass.m_f(static_cast<acc_t &&>(acc),
+                            MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
                         *host_device::at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
                         inc();
                         return res;
                     } else {
                         // fold
-                        auto res =
-                            pass(std::move(acc), MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res = pass(static_cast<acc_t &&>(acc),
+                            MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
                         inc();
                         return res;
                     }
