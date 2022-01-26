@@ -25,6 +25,10 @@ if(TARGET _gridtools_cuda)
             SOURCES test_fn_scan.cu
             LIBRARIES _gridtools_cuda
             LABELS cuda)
+    gridtools_add_unit_test(test_fn_unstructured_gpu_cuda
+            SOURCES test_fn_unstructured_gpu.cu
+            LIBRARIES _gridtools_cuda
+            LABELS cuda)
     gridtools_add_unit_test(test_extents_cuda
         SOURCES test_extents.cu
         LIBRARIES _gridtools_cuda
