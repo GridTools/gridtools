@@ -41,7 +41,7 @@ namespace gridtools::fn {
             template <class Ptr, class Strides>
             GT_FUNCTION auto operator()(Ptr ptr, Strides strides) const {
                 using vdim_t = integral_constant<int, 0>;
-                return column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>()(tuple(42, 1), 5, ptr, strides);
+                return column_stage<vdim_t, sum_scan, 0, 1>()(tuple(42, 1), 5, make_iterator_mock()(), ptr, strides);
             }
         };
 
