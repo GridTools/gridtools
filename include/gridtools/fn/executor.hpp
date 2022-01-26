@@ -40,9 +40,9 @@ namespace gridtools::fn {
             }
 
             template <class Arg>
-            auto arg(Arg arg) && {
+            auto arg(Arg &&arg) && {
                 assert(m_active);
-                auto args = tuple_util::deep_copy(tuple_util::push_back(std::move(m_args), std::move(arg)));
+                auto args = tuple_util::push_back(std::move(m_args), std::forward<Arg>(arg));
                 m_active = false;
                 return executor<MakeSpec, RunSpecs, Domain, MakeIterator, decltype(args), Specs>{
                     std::move(m_domain), std::move(m_make_iterator), std::move(args), std::move(m_specs)};
