@@ -49,7 +49,7 @@ namespace gridtools::fn {
 
         template <class Horizontal, class... Connectivities>
         auto unstructured_domain(
-            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &...conns) {
+            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &... conns) {
             auto table_map = hymap::keys<typename Connectivities::tag_t...>::make_values(conns...);
             auto sizes = hymap::keys<Horizontal, dim::k>::make_values(horizontal_size, vertical_size);
             return domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
@@ -128,7 +128,7 @@ namespace gridtools::fn {
         }
 
         template <class Conn, class F, class Init, class... Tags, class... Ptrs, class... Strides, class... Domains>
-        GT_FUNCTION constexpr auto reduce(Conn, F f, Init init, iterator<Tags, Ptrs, Strides, Domains> const &...its) {
+        GT_FUNCTION constexpr auto reduce(Conn, F f, Init init, iterator<Tags, Ptrs, Strides, Domains> const &... its) {
             auto res = std::move(init);
             tuple_util::for_each(
                 [&](auto offset) {
@@ -169,9 +169,10 @@ namespace gridtools::fn {
 
             auto stencil_executor() const {
                 using horizontal_t = meta::at_c<get_keys<std::remove_reference_t<decltype(m_domain.m_sizes)>>, 0>;
+                static const auto index = positional<horizontal_t>();
                 return [&] {
                     auto exec = stencil_exec_t<Backend, Domain>{m_domain.m_sizes, make_iterator<Domain>{m_domain}};
-                    return std::move(exec).arg(positional<horizontal_t>());
+                    return std::move(exec).arg(index);
                 };
             }
         };
