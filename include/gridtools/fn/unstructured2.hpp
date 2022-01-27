@@ -108,15 +108,15 @@ namespace gridtools::fn {
         template <class Stride, class Tag>
         struct has_horizontal_stride<Stride,
             Tag,
-            std::enable_if_t<!std::is_same_v<std::decay_t<decltype(at_key<Tag>(std::declval<Stride>()))>,
-                integral_constant<int, 0>>>> : std::true_type {};
+            std::enable_if_t<
+                !is_integral_constant_of<std::decay_t<decltype(at_key<Tag>(std::declval<Stride>()))>, 0>()>>
+            : std::true_type {};
 
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
         GT_FUNCTION constexpr auto shift(
             iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
             using stride_t = std::decay_t<decltype(sid::get_stride<Dim>(std::declval<Strides>()))>;
-            using has_horizontal_stride_t = has_horizontal_stride<stride_t, Tag>;
-            if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>() && !has_horizontal_stride_t()) {
+            if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>() && !has_horizontal_stride<stride_t, Tag>()) {
                 return shift(horizontal_shift(it, Dim(), offset), offsets...);
             } else {
                 return shift(non_horizontal_shift(it, Dim(), offset), offsets...);
@@ -128,7 +128,7 @@ namespace gridtools::fn {
         }
 
         template <class Conn, class F, class Init, class... Tags, class... Ptrs, class... Strides, class... Domains>
-        GT_FUNCTION constexpr auto reduce(Conn, F f, Init init, iterator<Tags, Ptrs, Strides, Domains> const &... its) {
+        GT_FUNCTION constexpr auto reduce(Conn, F f, Init init, iterator<Tags, Ptrs, Strides, Domains> const &...its) {
             auto res = std::move(init);
             tuple_util::for_each(
                 [&](auto offset) {
