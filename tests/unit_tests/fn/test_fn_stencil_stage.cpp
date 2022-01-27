@@ -49,15 +49,13 @@ namespace gridtools::fn {
             auto ptr = sid::get_origin(composite)();
             auto strides = sid::get_strides(composite);
 
-            stencil_stage<stencil, make_iterator_mock, 0, 1> ss;
-            ss(ptr, strides);
+            stencil_stage<stencil, 0, 1> ss;
+            ss(make_iterator_mock()(), ptr, strides);
             EXPECT_EQ(in[0], 42);
             EXPECT_EQ(out[0], 84);
 
-            merged_stencil_stage<stencil_stage<stencil, make_iterator_mock, 1, 0>,
-                stencil_stage<stencil, make_iterator_mock, 0, 1>>
-                mss;
-            mss(ptr, strides);
+            merged_stencil_stage<stencil_stage<stencil, 1, 0>, stencil_stage<stencil, 0, 1>> mss;
+            mss(make_iterator_mock()(), ptr, strides);
             EXPECT_EQ(in[0], 168);
             EXPECT_EQ(out[0], 336);
         }
