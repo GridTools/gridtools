@@ -53,8 +53,7 @@ namespace gridtools::fn {
 
         TEST(run, stencils) {
             using backend_t = backend::naive;
-            using stages_specs_t = meta::list<stencil_stage<stencil, make_iterator_mock, 1, 2>,
-                stencil_stage<stencil, make_iterator_mock, 0, 1>>;
+            using stages_specs_t = meta::list<stencil_stage<stencil, 1, 2>, stencil_stage<stencil, 0, 1>>;
             auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
 
             auto alloc = tmp_allocator(backend_t());
@@ -63,7 +62,7 @@ namespace gridtools::fn {
                 for (int j = 0; j < 3; ++j)
                     c[i][j] = 3 * i + j;
 
-            run_stencils(backend_t(), stages_specs_t(), domain, std::forward_as_tuple(a, b, c));
+            run_stencils(backend_t(), stages_specs_t(), make_iterator_mock(), domain, std::forward_as_tuple(a, b, c));
 
             for (int i = 0; i < 2; ++i)
                 for (int j = 0; j < 3; ++j) {
@@ -75,8 +74,8 @@ namespace gridtools::fn {
 
         TEST(run, scans) {
             using backend_t = backend::naive;
-            using stages_specs_t = meta::list<column_stage<int_t<1>, fwd_sum_scan, make_iterator_mock, 1, 2>,
-                column_stage<int_t<1>, bwd_sum_scan, make_iterator_mock, 0, 1>>;
+            using stages_specs_t =
+                meta::list<column_stage<int_t<1>, fwd_sum_scan, 1, 2>, column_stage<int_t<1>, bwd_sum_scan, 0, 1>>;
             auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
 
             auto alloc = tmp_allocator(backend_t());
@@ -87,6 +86,7 @@ namespace gridtools::fn {
 
             run_vertical(backend_t(),
                 stages_specs_t(),
+                make_iterator_mock(),
                 domain,
                 int_t<1>(),
                 std::forward_as_tuple(a, b, c),
