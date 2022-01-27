@@ -50,7 +50,7 @@ namespace gridtools::fn {
             auto v2v_conn =
                 sid::synthetic()
                     .set<property::origin>(sid::host::make_simple_ptr_holder(&v2v_table[0][0]))
-                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::values(3_c, 1_c));
+                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::make_values(3_c, 1_c));
 
             int in[3][5], out[3][5] = {};
             for (int v = 0; v < 3; ++v)
@@ -60,7 +60,7 @@ namespace gridtools::fn {
             auto as_synthetic = [](int x[3][5]) {
                 return sid::synthetic()
                     .set<property::origin>(sid::host::make_simple_ptr_holder(&x[0][0]))
-                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::values(5_c, 1_c));
+                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(5_c, 1_c));
             };
             auto in_s = as_synthetic(in);
             auto out_s = as_synthetic(out);
@@ -94,7 +94,7 @@ namespace gridtools::fn {
             auto v2e_conn =
                 sid::synthetic()
                     .set<property::origin>(sid::host::make_simple_ptr_holder(&v2e_table[0][0]))
-                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::values(2_c, 1_c));
+                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::make_values(2_c, 1_c));
 
             int in[3][5], out[3][5] = {};
             for (int e = 0; e < 3; ++e)

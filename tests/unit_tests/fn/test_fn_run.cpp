@@ -54,7 +54,7 @@ namespace gridtools::fn {
         TEST(run, stencils) {
             using backend_t = backend::naive;
             using stages_specs_t = meta::list<stencil_stage<stencil, 1, 2>, stencil_stage<stencil, 0, 1>>;
-            auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
+            auto domain = hymap::keys<int_t<0>, int_t<1>>::make_values(2_c, 3_c);
 
             auto alloc = tmp_allocator(backend_t());
             int a[2][3] = {}, b[2][3] = {}, c[2][3];
@@ -76,7 +76,7 @@ namespace gridtools::fn {
             using backend_t = backend::naive;
             using stages_specs_t =
                 meta::list<column_stage<int_t<1>, fwd_sum_scan, 1, 2>, column_stage<int_t<1>, bwd_sum_scan, 0, 1>>;
-            auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
+            auto domain = hymap::keys<int_t<0>, int_t<1>>::make_values(2_c, 3_c);
 
             auto alloc = tmp_allocator(backend_t());
             int a[2][3] = {}, b[2][3] = {}, c[2][3];
