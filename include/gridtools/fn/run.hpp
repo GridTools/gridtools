@@ -24,15 +24,6 @@ namespace gridtools::fn {
             return tuple_util::convert_to<keys_t::template values>(std::forward<Sids>(sids));
         }
 
-        template <class T>
-        struct is_stencil_stage : std::false_type {};
-
-        template <class Stencil, int Out, int... Ins>
-        struct is_stencil_stage<stencil_stage<Stencil, Out, Ins...>> : std::true_type {};
-
-        template <class... Stages>
-        struct is_stencil_stage<merged_stencil_stage<Stages...>> : std::true_type {};
-
         template <class Backend, class StageSpecs, class MakeIterator, class Domain, class Sids>
         void run_stencils(Backend, StageSpecs, MakeIterator const &make_iterator, Domain const &domain, Sids &&sids) {
             auto composite = make_composite(std::forward<Sids>(sids));
