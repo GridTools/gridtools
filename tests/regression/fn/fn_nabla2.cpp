@@ -127,12 +127,6 @@ TEST(unstructured, nabla) {
         apply_zavg(edge_backend.stencil_executor(), zavg, pp, s);
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };
-    auto v2e_s = sid::synthetic()
-                     .set<property::origin>(sid::host::make_simple_ptr_holder(&v2e[0][0]))
-                     .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::values(n_v2e, 1_c));
-    auto e2v_s = sid::synthetic()
-                     .set<property::origin>(sid::host::make_simple_ptr_holder(&e2v[0][0]))
-                     .set<property::strides>(hymap::keys<edge, unstructured::dim::neighbor>::values(n_e2v, 1_c));
     auto pp_s = sid::synthetic()
                     .set<property::origin>(sid::host::make_simple_ptr_holder(&pp[0][0]))
                     .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(K, 1_c));
@@ -149,7 +143,7 @@ TEST(unstructured, nabla) {
                         .set<property::origin>(sid::host::make_simple_ptr_holder(&actual[0][0]))
                         .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(K, 1_c));
 
-    fencil(v2e_s, e2v_s, actual_s, pp_s, s_s, sign_s, vol_s);
+    fencil(v2e, e2v, actual_s, pp_s, s_s, sign_s, vol_s);
 
     for (int h = 0; h < n_vertices; ++h)
         for (int v = 0; v < K; ++v)

@@ -12,6 +12,7 @@
 #include "../stencil/positional.hpp"
 #include "./backend2/common.hpp"
 #include "./executor.hpp"
+#include "./neighbor_table.hpp"
 
 namespace gridtools::fn {
     namespace unstructured::dim {
@@ -24,10 +25,9 @@ namespace gridtools::fn {
         namespace dim = unstructured::dim;
         using backend::data_type;
 
-        template <class Tag, class From, class To, class PtrHolder, class Strides>
+        template <class Tag, class From, class To, class NeighborTable>
         struct connectivity_table {
-            PtrHolder m_ptr_holder;
-            Strides m_strides;
+            NeighborTable const &m_neighbor_table;
             using from_t = From;
             using to_t = To;
             using tag_t = Tag;
@@ -39,12 +39,9 @@ namespace gridtools::fn {
             Sizes m_sizes;
         };
 
-        template <class Tag, class From, class To, class Sid>
-        auto connectivity(Sid const &s) {
-            auto ptr_holder = sid::get_origin(s);
-            auto strides = sid::get_strides(s);
-            return connectivity_table<Tag, From, To, decltype(ptr_holder), decltype(strides)>{
-                std::move(ptr_holder), std::move(strides)};
+        template <class Tag, class From, class To, class NeighborTable>
+        auto connectivity(NeighborTable const &nt) {
+            return connectivity_table<Tag, From, To, NeighborTable>{nt};
         }
 
         template <class Horizontal, class... Connectivities>
@@ -74,17 +71,11 @@ namespace gridtools::fn {
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
-        GT_FUNCTION constexpr auto horizontal_shift(
-            iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset offset) {
+        GT_FUNCTION constexpr auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset) {
             auto const &table = at_key<Conn>(it.m_domain.m_tables);
             using from_t = typename std::remove_reference_t<decltype(table)>::from_t;
             using to_t = typename std::remove_reference_t<decltype(table)>::to_t;
-            auto table_ptr = table.m_ptr_holder();
-            auto hori_stride = sid::get_stride<from_t>(table.m_strides);
-            auto nb_stride = sid::get_stride<dim::neighbor>(table.m_strides);
-            sid::shift(table_ptr, hori_stride, it.m_index);
-            sid::shift(table_ptr, nb_stride, offset);
-            auto new_index = *table_ptr;
+            auto new_index = get<Offset::value>(neighbor_table::neighbors(table.m_neighbor_table, it.m_index));
             auto shifted = it;
             if (new_index != -1) {
                 auto from_stride = at_key<Tag>(sid::get_stride<from_t>(shifted.m_strides));

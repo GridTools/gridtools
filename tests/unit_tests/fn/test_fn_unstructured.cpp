@@ -46,11 +46,7 @@ namespace gridtools::fn {
                 apply_stencil(backend.stencil_executor(), out, in);
             };
 
-            int v2v_table[3][3] = {{1, 2, -1}, {0, 2, -1}, {0, 1, -1}};
-            auto v2v_conn =
-                sid::synthetic()
-                    .set<property::origin>(sid::host::make_simple_ptr_holder(&v2v_table[0][0]))
-                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::make_values(3_c, 1_c));
+            std::array<int, 3> v2v_table[3] = {{1, 2, -1}, {0, 2, -1}, {0, 1, -1}};
 
             int in[3][5], out[3][5] = {};
             for (int v = 0; v < 3; ++v)
@@ -65,7 +61,7 @@ namespace gridtools::fn {
             auto in_s = as_synthetic(in);
             auto out_s = as_synthetic(out);
 
-            fencil(v2v_conn, 3, 5, out_s, in_s);
+            fencil(v2v_table, 3, 5, out_s, in_s);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {
@@ -90,11 +86,7 @@ namespace gridtools::fn {
                 apply_stencil(backend.stencil_executor(), out, in);
             };
 
-            int v2e_table[3][2] = {{0, 2}, {0, 1}, {1, 2}};
-            auto v2e_conn =
-                sid::synthetic()
-                    .set<property::origin>(sid::host::make_simple_ptr_holder(&v2e_table[0][0]))
-                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::neighbor>::make_values(2_c, 1_c));
+            std::array<int, 2> v2e_table[3] = {{0, 2}, {0, 1}, {1, 2}};
 
             int in[3][5], out[3][5] = {};
             for (int e = 0; e < 3; ++e)
@@ -109,7 +101,7 @@ namespace gridtools::fn {
             auto in_s = as_synthetic(in, edge());
             auto out_s = as_synthetic(out, vertex());
 
-            fencil(v2e_conn, 3, 5, out_s, in_s);
+            fencil(v2e_table, 3, 5, out_s, in_s);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {
