@@ -49,7 +49,7 @@ namespace gridtools::fn {
 
         template <class Horizontal, class... Connectivities>
         auto unstructured_domain(
-            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &... conns) {
+            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &...conns) {
             auto table_map = hymap::keys<typename Connectivities::tag_t...>::make_values(conns...);
             auto sizes = hymap::keys<Horizontal, dim::k>::make_values(horizontal_size, vertical_size);
             return domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
@@ -84,13 +84,15 @@ namespace gridtools::fn {
             auto nb_stride = sid::get_stride<dim::neighbor>(table.m_strides);
             sid::shift(table_ptr, hori_stride, it.m_index);
             sid::shift(table_ptr, nb_stride, offset);
-            auto table_value = *table_ptr;
+            auto new_index = *table_ptr;
             auto shifted = it;
-            auto from_stride = at_key<Tag>(sid::get_stride<from_t>(shifted.m_strides));
-            sid::shift(shifted.m_ptr, from_stride, -shifted.m_index);
-            auto to_stride = at_key<Tag>(sid::get_stride<to_t>(shifted.m_strides));
-            sid::shift(shifted.m_ptr, to_stride, table_value);
-            shifted.m_index = table_value;
+            if (new_index != -1) {
+                auto from_stride = at_key<Tag>(sid::get_stride<from_t>(shifted.m_strides));
+                sid::shift(shifted.m_ptr, from_stride, -shifted.m_index);
+                auto to_stride = at_key<Tag>(sid::get_stride<to_t>(shifted.m_strides));
+                sid::shift(shifted.m_ptr, to_stride, new_index);
+            }
+            shifted.m_index = new_index;
             return shifted;
         }
 
@@ -115,6 +117,9 @@ namespace gridtools::fn {
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
         GT_FUNCTION constexpr auto shift(
             iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
+            if (it.m_index == -1)
+                return it;
+
             using stride_t = std::decay_t<decltype(sid::get_stride<Dim>(std::declval<Strides>()))>;
             if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>() && !has_horizontal_stride<stride_t, Tag>()) {
                 return shift(horizontal_shift(it, Dim(), offset), offsets...);
