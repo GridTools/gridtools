@@ -59,7 +59,6 @@ TEST(unstructured, nabla) {
     using namespace simple_mesh;
     constexpr auto K = 3_c;
     constexpr auto n_v2e = 6_c;
-    constexpr auto n_e2v = 2_c;
 
     double pp[n_vertices][K];
     for (auto &ppp : pp)
