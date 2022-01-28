@@ -26,11 +26,9 @@ namespace gridtools::fn {
         namespace dim = unstructured::dim;
         using backend::data_type;
 
-        template <class Tag, class From, class To, class NeighborTable>
+        template <class Tag, class NeighborTable>
         struct connectivity_table {
             NeighborTable const &m_neighbor_table;
-            using from_t = From;
-            using to_t = To;
             using tag_t = Tag;
         };
 
@@ -40,9 +38,9 @@ namespace gridtools::fn {
             Sizes m_sizes;
         };
 
-        template <class Tag, class From, class To, class NeighborTable>
+        template <class Tag, class NeighborTable>
         auto connectivity(NeighborTable const &nt) {
-            return connectivity_table<Tag, From, To, NeighborTable>{nt};
+            return connectivity_table<Tag, NeighborTable>{nt};
         }
 
         template <class... Connectivities>

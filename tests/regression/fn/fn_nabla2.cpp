@@ -116,8 +116,8 @@ TEST(unstructured, nabla) {
                       auto const &s,
                       auto const &sign,
                       auto const &vol) {
-        auto v2e_conn = connectivity<v2e_t, vertex, edge>(v2e_table);
-        auto e2v_conn = connectivity<e2v_t, edge, vertex>(e2v_table);
+        auto v2e_conn = connectivity<v2e_t>(v2e_table);
+        auto e2v_conn = connectivity<e2v_t>(e2v_table);
         auto edge_domain = unstructured_domain(n_edges, K, e2v_conn);
         auto vertex_domain = unstructured_domain(n_vertices, K, v2e_conn);
         auto edge_backend = make_backend(backend::naive(), edge_domain);
