@@ -41,7 +41,7 @@ namespace gridtools::fn {
             };
             auto fencil = [&](auto const &v2v_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2v_conn = connectivity<v2v, vertex, vertex>(v2v_table);
-                auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2v_conn);
+                auto domain = unstructured_domain(nvertices, nlevels, v2v_conn);
                 auto backend = make_backend(backend::naive(), domain);
                 apply_stencil(backend.stencil_executor(), out, in);
             };
@@ -53,15 +53,7 @@ namespace gridtools::fn {
                 for (int k = 0; k < 5; ++k)
                     in[v][k] = 5 * v + k;
 
-            auto as_synthetic = [](int x[3][5]) {
-                return sid::synthetic()
-                    .set<property::origin>(sid::host::make_simple_ptr_holder(&x[0][0]))
-                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(5_c, 1_c));
-            };
-            auto in_s = as_synthetic(in);
-            auto out_s = as_synthetic(out);
-
-            fencil(v2v_table, 3, 5, out_s, in_s);
+            fencil(v2v_table, 3, 5, out, in);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {
@@ -81,7 +73,7 @@ namespace gridtools::fn {
             };
             auto fencil = [&](auto const &v2e_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2e_conn = connectivity<v2e, vertex, edge>(v2e_table);
-                auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2e_conn);
+                auto domain = unstructured_domain(nvertices, nlevels, v2e_conn);
                 auto backend = make_backend(backend::naive(), domain);
                 apply_stencil(backend.stencil_executor(), out, in);
             };
@@ -93,15 +85,7 @@ namespace gridtools::fn {
                 for (int k = 0; k < 5; ++k)
                     in[e][k] = 5 * e + k;
 
-            auto as_synthetic = [](int x[3][5], auto loc) {
-                return sid::synthetic()
-                    .set<property::origin>(sid::host::make_simple_ptr_holder(&x[0][0]))
-                    .set<property::strides>(hymap::keys<decltype(loc), unstructured::dim::k>::make_values(5_c, 1_c));
-            };
-            auto in_s = as_synthetic(in, edge());
-            auto out_s = as_synthetic(out, vertex());
-
-            fencil(v2e_table, 3, 5, out_s, in_s);
+            fencil(v2e_table, 3, 5, out, in);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {

@@ -118,31 +118,20 @@ TEST(unstructured, nabla) {
                       auto const &vol) {
         auto v2e_conn = connectivity<v2e_t, vertex, edge>(v2e_table);
         auto e2v_conn = connectivity<e2v_t, edge, vertex>(e2v_table);
-        auto edge_domain = unstructured_domain<edge>(n_edges, K, e2v_conn);
-        auto vertex_domain = unstructured_domain<vertex>(n_vertices, K, v2e_conn);
+        auto edge_domain = unstructured_domain(n_edges, K, e2v_conn);
+        auto vertex_domain = unstructured_domain(n_vertices, K, v2e_conn);
         auto edge_backend = make_backend(backend::naive(), edge_domain);
         auto vertex_backend = make_backend(backend::naive(), vertex_domain);
         auto zavg = edge_backend.make_tmp_like(nabla);
         apply_zavg(edge_backend.stencil_executor(), zavg, pp, s);
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };
-    auto pp_s = sid::synthetic()
-                    .set<property::origin>(sid::host::make_simple_ptr_holder(&pp[0][0]))
-                    .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(K, 1_c));
-    auto sign_s = sid::synthetic()
-                      .set<property::origin>(sid::host::make_simple_ptr_holder(&sign[0][0]))
-                      .set<property::strides>(hymap::keys<vertex, v2e_t>::make_values(n_v2e, 1_c));
-    auto vol_s = sid::synthetic()
-                     .set<property::origin>(sid::host::make_simple_ptr_holder(&vol[0]))
-                     .set<property::strides>(hymap::keys<vertex>::make_values(1_c));
-    auto s_s = sid::synthetic()
-                   .set<property::origin>(sid::host::make_simple_ptr_holder(&s[0][0]))
-                   .set<property::strides>(hymap::keys<edge, unstructured::dim::k>::make_values(K, 1_c));
-    auto actual_s = sid::synthetic()
-                        .set<property::origin>(sid::host::make_simple_ptr_holder(&actual[0][0]))
-                        .set<property::strides>(hymap::keys<vertex, unstructured::dim::k>::make_values(K, 1_c));
+    auto sign_s =
+        sid::synthetic()
+            .set<property::origin>(sid::host::make_simple_ptr_holder(&sign[0][0]))
+            .set<property::strides>(hymap::keys<unstructured::dim::horizontal, v2e_t>::make_values(n_v2e, 1_c));
 
-    fencil(v2e, e2v, actual_s, pp_s, s_s, sign_s, vol_s);
+    fencil(v2e, e2v, actual, pp, s, sign_s, vol);
 
     for (int h = 0; h < n_vertices; ++h)
         for (int v = 0; v < K; ++v)

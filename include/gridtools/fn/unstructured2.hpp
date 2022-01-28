@@ -16,8 +16,9 @@
 
 namespace gridtools::fn {
     namespace unstructured::dim {
-        struct neighbor {};
-        struct k {};
+        using horizontal = integral_constant<int, 0>;
+        using vertical = integral_constant<int, 1>;
+        using k = vertical;
     } // namespace unstructured::dim
 
     namespace unstructured_impl_ {
@@ -44,11 +45,11 @@ namespace gridtools::fn {
             return connectivity_table<Tag, From, To, NeighborTable>{nt};
         }
 
-        template <class Horizontal, class... Connectivities>
+        template <class... Connectivities>
         auto unstructured_domain(
             std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &...conns) {
             auto table_map = hymap::keys<typename Connectivities::tag_t...>::make_values(conns...);
-            auto sizes = hymap::keys<Horizontal, dim::k>::make_values(horizontal_size, vertical_size);
+            auto sizes = hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size);
             return domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
         };
 
@@ -67,22 +68,16 @@ namespace gridtools::fn {
 
         template <class Tag, class Ptr, class Strides, class Domain>
         GT_FUNCTION constexpr auto deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
-            return *it.m_ptr;
+            assert(m_index != -1);
+            decltype(auto) stride = at_key<Tag>(sid::get_stride<dim::horizontal>(it.m_strides));
+            return *sid::shifted(it.m_ptr, stride, it.m_index);
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
         GT_FUNCTION constexpr auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset) {
             auto const &table = at_key<Conn>(it.m_domain.m_tables);
-            using from_t = typename std::remove_reference_t<decltype(table)>::from_t;
-            using to_t = typename std::remove_reference_t<decltype(table)>::to_t;
             auto new_index = get<Offset::value>(neighbor_table::neighbors(table.m_neighbor_table, it.m_index));
             auto shifted = it;
-            if (new_index != -1) {
-                auto from_stride = at_key<Tag>(sid::get_stride<from_t>(shifted.m_strides));
-                sid::shift(shifted.m_ptr, from_stride, -shifted.m_index);
-                auto to_stride = at_key<Tag>(sid::get_stride<to_t>(shifted.m_strides));
-                sid::shift(shifted.m_ptr, to_stride, new_index);
-            }
             shifted.m_index = new_index;
             return shifted;
         }
@@ -143,6 +138,8 @@ namespace gridtools::fn {
                 return [&](auto tag, auto const &ptr, auto const &strides) {
                     auto tptr = host_device::at_key<decltype(tag)>(ptr);
                     int index = *host_device::at_key<integral_constant<int, 0>>(ptr);
+                    decltype(auto) stride = at_key<decltype(tag)>(sid::get_stride<dim::horizontal>(strides));
+                    sid::shift(tptr, stride, -index);
                     return iterator<decltype(tag), decltype(tptr), decltype(strides), Domain>{
                         std::move(tptr), strides, m_domain, index};
                 };
