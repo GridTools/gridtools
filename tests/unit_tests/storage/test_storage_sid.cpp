@@ -36,18 +36,18 @@ namespace gridtools {
             auto testee = builder.dimensions(10, 20, 30, 40)();
             using testee_t = decltype(testee);
 
-            static_assert(sid::concept_impl_::is_sid<testee_t>(), "");
-            static_assert(std::is_same<sid::ptr_type<testee_t>, double *>(), "");
-            static_assert(std::is_same<sid::ptr_diff_type<testee_t>, int_t>(), "");
-            static_assert(std::is_same<sid::strides_kind<testee_t>, typename testee_t::element_type::kind_t>(), "");
+            static_assert(sid::concept_impl_::is_sid<testee_t>());
+            static_assert(std::is_same_v<sid::ptr_type<testee_t>, double *>);
+            static_assert(std::is_same_v<sid::ptr_diff_type<testee_t>, int_t>);
+            static_assert(std::is_same_v<sid::strides_kind<testee_t>, typename testee_t::element_type::kind_t>);
 
             using strides_t = sid::strides_type<testee_t>;
 
-            static_assert(tu::size<strides_t>() == 4, "");
-            static_assert(std::is_same<tu::element<0, strides_t>, int_t>(), "");
-            static_assert(std::is_same<tu::element<1, strides_t>, integral_constant<int_t, 0>>(), "");
-            static_assert(std::is_same<tu::element<2, strides_t>, integral_constant<int_t, 1>>(), "");
-            static_assert(std::is_same<tu::element<3, strides_t>, int_t>(), "");
+            static_assert(tu::size<strides_t>() == 4);
+            static_assert(std::is_same_v<tu::element<0, strides_t>, int_t>);
+            static_assert(std::is_same_v<tu::element<1, strides_t>, integral_constant<int_t, 0>>);
+            static_assert(std::is_same_v<tu::element<2, strides_t>, integral_constant<int_t, 1>>);
+            static_assert(std::is_same_v<tu::element<3, strides_t>, int_t>);
 
             EXPECT_EQ(testee->get_target_ptr(), sid::get_origin(testee)());
 
@@ -87,10 +87,10 @@ namespace gridtools {
             auto testee = storage::builder<storage_traits_t>.type<double>().layout<-1>().dimensions(10)();
             using testee_t = decltype(testee);
 
-            static_assert(sid::concept_impl_::is_sid<testee_t>(), "");
+            static_assert(sid::concept_impl_::is_sid<testee_t>());
 
             using diff_t = sid::ptr_diff_type<testee_t>;
-            static_assert(std::is_empty<diff_t>(), "");
+            static_assert(std::is_empty<diff_t>());
 
             auto ptr = sid::get_origin(testee)();
 
@@ -99,28 +99,28 @@ namespace gridtools {
             using lower_bounds_t = sid::lower_bounds_type<testee_t>;
             using upper_bounds_t = sid::upper_bounds_type<testee_t>;
 
-            static_assert(tuple_util::size<lower_bounds_t>() == 0, "");
-            static_assert(tuple_util::size<upper_bounds_t>() == 0, "");
+            static_assert(tuple_util::size<lower_bounds_t>() == 0);
+            static_assert(tuple_util::size<upper_bounds_t>() == 0);
         }
 
         TEST(storage_sid, compile_time_lengths) {
             auto testee = storage::builder<storage_traits_t>.type<int>().layout<0, 1>().dimensions(10_c, 10_c)();
             using testee_t = decltype(testee);
 
-            static_assert(sid::concept_impl_::is_sid<testee_t>(), "");
+            static_assert(sid::concept_impl_::is_sid<testee_t>());
 
             using strides_t = sid::strides_type<testee_t>;
             using bounds_t = sid::upper_bounds_type<testee_t>;
 
-            static_assert(tuple_util::is_empty_or_tuple_of_empties<strides_t>(), "");
-            static_assert(tuple_util::is_empty_or_tuple_of_empties<bounds_t>(), "");
+            static_assert(tuple_util::is_empty_or_tuple_of_empties<strides_t>());
+            static_assert(tuple_util::is_empty_or_tuple_of_empties<bounds_t>());
 
-            static_assert(tu::size<bounds_t>() == 2, "");
-            static_assert(tu::element<1, bounds_t>::value == 10, "");
-            static_assert(tu::element<0, bounds_t>::value == 10, "");
+            static_assert(tu::size<bounds_t>() == 2);
+            static_assert(tu::element<1, bounds_t>::value == 10);
+            static_assert(tu::element<0, bounds_t>::value == 10);
 
             auto expected_strides = testee->strides();
-            static_assert(tu::size<strides_t>() == 2, "");
+            static_assert(tu::size<strides_t>() == 2);
             EXPECT_EQ(expected_strides[0], (tu::element<0, strides_t>::value));
             EXPECT_EQ(expected_strides[1], (tu::element<1, strides_t>::value));
         }

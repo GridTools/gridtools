@@ -21,7 +21,6 @@
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../common/utility.hpp"
 #include "../../meta.hpp"
 #include "../../sid/as_const.hpp"
 #include "../../sid/block.hpp"
@@ -71,7 +70,7 @@ namespace gridtools {
 
                     using j_caches_t = j_caches_type<Info>;
                     j_caches_t j_caches;
-                    auto mixed_ptr = hymap::device::merge(j_caches.ptr(), wstd::move(ptr));
+                    auto mixed_ptr = hymap::device::merge(j_caches.ptr(), std::move(ptr));
 
                     auto shift_mixed_ptr = [&](auto dim, auto offset) {
                         sid::shift(mixed_ptr.secondary(), sid::get_stride<decltype(dim)>(strides), offset);
@@ -140,7 +139,7 @@ namespace gridtools {
                     sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::i>>(m_strides), blockIdx.x);
                     sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
                     sid::shift(ptr, sid::get_stride<dim::i>(m_strides), i_block);
-                    k_loop(wstd::move(ptr), m_strides, wstd::move(validator));
+                    k_loop(std::move(ptr), m_strides, std::move(validator));
                 }
             };
 

@@ -27,7 +27,7 @@ namespace gridtools {
 
             TEST(make_strides_from_sizes, smoke) {
                 auto testee = make_strides_from_sizes(tuple(20, 30, 40));
-                static_assert(std::is_same<decltype(testee), tuple<integral_constant<int, 1>, int, int>>{}, "");
+                static_assert(std::is_same_v<decltype(testee), tuple<integral_constant<int, 1>, int, int>>);
 
                 EXPECT_EQ(1, tu::get<0>(testee));
                 EXPECT_EQ(20, tu::get<1>(testee));
@@ -36,10 +36,8 @@ namespace gridtools {
 
             TEST(make_strides_from_sizes, integral_constants) {
                 auto testee = make_strides_from_sizes(tuple(20_c, 30_c, 40));
-                static_assert(
-                    std::is_same<decltype(testee),
-                        tuple<integral_constant<int, 1>, integral_constant<int, 20>, integral_constant<int, 600>>>{},
-                    "");
+                static_assert(std::is_same_v<decltype(testee),
+                    tuple<integral_constant<int, 1>, integral_constant<int, 20>, integral_constant<int, 600>>>);
 
                 EXPECT_EQ(1, tu::get<0>(testee));
                 EXPECT_EQ(20, tu::get<1>(testee));
@@ -53,8 +51,7 @@ namespace gridtools {
             TEST(make_strides_from_sizes, hymap) {
                 auto testee = make_strides_from_sizes(hymap::keys<a, b, c>::make_values(20, 30, 40));
                 static_assert(
-                    std::is_same<decltype(testee), hymap::keys<a, b, c>::values<integral_constant<int, 1>, int, int>>{},
-                    "");
+                    std::is_same_v<decltype(testee), hymap::keys<a, b, c>::values<integral_constant<int, 1>, int, int>>);
 
                 EXPECT_EQ(1, at_key<a>(testee));
                 EXPECT_EQ(20, at_key<b>(testee));
@@ -68,7 +65,7 @@ namespace gridtools {
 
             TEST(total_size, integral_constants) {
                 auto testee = total_size(tuple(20_c, 30_c, 40_c));
-                static_assert(std::is_same<decltype(testee), integral_constant<int, 24000>>{}, "");
+                static_assert(std::is_same_v<decltype(testee), integral_constant<int, 24000>>);
 
                 EXPECT_EQ(24000, testee);
             }

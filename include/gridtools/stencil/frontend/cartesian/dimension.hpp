@@ -29,8 +29,8 @@ namespace gridtools {
                 GT_FUNCTION constexpr dimension(int_t value = 0) : value(value) {}
                 int_t value;
 
-                friend GT_FUNCTION GT_CONSTEXPR dimension operator+(dimension, int_t offset) { return {offset}; }
-                friend GT_FUNCTION GT_CONSTEXPR dimension operator-(dimension, int_t offset) { return {-offset}; }
+                friend GT_FUNCTION constexpr dimension operator+(dimension, int_t offset) { return {offset}; }
+                friend GT_FUNCTION constexpr dimension operator-(dimension, int_t offset) { return {-offset}; }
             };
         } // namespace cartesian
     }     // namespace stencil

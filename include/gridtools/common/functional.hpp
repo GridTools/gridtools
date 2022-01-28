@@ -25,7 +25,6 @@
 #include <utility>
 
 #include "host_device.hpp"
-#include "utility.hpp"
 
 #define GT_FILENAME <gridtools/common/functional.hpp>
 #include GT_ITERATE_ON_TARGETS()
@@ -47,8 +46,8 @@ namespace gridtools {
         template <typename T>
         struct ctor {
             template <typename... Args>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR T operator()(Args &&... args) const {
-                return {wstd::forward<Args>(args)...};
+            GT_TARGET GT_FORCE_INLINE constexpr T operator()(Args &&...args) const {
+                return {std::forward<Args>(args)...};
             }
         };
 
@@ -56,14 +55,14 @@ namespace gridtools {
         //
         struct noop {
             template <typename... Args>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void operator()(Args &&...) const {}
+            GT_TARGET GT_FORCE_INLINE constexpr void operator()(Args &&...) const {}
         };
 
         /// Perfectly forward the argument.
         //
         struct identity {
             template <typename Arg>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Arg operator()(Arg &&arg) const {
+            GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg &&arg) const {
                 return arg;
             }
         };
@@ -72,32 +71,16 @@ namespace gridtools {
         //
         struct clone {
             template <typename Arg>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Arg operator()(Arg const &arg) const {
+            GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg const &arg) const {
                 return arg;
             }
         };
 
-        template <class...>
-        struct overloaded_f;
-
-        template <class F>
-        struct overloaded_f<F> : F {
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR overloaded_f(F f) : F(wstd::move(f)) {}
-            using F::operator();
+        template <class... Fs>
+        struct overload : Fs... {
+            constexpr GT_TARGET GT_FORCE_INLINE overload(Fs... fs) : Fs(std::move(fs))... {}
+            using Fs::operator()...;
         };
-
-        template <class F, class... Fs>
-        struct overloaded_f<F, Fs...> : F, overloaded_f<Fs...> {
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR overloaded_f(F f, Fs... fs)
-                : F(wstd::move(f)), overloaded_f<Fs...>(wstd::move(fs)...) {}
-            using F::operator();
-            using overloaded_f<Fs...>::operator();
-        };
-
-        template <class... Funs>
-        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR overloaded_f<Funs...> overload(Funs... funs) {
-            return {wstd::move(funs)...};
-        }
     }
     /** @} */
     /** @} */

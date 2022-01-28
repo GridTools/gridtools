@@ -44,7 +44,7 @@ gridtools_functions = ((
     'run',
     'run_single_stage',
     'expandable_run',
-	'make_global_parameter',
+	'global_parameter',
     'boundary',
     'halo_exchange_dynamic_ut',
     'halo_exchange_generic',

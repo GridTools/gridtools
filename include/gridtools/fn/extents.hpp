@@ -26,10 +26,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 #include "../common/int_vector.hpp"
 #include "../common/integral_constant.hpp"
-#include "../common/utility.hpp"
 #include "../meta.hpp"
 
 namespace gridtools {
@@ -86,19 +86,19 @@ namespace gridtools {
 #endif
 
         template <class Extents, class Offsets>
-        decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_offsets(Offsets &&src) {
+        decltype(auto) GT_FUNCTION constexpr extend_offsets(Offsets &&src) {
             static_assert(is_extents<Extents>::value);
             static_assert(is_int_vector<std::decay_t<Offsets>>::value);
             using namespace int_vector::arithmetic;
-            return wstd::forward<Offsets>(src) + Extents::offsets();
+            return std::forward<Offsets>(src) + Extents::offsets();
         }
 
         template <class Extents, class Sizes>
-        decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_sizes(Sizes &&sizes) {
+        decltype(auto) GT_FUNCTION constexpr extend_sizes(Sizes &&sizes) {
             static_assert(is_extents<Extents>::value);
             static_assert(is_int_vector<std::decay_t<Sizes>>::value);
             using namespace int_vector::arithmetic;
-            return wstd::forward<Sizes>(sizes) + Extents::sizes();
+            return std::forward<Sizes>(sizes) + Extents::sizes();
         }
 
         namespace extent_impl_ {

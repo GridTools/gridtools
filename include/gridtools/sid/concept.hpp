@@ -11,6 +11,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <utility>
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
@@ -166,9 +167,8 @@ namespace gridtools {
             struct get_static_const_value;
             template <class T>
             struct get_static_const_value<T,
-                std::enable_if_t<std::is_integral<decltype(T::value)>::value &&
-                                 std::is_const<decltype(T::value)>::value &&
-                                 !std::is_member_pointer<decltype(&T::value)>::value>>
+                std::enable_if_t<std::is_integral_v<decltype(T::value)> && std::is_const_v<decltype(T::value)> &&
+                                 !std::is_member_pointer_v<decltype(&T::value)>>>
                 : std::integral_constant<decltype(T::value), T::value> {};
 
             /////// BEGIN defaults PART /////
@@ -215,7 +215,7 @@ namespace gridtools {
              *  C-array specialization
              */
             template <class T, class Res = std::add_pointer_t<std::remove_all_extents_t<T>>>
-            std::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(T &obj) {
+            std::enable_if_t<std::is_array_v<T>, host_device::simple_ptr_holder<Res>> get_origin(T &obj) {
                 return {(Res)obj};
             }
 
@@ -245,10 +245,10 @@ namespace gridtools {
              *  a proxy for sid_get_ptr_diff ADL resolution
              */
             template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
-            std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_ptr_diff(Sid const &);
+            std::enable_if_t<!std::is_same_v<Res, not_provided>, Res> get_ptr_diff(Sid const &);
 
             template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
-            std::enable_if_t<std::is_same<Res, not_provided>::value, default_ptr_diff<ptr_type<Sid>>> get_ptr_diff(
+            std::enable_if_t<std::is_same_v<Res, not_provided>, default_ptr_diff<ptr_type<Sid>>> get_ptr_diff(
                 Sid const &);
 
             /**
@@ -265,13 +265,13 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res> get_strides(
+            std::enable_if_t<!std::is_same_v<Res, not_provided> && !std::is_array_v<Sid>, Res> get_strides(
                 Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>> get_strides(
+            std::enable_if_t<std::is_same_v<Res, not_provided> && !std::is_array_v<Sid>, tuple<>> get_strides(
                 Sid const &) {
                 return {};
             }
@@ -291,7 +291,7 @@ namespace gridtools {
             struct get_array_strides<Inner[N], ElemSize> : get_array_strides<Inner[], ElemSize> {};
 
             template <class T>
-            std::enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(T const &) {
+            std::enable_if_t<std::is_array_v<T>, typename get_array_strides<T>::type> get_strides(T const &) {
                 return {};
             }
 
@@ -306,10 +306,10 @@ namespace gridtools {
             // BEGIN `strides_kind` PART
 
             template <class Sid, class Res = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
-            std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides_kind(Sid const &);
+            std::enable_if_t<!std::is_same_v<Res, not_provided>, Res> get_strides_kind(Sid const &);
 
             template <class Sid, class Res = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
-            std::enable_if_t<std::is_same<Res, not_provided>::value, default_kind<strides_type<Sid>>> get_strides_kind(
+            std::enable_if_t<std::is_same_v<Res, not_provided>, default_kind<strides_type<Sid>>> get_strides_kind(
                 Sid const &);
 
             /**
@@ -324,44 +324,44 @@ namespace gridtools {
             // BEGIN `get_lower_bounds`/`get_upper_bounds`
 
             template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
-            std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
-            get_lower_bounds(Sid const &obj) {
+            std::enable_if_t<!std::is_same_v<Res, not_provided> && !std::is_array_v<Sid>, Res> get_lower_bounds(
+                Sid const &obj) {
                 return sid_get_lower_bounds(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
-            std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
-            get_upper_bounds(Sid const &obj) {
+            std::enable_if_t<!std::is_same_v<Res, not_provided> && !std::is_array_v<Sid>, Res> get_upper_bounds(
+                Sid const &obj) {
                 return sid_get_upper_bounds(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
-            std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
-            get_lower_bounds(Sid const &) {
+            std::enable_if_t<std::is_same_v<Res, not_provided> && !std::is_array_v<Sid>, tuple<>> get_lower_bounds(
+                Sid const &) {
                 return {};
             }
 
             template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
-            std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
-            get_upper_bounds(Sid const &) {
+            std::enable_if_t<std::is_same_v<Res, not_provided> && !std::is_array_v<Sid>, tuple<>> get_upper_bounds(
+                Sid const &) {
                 return {};
             }
 
             template <class T, class Res = meta::repeat<std::rank<T>, tuple<integral_constant<ptrdiff_t, 0>>>>
-            std::enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
+            std::enable_if_t<std::is_array_v<T>, Res> get_lower_bounds(T const &) {
                 return {};
             }
 
             template <class T>
             struct array_extent_f {
                 template <class Dim>
-                using apply = integral_constant<ptrdiff_t, std::extent<T, Dim::value>::value>;
+                using apply = integral_constant<ptrdiff_t, std::extent_v<T, Dim::value>>;
             };
 
             template <class T,
                 class Dims = meta::make_indices<std::rank<T>, tuple>,
                 class Res = meta::transform<array_extent_f<T>::template apply, Dims>>
-            std::enable_if_t<std::is_array<T>::value, Res> get_upper_bounds(T const &) {
+            std::enable_if_t<std::is_array_v<T>, Res> get_upper_bounds(T const &) {
                 return {};
             }
 
@@ -385,9 +385,8 @@ namespace gridtools {
              *  If stride of offset are zero or the target has no state, we don't need to shift
              */
             template <class T, class Stride, class Offset>
-            using need_shift =
-                std::bool_constant<!(std::is_empty<T>::value || is_integral_constant_of<Stride, 0>::value ||
-                                     is_integral_constant_of<Offset, 0>::value)>;
+            using need_shift = std::bool_constant<!(std::is_empty_v<T> || is_integral_constant_of<Stride, 0>::value ||
+                                                    is_integral_constant_of<Offset, 0>::value)>;
 
             /**
              *  additional proxy is used here to ensure that evaluation context of `obj += stride * offset`
@@ -449,7 +448,7 @@ namespace gridtools {
              *  noop `shift` overload
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION std::enable_if_t<!(std::is_lvalue_reference<T>::value &&
+            GT_FUNCTION std::enable_if_t<!(std::is_lvalue_reference_v<T> &&
                                            need_shift<std::remove_reference_t<T>, std::decay_t<Stride>, Offset>::value)>
             shift(T &&, Stride &&, Offset) {}
 
@@ -465,7 +464,7 @@ namespace gridtools {
                                      !is_default_shiftable<T, std::decay_t<Stride>>::value,
                     int> = 0>
             GT_FUNCTION decltype(auto) shift(T &obj, Stride &&stride, Offset offset) {
-                return sid_shift(obj, wstd::forward<Stride>(stride), offset);
+                return sid_shift(obj, std::forward<Stride>(stride), offset);
             }
 
             /**
@@ -565,7 +564,7 @@ namespace gridtools {
                 !(has_dec_assignment<T, Decayed>::value &&
                     (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
             shift(T &obj, Stride &&stride, Offset offset) {
-                obj += wstd::forward<Stride>(stride) * offset;
+                obj += std::forward<Stride>(stride) * offset;
             }
 
             // END `shift` PART
@@ -681,7 +680,7 @@ namespace gridtools {
          *  The const variation of the reference type
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        using const_reference_type = std::conditional_t<std::is_reference<Ref>::value,
+        using const_reference_type = std::conditional_t<std::is_reference_v<Ref>,
             std::add_lvalue_reference_t<std::add_const_t<std::remove_reference_t<Ref>>>,
             std::add_const_t<Ref>>;
 
@@ -692,8 +691,8 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
-            return gridtools::host_device::at_key_with_default<Key, default_stride>(wstd::forward<Strides>(strides));
+        constexpr GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
+            return gridtools::host_device::at_key_with_default<Key, default_stride>(std::forward<Strides>(strides));
         }
 
         /**
@@ -704,16 +703,16 @@ namespace gridtools {
             class Dim,
             class Strides,
             std::enable_if_t<has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride_element(Strides &&strides) {
+        constexpr GT_FUNCTION decltype(auto) get_stride_element(Strides &&strides) {
             return gridtools::host_device::at_key<Key>(
-                gridtools::host_device::at_key<Dim>(wstd::forward<Strides>(strides)));
+                gridtools::host_device::at_key<Dim>(std::forward<Strides>(strides)));
         }
 
         template <class Key,
             class Dim,
             class Strides,
             std::enable_if_t<!has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
+        constexpr GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
             return {};
         }
 
@@ -725,12 +724,12 @@ namespace gridtools {
         template <class Key, class Bounds>
         decltype(auto) get_lower_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
-                integral_constant<int_t, std::numeric_limits<int_t>::min()>>(wstd::forward<Bounds>(bounds));
+                integral_constant<int_t, std::numeric_limits<int_t>::min()>>(std::forward<Bounds>(bounds));
         }
         template <class Key, class Bounds>
         decltype(auto) get_upper_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
-                integral_constant<int_t, std::numeric_limits<int_t>::max()>>(wstd::forward<Bounds>(bounds));
+                integral_constant<int_t, std::numeric_limits<int_t>::max()>>(std::forward<Bounds>(bounds));
         }
 
         template <class T, class Stride, class Offset>

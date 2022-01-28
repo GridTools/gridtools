@@ -18,7 +18,9 @@
 #include <gridtools/common/integral_constant.hpp>
 
 namespace gridtools::fn {
-    namespace {
+    // This file is included in another file (test_extents.cu)
+    // that is why we should not use unnamed namespaces here to avoid ODR violation. 
+    namespace test_extents_cpp {
         using namespace literals;
         struct a {};
         struct b {};

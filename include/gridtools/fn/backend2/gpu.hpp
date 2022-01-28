@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <utility>
+
 #include "../../common/cuda_util.hpp"
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
@@ -60,7 +62,7 @@ namespace gridtools::fn::backend {
         struct at_generator_f {
             template <class Value>
             GT_FUNCTION_DEVICE decltype(auto) operator()(Value &&value) const {
-                return device::at_key<Key>(wstd::forward<Value>(value));
+                return device::at_key<Key>(std::forward<Value>(value));
             }
         };
 
@@ -88,7 +90,7 @@ namespace gridtools::fn::backend {
                 fun(ptr, strides);
             } else {
                 using loop_dims_t = meta::drop_front_c<3, SizeKeys>;
-                common::make_loops<loop_dims_t>(sizes)(wstd::move(fun))(ptr, strides);
+                common::make_loops<loop_dims_t>(sizes)(std::move(fun))(ptr, strides);
             }
         }
 
@@ -136,7 +138,7 @@ namespace gridtools::fn::backend {
 
             template <class Ptr, class Strides>
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides) const {
-                ColumnStage()(m_seed, m_v_size, wstd::move(ptr), strides);
+                ColumnStage()(m_seed, m_v_size, std::move(ptr), strides);
             }
         };
 
@@ -164,7 +166,7 @@ namespace gridtools::fn::backend {
 
         template <class BlockSizes>
         auto tmp_allocator(gpu<BlockSizes> be) {
-            return std::make_tuple(be, sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>));
+            return std::make_tuple(be, sid::device::cached_allocator(&cuda_util::cuda_malloc<char[]>));
         }
 
         template <class T, class BlockSizes, class Allocator, class Sizes>

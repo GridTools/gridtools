@@ -10,12 +10,9 @@
 
 #include <gridtools/fn/extents.hpp>
 
-#include <type_traits>
-
 #include <gtest/gtest.h>
 
-#include <gridtools/common/integral_constant.hpp>
-#include <gridtools/common/tuple_util.hpp>
+#include <gridtools/common/hymap.hpp>
 
 #include <cuda_test_helper.hpp>
 
@@ -25,40 +22,23 @@ namespace gridtools::fn {
         struct b;
         struct c;
 
-        template <class Extent>
-        __device__ hymap::keys<a, b, c>::values<long int, int, long int> extend_offsets_device(
-            hymap::keys<a, b, c>::values<int, int, int> const &offsets) {
-            return extend_offsets<Extent>(offsets);
+        using ext_t = extents<extent<a, -1, 0>, extent<b, 0, 2>, extent<c, 1, 1>>;
+
+        __device__ bool check_offsets() {
+            auto testee = extend_offsets<ext_t>(hymap::keys<a, b, c>::make_values(0, 1, 2));
+            return device::at_key<a>(testee) == -1 && device::at_key<b>(testee) == 1 && device::at_key<c>(testee) == 3;
         }
 
         TEST(extend_offsets, device) {
-            using ext = extents<extent<a, -1, 0>, extent<b, 0, 2>, extent<c, 1, 1>>;
-            auto offsets = hymap::keys<a, b, c>::make_values(0, 1, 2);
-
-            auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&extend_offsets_device<ext>), offsets);
-
-            EXPECT_EQ(at_key<a>(testee), -1);
-            EXPECT_EQ(at_key<b>(testee), 1);
-            EXPECT_EQ(at_key<c>(testee), 3);
+            EXPECT_TRUE(on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&check_offsets)));
         }
 
-        template <class Extent>
-        __device__ hymap::keys<a, b, c>::values<long unsigned int, long unsigned int, int> extend_sizes_device(
-            hymap::keys<a, b, c>::values<int, int, int> const &sizes) {
-            return extend_sizes<Extent>(sizes);
+        __device__ bool check_sizes() {
+            auto testee = extend_sizes<ext_t>(hymap::keys<a, b, c>::make_values(4, 5, 6));
+            return device::at_key<a>(testee) == 5 && device::at_key<b>(testee) == 7 && device::at_key<c>(testee) == 6;
         }
 
-        TEST(extend_sizes, device) {
-            using ext = extents<extent<a, -1, 0>, extent<b, 0, 2>, extent<c, 1, 1>>;
-            auto sizes = hymap::keys<a, b, c>::make_values(4, 5, 6);
-
-            auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&extend_sizes_device<ext>), sizes);
-
-            EXPECT_EQ(at_key<a>(testee), 5);
-            EXPECT_EQ(at_key<b>(testee), 7);
-            EXPECT_EQ(at_key<c>(testee), 6);
-        }
-
+        TEST(extend_sizes, device) { EXPECT_TRUE(on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&check_sizes))); }
     } // namespace
 } // namespace gridtools::fn
 

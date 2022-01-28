@@ -34,13 +34,13 @@ namespace gridtools {
 
                 using ij_cache_t = decltype(testee);
 
-                static_assert(is_sid<ij_cache_t>(), "");
-                static_assert(std::is_same<sid::ptr_type<ij_cache_t>, double *>(), "");
-                static_assert(std::is_same<sid::ptr_diff_type<ij_cache_t>, int_t>(), "");
+                static_assert(is_sid<ij_cache_t>());
+                static_assert(std::is_same_v<sid::ptr_type<ij_cache_t>, double *>);
+                static_assert(std::is_same_v<sid::ptr_diff_type<ij_cache_t>, int_t>);
 
                 using expected_kind = hymap::keys<dim::c, dim::i, dim::j>::
                     values<integral_constant<int_t, 1>, integral_constant<int_t, 1>, integral_constant<int_t, 9>>;
-                static_assert(std::is_same<sid::strides_kind<ij_cache_t>, expected_kind>(), "");
+                static_assert(std::is_same_v<sid::strides_kind<ij_cache_t>, expected_kind>);
                 auto strides = sid::get_strides(testee);
                 EXPECT_EQ(1, at_key<dim::i>(strides));
                 EXPECT_EQ(9, at_key<dim::j>(strides));

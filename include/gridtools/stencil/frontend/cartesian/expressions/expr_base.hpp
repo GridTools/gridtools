@@ -10,9 +10,9 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../../../common/host_device.hpp"
-#include "../../../../common/utility.hpp"
 #include "../../../../meta.hpp"
 #include "../accessor.hpp"
 
@@ -50,29 +50,29 @@ namespace gridtools {
                 template <class Op,
                     class... Args,
                     std::enable_if_t<std::disjunction<expr_or_accessor<Args>...>::value, int> = 0>
-                GT_FUNCTION GT_CONSTEXPR expr<Op, Args...> make_expr(Op, Args... args) {
+                GT_FUNCTION constexpr expr<Op, Args...> make_expr(Op, Args... args) {
                     return {args...};
                 }
 
                 namespace evaluation {
-                    template <class Eval, class Arg, std::enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
-                    GT_FUNCTION GT_CONSTEXPR Arg apply_eval(Eval &&, Arg arg) {
+                    template <class Eval, class Arg, std::enable_if_t<std::is_arithmetic_v<Arg>, int> = 0>
+                    GT_FUNCTION constexpr Arg apply_eval(Eval &&, Arg arg) {
                         return arg;
                     }
 
-                    template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-                    GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &&eval, Arg arg) {
-                        return wstd::forward<Eval>(eval)(wstd::move(arg));
+                    template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic_v<Arg>, int> = 0>
+                    GT_FUNCTION constexpr decltype(auto) apply_eval(Eval &&eval, Arg arg) {
+                        return std::forward<Eval>(eval)(std::move(arg));
                     }
 
                     template <class Eval, class Op, class Arg>
-                    GT_FUNCTION GT_CONSTEXPR auto value(Eval &&eval, expr<Op, Arg> arg) {
-                        return Op()(wstd::forward<Eval>(eval)(wstd::move(arg.m_arg)));
+                    GT_FUNCTION constexpr auto value(Eval &&eval, expr<Op, Arg> arg) {
+                        return Op()(std::forward<Eval>(eval)(std::move(arg.m_arg)));
                     }
 
                     template <class Eval, class Op, class Lhs, class Rhs>
-                    GT_FUNCTION GT_CONSTEXPR auto value(Eval &&eval, expr<Op, Lhs, Rhs> arg) {
-                        return Op()(apply_eval(eval, wstd::move(arg.m_lhs)), apply_eval(eval, wstd::move(arg.m_rhs)));
+                    GT_FUNCTION constexpr auto value(Eval &&eval, expr<Op, Lhs, Rhs> arg) {
+                        return Op()(apply_eval(eval, std::move(arg.m_lhs)), apply_eval(eval, std::move(arg.m_rhs)));
                     }
                 } // namespace evaluation
             }     // namespace expressions

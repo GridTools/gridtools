@@ -30,7 +30,7 @@ namespace gridtools {
         }
         template <class T, T (*Fun)()>
         T exec_with_shared_memory(size_t shm_size, integral_constant<T (*)(), Fun> fun) {
-            static_assert(std::is_trivially_copyable<T>::value, "");
+            static_assert(std::is_trivially_copy_constructible_v<T>);
             auto res = cuda_util::cuda_malloc<T>();
             kernel<<<1, 1, shm_size>>>(res.get(), fun);
             GT_CUDA_CHECK(cudaDeviceSynchronize());
@@ -39,14 +39,15 @@ namespace gridtools {
 
         template <class Res, class Fun, class... Args>
         __global__ void kernel(Res *res, Fun fun, Args... args) {
-            *res = fun(args...);
+            Res in{fun(std::move(args)...)};
+            memcpy(res, &in, sizeof(Res));
         }
         template <class Fun, class... Args>
         auto exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
-            static_assert(!std::is_pointer<Fun>::value, "");
-            static_assert(std::conjunction<std::negation<std::is_pointer<Args>>...>::value, "");
+            static_assert(!std::is_pointer_v<Fun>);
+            static_assert(std::conjunction_v<std::negation<std::is_pointer<Args>>...>);
             using res_t = std::decay_t<decltype(fun(args...))>;
-            static_assert(std::is_trivially_copyable<res_t>::value, "");
+            static_assert(std::is_trivially_copy_constructible_v<res_t>);
             auto res = cuda_util::cuda_malloc<res_t>();
             kernel<<<1, 1, shm_size>>>(res.get(), fun, args...);
             GT_CUDA_CHECK(cudaDeviceSynchronize());
@@ -54,7 +55,7 @@ namespace gridtools {
         }
 
         template <class Fun, class... Args>
-        auto exec(Fun &&fun, Args &&... args) {
+        auto exec(Fun &&fun, Args &&...args) {
             return exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...);
         }
     } // namespace on_device

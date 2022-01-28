@@ -33,13 +33,13 @@ TEST(DistributedBoundaries, SelectElement) {
 
 namespace collect_indices {
     template <class Tuple, size_t... Is>
-    constexpr bool testee = std::is_same<
+    constexpr bool testee = std::is_same_v<
         typename bd::_impl::comm_indices<std::tuple<>>::collect_indices<0, std::index_sequence<>, Tuple>::type,
-        std::index_sequence<Is...>>::value;
+        std::index_sequence<Is...>>;
 
-    static_assert(testee<std::tuple<int, int>, 0, 1>, "");
-    static_assert(testee<std::tuple<int, decltype(_1), int, decltype(_2)>, 0, 2>, "");
-    static_assert(testee<std::tuple<decltype(_1), decltype(_2)>>, "");
+    static_assert(testee<std::tuple<int, int>, 0, 1>);
+    static_assert(testee<std::tuple<int, decltype(_1), int, decltype(_2)>, 0, 2>);
+    static_assert(testee<std::tuple<decltype(_1), decltype(_2)>>);
 } // namespace collect_indices
 
 TEST(DistributedBoundaries, RestTuple) {
@@ -48,10 +48,10 @@ TEST(DistributedBoundaries, RestTuple) {
     EXPECT_EQ(bd::_impl::rest_tuple(std::make_tuple(1, 2), std::make_index_sequence<1>{}), std::make_tuple(2));
 }
 
-static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, 5))>::value, "");
-static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple())>::value, "");
-static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, _1))>::value, "");
-static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, _2, 5))>::value, "");
+static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, 5))>::value);
+static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple())>::value);
+static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, _1))>::value);
+static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, _2, 5))>::value);
 
 TEST(DistributedBoundaries, BoundBC) {
     const auto builder = gt::storage::builder<gt::storage::cpu_kfirst>.type<double>().dimensions(3, 3, 3);
@@ -73,7 +73,7 @@ TEST(DistributedBoundaries, BoundBC) {
 
     auto y = bbc.exc_stores();
 
-    EXPECT_EQ(std::tuple_size<decltype(y)>::value, 1);
+    static_assert(std::tuple_size_v<decltype(y)> == 1);
 
     EXPECT_EQ(b, std::get<0>(y));
 }

@@ -31,7 +31,7 @@ namespace gridtools::fn {
         };
         struct make_iterator_mock {
             GT_FUNCTION auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) {
+                return [](auto tag, auto const &ptr, auto const & /*strides*/) {
                     return host_device::at_key<decltype(tag)>(ptr);
                 };
             }

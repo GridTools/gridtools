@@ -29,6 +29,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
@@ -58,12 +59,12 @@ namespace gridtools {
                     GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
                         using key_t = meta::at_c<Keys, Accessor::index_t::value>;
                         return apply_intent<Accessor::intent_v>(Deref()(key_t(),
-                            sid::multi_shifted<key_t>(host_device::at_key<key_t>(m_ptr), m_strides, wstd::move(acc))));
+                            sid::multi_shifted<key_t>(host_device::at_key<key_t>(m_ptr), m_strides, std::move(acc))));
                     }
 
                     template <class Op, class... Ts>
                     GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
-                        return expressions::evaluation::value(*this, wstd::move(arg));
+                        return expressions::evaluation::value(*this, std::move(arg));
                     }
                 };
 

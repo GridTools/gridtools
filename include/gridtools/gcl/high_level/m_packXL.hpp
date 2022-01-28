@@ -161,7 +161,7 @@ void m_packXL_variadic(value_type **d_msgbufTab,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-    const int niter = std::tuple_size<datas>::value;
+    const int niter = std::tuple_size_v<datas>;
 
     int nothing[niter] = {call_kernel_XL(blocks,
         threads,

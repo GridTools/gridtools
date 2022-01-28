@@ -60,7 +60,7 @@ class data_store {
     data_t *get_target_ptr();
     data_t const *get_const_target_ptr();
 
-    // Host access methods variations. They only exist if !std::is_const<data_t>::value.  
+    // Host access methods variations. They only exist if !std::is_const_v<data_t>.  
     auto host_view();
     auto host_const_view();
     data_t *get_host_ptr();

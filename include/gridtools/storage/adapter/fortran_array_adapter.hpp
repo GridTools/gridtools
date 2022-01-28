@@ -19,7 +19,7 @@
 namespace gridtools {
     template <class DataStorePtr>
     class fortran_array_adapter {
-        static_assert(storage::is_data_store_ptr<DataStorePtr>::value, "");
+        static_assert(storage::is_data_store_ptr<DataStorePtr>::value);
         using data_store_t = typename DataStorePtr::element_type;
         using lengths_t = std::decay_t<decltype(DataStorePtr()->lengths())>;
         using strides_t = std::decay_t<decltype(DataStorePtr()->strides())>;
