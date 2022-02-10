@@ -35,8 +35,8 @@ namespace gridtools {
 // CTAD for aggregates works
 #else
                 // Enables CTAD in C++17.
+                simple_ptr_holder() = default;
                 GT_TARGET GT_FORCE_INLINE constexpr simple_ptr_holder(T const &ptr) : m_val{ptr} {}
-                GT_TARGET GT_FORCE_INLINE constexpr simple_ptr_holder() = default;
 #endif
                 GT_TARGET GT_FORCE_INLINE constexpr T const &operator()() const { return m_val; }
             };
