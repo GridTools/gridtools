@@ -3,6 +3,7 @@
 source $(dirname "$BASH_SOURCE")/dom.sh
 
 module swap PrgEnv-cray PrgEnv-gnu
+module switch gcc/10.3.0
 
 export CXX=$(which CC)
 export CC=$(which cc)
