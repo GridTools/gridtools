@@ -25,8 +25,6 @@ struct e2v_t {
 struct v2e_t {
     static constexpr int max_neighbors = 6;
 };
-struct vertex {};
-struct edge {};
 
 struct zavg_stencil {
     constexpr auto operator()() const {
