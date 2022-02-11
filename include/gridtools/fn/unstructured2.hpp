@@ -116,18 +116,6 @@ namespace gridtools::fn {
             return it;
         }
 
-        template <class Conn, class F, class Init, class... Tags, class... Ptrs, class... Strides, class... Domains>
-        GT_FUNCTION constexpr auto reduce(Conn, F f, Init init, iterator<Tags, Ptrs, Strides, Domains> const &...its) {
-            auto res = std::move(init);
-            tuple_util::for_each(
-                [&](auto offset) {
-                    if ((... && can_deref(shift(its, Conn(), offset))))
-                        res = f(res, deref(shift(its, Conn(), offset))...);
-                },
-                meta::rename<tuple, meta::make_indices_c<Conn::max_neighbors>>());
-            return res;
-        }
-
         template <class Domain>
         struct make_iterator {
             Domain m_domain;

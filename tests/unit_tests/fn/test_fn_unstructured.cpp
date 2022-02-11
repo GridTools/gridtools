@@ -22,7 +22,17 @@ namespace gridtools::fn {
         template <class C>
         struct stencil {
             constexpr auto operator()() const {
-                return [](auto const &in) { return reduce(C(), std::plus(), 0, in); };
+                return [](auto const &in) {
+                    int tmp = 0;
+                    tuple_util::for_each(
+                        [&](auto i) {
+                            auto shifted = shift(in, C(), i);
+                            if (can_deref(shifted))
+                                tmp += deref(shifted);
+                        },
+                        meta::rename<tuple, meta::make_indices_c<C::max_neighbors>>());
+                    return tmp;
+                };
             }
         };
 
