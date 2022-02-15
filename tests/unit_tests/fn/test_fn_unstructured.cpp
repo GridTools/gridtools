@@ -19,7 +19,7 @@ namespace gridtools::fn {
         using namespace literals;
         using sid::property;
 
-        template <class C>
+        template <class C, int MaxNeighbors>
         struct stencil {
             constexpr auto operator()() const {
                 return [](auto const &in) {
@@ -30,24 +30,18 @@ namespace gridtools::fn {
                             if (can_deref(shifted))
                                 tmp += deref(shifted);
                         },
-                        meta::rename<tuple, meta::make_indices_c<C::max_neighbors>>());
+                        meta::rename<tuple, meta::make_indices_c<MaxNeighbors>>());
                     return tmp;
                 };
             }
         };
 
-        struct vertex {};
-        struct edge {};
-        struct v2v {
-            static constexpr int max_neighbors = 3;
-        };
-        struct v2e {
-            static constexpr int max_neighbors = 2;
-        };
+        struct v2v {};
+        struct v2e {};
 
         TEST(unstructured, v2v_sum) {
             auto apply_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, stencil<v2v>(), 1_c);
+                executor().arg(out).arg(in).assign(0_c, stencil<v2v, 3>(), 1_c);
             };
             auto fencil = [&](auto const &v2v_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2v_conn = connectivity<v2v>(v2v_table);
@@ -79,7 +73,7 @@ namespace gridtools::fn {
 
         TEST(unstructured, v2e_sum) {
             auto apply_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, stencil<v2e>(), 1_c);
+                executor().arg(out).arg(in).assign(0_c, stencil<v2e, 2>(), 1_c);
             };
             auto fencil = [&](auto const &v2e_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2e_conn = connectivity<v2e>(v2e_table);
