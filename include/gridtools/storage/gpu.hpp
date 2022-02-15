@@ -55,7 +55,7 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE decltype(auto) native_strides() const { return m_info.native_strides(); }
 
                 template <class... Args>
-                GT_FUNCTION_DEVICE auto operator()(Args &&...args) const
+                GT_FUNCTION_DEVICE auto operator()(Args &&... args) const
                     -> decltype(m_ptr[m_info.index(std::forward<Args>(args)...)]) {
                     return m_ptr[m_info.index(std::forward<Args>(args)...)];
                 }

@@ -29,7 +29,8 @@ namespace gridtools {
                 };
 
                 template <class Lhs, class Rhs>
-                GT_FUNCTION constexpr auto operator+(Lhs lhs, Rhs rhs) -> decltype(make_expr(plus_f(), Lhs(), Rhs())) {
+                GT_FUNCTION constexpr auto operator+(Lhs lhs, Rhs rhs)
+                    -> decltype(make_expr(plus_f(), Lhs(), Rhs())) {
                     return make_expr(plus_f(), lhs, rhs);
                 }
 

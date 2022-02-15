@@ -114,7 +114,8 @@ int main() {
 
     // Here we make the computation, specifying the backend, the grid (iteration space), binding of the spec arguments
     // to the fields
-    st::run(spec, stencil_backend_t(), grid, st::global_parameter(-1), st::global_parameter(3), sup, rhs, out);
+    st::run(
+        spec, stencil_backend_t(), grid, st::global_parameter(-1), st::global_parameter(3), sup, rhs, out);
 
     // In this simple example the solution is known and we can easily check it.
     auto view = out->const_host_view();

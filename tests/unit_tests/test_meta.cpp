@@ -106,7 +106,8 @@ namespace gridtools {
         // concat
         static_assert(std::is_same_v<concat<g<int>>, g<int>>);
         static_assert(std::is_same_v<concat<g<int>, f<void>>, g<int, void>>);
-        static_assert(std::is_same_v<concat<g<int>, g<void, double>, g<void, int>>, g<int, void, double, void, int>>);
+        static_assert(
+            std::is_same_v<concat<g<int>, g<void, double>, g<void, int>>, g<int, void, double, void, int>>);
 
         // flatten
         static_assert(std::is_same_v<flatten<f<g<int>>>, g<int>>);
@@ -221,7 +222,8 @@ namespace gridtools {
         static_assert(find<f<double, int, int, double, int>, void>::type::value == 5);
 
         static_assert(std::is_same_v<mp_insert<f<>, g<int, int *>>, f<g<int, int *>>>);
-        static_assert(std::is_same_v<mp_insert<f<g<void, void *>>, g<int, int *>>, f<g<void, void *>, g<int, int *>>>);
+        static_assert(
+            std::is_same_v<mp_insert<f<g<void, void *>>, g<int, int *>>, f<g<void, void *>, g<int, int *>>>);
         static_assert(std::is_same_v<mp_insert<f<g<int, int *>>, g<int, int **>>, f<g<int, int *, int **>>>);
 
         static_assert(std::is_same_v<mp_remove<f<g<int, int *>>, void>, f<g<int, int *>>>);
@@ -229,7 +231,8 @@ namespace gridtools {
         static_assert(std::is_same_v<mp_remove<f<g<int, int *>, g<void, void *>>, int>, f<g<void, void *>>>);
 
         static_assert(std::is_same_v<mp_inverse<f<>>, f<>>);
-        static_assert(std::is_same_v<mp_inverse<f<g<int, int *>, g<void, void *>>>, f<g<int *, int>, g<void *, void>>>);
+        static_assert(
+            std::is_same_v<mp_inverse<f<g<int, int *>, g<void, void *>>>, f<g<int *, int>, g<void *, void>>>);
         static_assert(std::is_same_v<mp_inverse<f<g<int, int *, int **>, g<void, void *>>>,
             f<g<int *, int>, g<int **, int>, g<void *, void>>>);
         static_assert(std::is_same_v<mp_inverse<f<g<int *, int>, g<int **, int>, g<void *, void>>>,

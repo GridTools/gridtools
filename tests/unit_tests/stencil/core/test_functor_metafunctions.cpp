@@ -16,13 +16,13 @@ namespace gridtools {
     namespace stencil {
         namespace core {
             namespace {
-                // Note that the contract for `check_valid_apply_overloads` is that it fails to compile
+                // Note that the contract for `check_valid_apply_overloads` is that it fails to compile 
                 // if overloads are invalid.
                 // This is for practical reason -- compliation error idicates what is wrong with particaular overload.
                 // Hence automatic unit test is only able to ensure that there are no false negatives.
 
                 // The cases with commneted out asserts are for false positives testing. It can be done only manualy:
-                // uncommnent assert and ensure that the error message indicates the right problem.
+                // uncommnent assert and ensure that the error message indicates the right problem.  
 
                 using interval_t = interval<level<0, 1, 3>, level<2, -1, 3>>;
 
