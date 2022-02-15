@@ -30,7 +30,7 @@ namespace gridtools::fn {
 
         struct make_iterator_mock {
             GT_FUNCTION auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+                return [](auto tag, auto const &ptr, auto const & /*strides*/) { return at_key<decltype(tag)>(ptr); };
             }
         };
 
@@ -45,7 +45,6 @@ namespace gridtools::fn {
 
             auto composite = sid::composite::keys<int_t<0>, int_t<1>>::make_values(as_synthetic(out), as_synthetic(in));
 
-            auto sizes = hymap::keys<int_t<0>>::values<int_t<3>>();
             auto ptr = sid::get_origin(composite)();
             auto strides = sid::get_strides(composite);
 

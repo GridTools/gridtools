@@ -17,7 +17,6 @@
 namespace gridtools::fn {
     namespace {
         using namespace literals;
-        using sid::property;
 
         template <class C, int MaxNeighbors>
         struct stencil {
