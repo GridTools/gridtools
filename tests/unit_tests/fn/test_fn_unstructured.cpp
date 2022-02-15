@@ -57,7 +57,7 @@ namespace gridtools::fn {
                 for (int k = 0; k < 5; ++k)
                     in[v][k] = 5 * v + k;
 
-            fencil(v2v_table, 3, 5, out, in);
+            fencil(&v2v_table[0], 3, 5, out, in);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {
@@ -89,7 +89,7 @@ namespace gridtools::fn {
                 for (int k = 0; k < 5; ++k)
                     in[e][k] = 5 * e + k;
 
-            fencil(v2e_table, 3, 5, out, in);
+            fencil(&v2e_table[0], 3, 5, out, in);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {

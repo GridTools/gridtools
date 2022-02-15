@@ -132,7 +132,7 @@ TEST(unstructured, nabla) {
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };
 
-    fencil(v2e, e2v, actual, pp, s, sign, vol);
+    fencil(&v2e[0], &e2v[0], actual, pp, s, sign, vol);
 
     for (int h = 0; h < n_vertices; ++h)
         for (int v = 0; v < K; ++v)
