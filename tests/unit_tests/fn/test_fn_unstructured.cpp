@@ -21,10 +21,10 @@ namespace gridtools::fn {
 
         template <class C, int MaxNeighbors>
         struct stencil {
-            constexpr auto operator()() const {
+            GT_FUNCTION constexpr auto operator()() const {
                 return [](auto const &in) {
                     int tmp = 0;
-                    tuple_util::for_each(
+                    tuple_util::host_device::for_each(
                         [&](auto i) {
                             auto shifted = shift(in, C(), i);
                             if (can_deref(shifted))
