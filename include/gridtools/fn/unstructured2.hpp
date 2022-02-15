@@ -25,12 +25,6 @@ namespace gridtools::fn {
         namespace dim = unstructured::dim;
         using backend::data_type;
 
-        template <class Tag, class NeighborTable>
-        struct connectivity_table {
-            NeighborTable m_neighbor_table;
-            using tag_t = Tag;
-        };
-
         template <class Tables, class Sizes>
         struct domain {
             Tables m_tables;
@@ -38,14 +32,14 @@ namespace gridtools::fn {
         };
 
         template <class Tag, class NeighborTable>
-        auto connectivity(NeighborTable const &nt) {
-            return connectivity_table<Tag, NeighborTable>{nt};
+        typename hymap::keys<Tag>::template values<NeighborTable> connectivity(NeighborTable const &nt) {
+            return {nt};
         }
 
         template <class... Connectivities>
         auto unstructured_domain(
             std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &...conns) {
-            auto table_map = hymap::keys<typename Connectivities::tag_t...>::make_values(conns...);
+            auto table_map = hymap::concat(conns...);
             auto sizes = hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size);
             return domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
         };
@@ -73,7 +67,7 @@ namespace gridtools::fn {
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
         GT_FUNCTION constexpr auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset) {
             auto const &table = at_key<Conn>(it.m_domain.m_tables);
-            auto new_index = get<Offset::value>(neighbor_table::neighbors(table.m_neighbor_table, it.m_index));
+            auto new_index = get<Offset::value>(neighbor_table::neighbors(table, it.m_index));
             auto shifted = it;
             shifted.m_index = new_index;
             return shifted;
