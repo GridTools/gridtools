@@ -44,7 +44,7 @@ namespace gridtools::fn {
         struct v2e {};
 
         using block_sizes_t = meta::list<meta::list<unstructured::dim::horizontal, int_t<32>>,
-            meta::list<unstructured::dim::k, int_t<1>>>;
+            meta::list<unstructured::dim::vertical, int_t<1>>>;
 
         TEST(unstructured, v2v_sum) {
             auto apply_stencil = [](auto executor, auto &out, auto const &in) {
@@ -73,7 +73,7 @@ namespace gridtools::fn {
                 return sid::synthetic()
                     .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
                     .set<property::strides>(
-                        hymap::keys<unstructured::dim::horizontal, unstructured::dim::k>::make_values(5_c, 1_c));
+                        hymap::keys<unstructured::dim::horizontal, unstructured::dim::vertical>::make_values(5_c, 1_c));
             };
             auto in_s = as_synthetic(in.get());
             auto out_s = as_synthetic(out.get());
@@ -122,7 +122,7 @@ namespace gridtools::fn {
                 return sid::synthetic()
                     .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
                     .set<property::strides>(
-                        hymap::keys<unstructured::dim::horizontal, unstructured::dim::k>::make_values(5_c, 1_c));
+                        hymap::keys<unstructured::dim::horizontal, unstructured::dim::vertical>::make_values(5_c, 1_c));
             };
             auto in_s = as_synthetic(in.get());
             auto out_s = as_synthetic(out.get());

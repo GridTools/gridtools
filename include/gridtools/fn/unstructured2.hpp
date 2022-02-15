@@ -18,7 +18,6 @@ namespace gridtools::fn {
     namespace unstructured::dim {
         using horizontal = integral_constant<int, 0>;
         using vertical = integral_constant<int, 1>;
-        using k = vertical;
     } // namespace unstructured::dim
 
     namespace unstructured_impl_ {
@@ -45,7 +44,7 @@ namespace gridtools::fn {
 
         template <class... Connectivities>
         auto unstructured_domain(
-            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &... conns) {
+            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &...conns) {
             auto table_map = hymap::keys<typename Connectivities::tag_t...>::make_values(conns...);
             auto sizes = hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size);
             return domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
