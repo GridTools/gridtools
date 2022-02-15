@@ -11,6 +11,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../../common/hymap.hpp"
 #include "../../../common/tuple.hpp"
@@ -26,13 +27,13 @@ namespace gridtools {
         namespace cartesian {
             namespace call_interfaces_impl_ {
                 template <class Functor, class Region, class Eval>
-                GT_FUNCTION std::enable_if_t<!std::is_void<Region>::value> call_functor(Eval eval) {
+                GT_FUNCTION std::enable_if_t<!std::is_void_v<Region>> call_functor(Eval eval) {
                     Functor::template apply<Eval &>(eval, Region());
                 }
 
                 // overload for the default interval (Functor with one argument)
                 template <class Functor, class Region, class Eval>
-                GT_FUNCTION std::enable_if_t<std::is_void<Region>::value> call_functor(Eval eval) {
+                GT_FUNCTION std::enable_if_t<std::is_void_v<Region>> call_functor(Eval eval) {
                     Functor::template apply<Eval &>(eval);
                 }
 
@@ -43,16 +44,15 @@ namespace gridtools {
 
                     template <class Lhs, class Rhs>
                     GT_FUNCTION auto operator()(Lhs &&lhs, Rhs &&rhs) const {
-                        return host_device::at_key_with_default<Key, default_t>(wstd::forward<Lhs>(lhs)) +
-                               host_device::at_key_with_default<Key, default_t>(wstd::forward<Rhs>(rhs));
+                        return host_device::at_key_with_default<Key, default_t>(std::forward<Lhs>(lhs)) +
+                               host_device::at_key_with_default<Key, default_t>(std::forward<Rhs>(rhs));
                     }
                 };
 
                 template <class Res, class Lhs, class Rhs>
                 GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs rhs) {
                     using generators_t = meta::transform<sum_offset_generator_f, get_keys<Res>>;
-                    return tuple_util::host_device::generate<generators_t, Res>(
-                        wstd::forward<Lhs>(lhs), wstd::move(rhs));
+                    return tuple_util::host_device::generate<generators_t, Res>(std::forward<Lhs>(lhs), std::move(rhs));
                 }
 
                 template <int_t I, int_t J, int_t K, class Accessor>
@@ -68,7 +68,7 @@ namespace gridtools {
                 GT_FUNCTION std::enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor acc) {
                     using offset_t = hymap::keys<dim::i, dim::j, dim::k>::
                         values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>;
-                    return sum_offsets<Res>(wstd::move(acc), offset_t());
+                    return sum_offsets<Res>(std::move(acc), offset_t());
                 }
 
                 template <int_t I, int_t J, int_t K, class Params, class Eval, class Args>
@@ -101,19 +101,19 @@ namespace gridtools {
 
                     template <class Op, class... Ts>
                     GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
-                        return expressions::evaluation::value(*this, wstd::move(arg));
+                        return expressions::evaluation::value(*this, std::move(arg));
                     }
                 };
 
                 template <int_t I, int_t J, int_t K, class Params, class Eval, class Args>
-                GT_CONSTEXPR GT_FUNCTION evaluator<I, J, K, Params, Eval, Args> make_evaluator(Eval &eval, Args args) {
-                    return {eval, wstd::move(args)};
+                constexpr GT_FUNCTION evaluator<I, J, K, Params, Eval, Args> make_evaluator(Eval &eval, Args args) {
+                    return {eval, std::move(args)};
                 }
 
                 template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
                 GT_FUNCTION void evaluate_bound_functor(Eval &eval, Args args) {
                     call_functor<Functor, Region>(
-                        make_evaluator<I, J, K, typename Functor::param_list>(eval, wstd::move(args)));
+                        make_evaluator<I, J, K, typename Functor::param_list>(eval, std::move(args)));
                 }
 
                 template <class Eval, class Arg, bool = is_accessor<Arg>::value>
@@ -126,7 +126,7 @@ namespace gridtools {
                  * @brief Use forced return type (if not void) or deduce the return type.
                  */
                 template <class Eval, class ReturnType, class Arg, class...>
-                struct get_result_type : std::conditional<std::is_void<ReturnType>::value,
+                struct get_result_type : std::conditional<std::is_void_v<ReturnType>,
                                              typename deduce_result_type<Eval, Arg>::type,
                                              ReturnType> {};
 
@@ -153,7 +153,7 @@ namespace gridtools {
                 int_t OffJ = 0,
                 int_t OffK = 0>
             class call {
-                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void<Region>::value,
+                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void_v<Region>,
                     "Region should be a valid interval tag or void (default interval) to select the apply "
                     "specialization "
                     "in "
@@ -189,11 +189,11 @@ namespace gridtools {
                     class Res =
                         typename call_interfaces_impl_::get_result_type<Eval, ReturnType, std::decay_t<Args>...>::type,
                     std::enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
-                GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
+                GT_FUNCTION static Res with(Eval &eval, Args &&...args) {
                     Res res;
                     call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
                         tuple_util::host_device::insert<out_param_index>(
-                            res, tuple<Args &&...>{wstd::forward<Args>(args)...}));
+                            res, tuple<Args &&...>{std::forward<Args>(args)...}));
                     return res;
                 }
             };
@@ -217,7 +217,7 @@ namespace gridtools {
             template <class Functor, class Region = void, int_t OffI = 0, int_t OffJ = 0, int_t OffK = 0>
             struct call_proc {
 
-                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void<Region>::value,
+                static_assert(meta::is_instantiation_of<core::interval, Region>::value or std::is_void_v<Region>,
                     "Region should be a valid interval tag or void (default interval) to select the apply "
                     "specialization "
                     "in "
@@ -235,9 +235,9 @@ namespace gridtools {
                 template <class Eval, class... Args>
                 GT_FUNCTION static std::enable_if_t<sizeof...(Args) ==
                                                     meta::length<typename Functor::param_list>::value>
-                with(Eval &eval, Args &&... args) {
+                with(Eval &eval, Args &&...args) {
                     call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
-                        eval, tuple<Args &&...>{wstd::forward<Args>(args)...});
+                        eval, tuple<Args &&...>{std::forward<Args>(args)...});
                 }
             };
         } // namespace cartesian

@@ -10,9 +10,9 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../common/host_device.hpp"
-#include "../../common/utility.hpp"
 #include "../../meta.hpp"
 #include "interval.hpp"
 #include "level.hpp"
@@ -215,7 +215,7 @@ namespace gridtools {
                 struct bound_functor : Functor {
                     template <class Eval>
                     static GT_FUNCTION void apply(Eval &&eval) {
-                        Functor::apply(wstd::forward<Eval>(eval), Param());
+                        Functor::apply(std::forward<Eval>(eval), Param());
                     }
                 };
 

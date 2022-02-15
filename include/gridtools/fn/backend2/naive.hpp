@@ -48,7 +48,7 @@ namespace gridtools::fn::backend {
                 ptr, strides);
         }
 
-        inline auto tmp_allocator(naive be) { return std::tuple(be, sid::make_allocator(&std::make_unique<char[]>)); }
+        inline auto tmp_allocator(naive be) { return std::tuple(be, sid::allocator(&std::make_unique<char[]>)); }
 
         template <class Allocator, class Sizes, class T>
         auto allocate_global_tmp(std::tuple<naive, Allocator> &alloc, Sizes const &sizes, data_type<T>) {

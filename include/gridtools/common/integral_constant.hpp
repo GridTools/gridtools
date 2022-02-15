@@ -56,7 +56,7 @@ namespace gridtools {
     constexpr GT_FUNCTION integral_constant<decltype(op V), (op V)> operator op(integral_constant<T, V> &&) noexcept { \
         return {};                                                                                                     \
     }                                                                                                                  \
-    static_assert(1, "")
+    static_assert(1)
 
     GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(+, T);
     GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(-, T);
@@ -71,7 +71,7 @@ namespace gridtools {
         integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                   \
         return {};                                                                       \
     }                                                                                    \
-    static_assert(1, "")
+    static_assert(1)
 
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+, (std::common_type_t<T, U>));
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(-, (std::common_type_t<T, U>));
@@ -115,10 +115,10 @@ namespace gridtools {
             }
             template <>
             constexpr literal_int_t to_int<16>(char c) {
-                return c >= 'A' && c <= 'F'
-                           ? c - 'A' + 10
-                           : c >= 'a' && c <= 'f' ? c - 'a' + 10
-                                                  : c >= '0' && c <= '9' ? c - '0' : throw "invalid hex _c literal";
+                return c >= 'A' && c <= 'F'   ? c - 'A' + 10
+                       : c >= 'a' && c <= 'f' ? c - 'a' + 10
+                       : c >= '0' && c <= '9' ? c - '0'
+                                              : throw "invalid hex _c literal";
             }
 
             template <literal_int_t Base>

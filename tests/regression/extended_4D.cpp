@@ -122,8 +122,8 @@ namespace {
         run_single_stage(integration(),
             stencil_backend_t(),
             TypeParam::make_grid(),
-            make_global_parameter(ephi),
-            make_global_parameter(epsi),
+            global_parameter(ephi),
+            global_parameter(epsi),
             const_builder.dimensions(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2), nbQuadPt)
                 .initializer(jac)
                 .build(),

@@ -116,40 +116,38 @@
 #include "defs.hpp"
 #include "functional.hpp"
 #include "host_device.hpp"
-#include "implicit_cast.hpp"
-#include "utility.hpp"
 
-#define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                                    \
-    struct class_name##_tuple_util_getter {                                                                \
-        template <::std::size_t I>                                                                         \
-        static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(class_name const &obj) {                        \
-            return ::gridtools::tuple_util::host_device::get<I>(obj.member_name);                          \
-        }                                                                                                  \
-        template <::std::size_t I>                                                                         \
-        static GT_FUNCTION decltype(auto) get(class_name &obj) {                                           \
-            return ::gridtools::tuple_util::host_device::get<I>(obj.member_name);                          \
-        }                                                                                                  \
-        template <::std::size_t I>                                                                         \
-        static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(class_name &&obj) {                             \
-            return ::gridtools::tuple_util::host_device::get<I>(::gridtools::wstd::move(obj).member_name); \
-        }                                                                                                  \
-    };                                                                                                     \
-    friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; }                  \
-    static_assert(1, "")
+#define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                        \
+    struct class_name##_tuple_util_getter {                                                    \
+        template <::std::size_t I>                                                             \
+        static constexpr GT_FUNCTION decltype(auto) get(class_name const &obj) {               \
+            return ::gridtools::tuple_util::host_device::get<I>(obj.member_name);              \
+        }                                                                                      \
+        template <::std::size_t I>                                                             \
+        static constexpr GT_FUNCTION decltype(auto) get(class_name &obj) {                     \
+            return ::gridtools::tuple_util::host_device::get<I>(obj.member_name);              \
+        }                                                                                      \
+        template <::std::size_t I>                                                             \
+        static constexpr GT_FUNCTION decltype(auto) get(class_name &&obj) {                    \
+            return ::gridtools::tuple_util::host_device::get<I>(::std::move(obj).member_name); \
+        }                                                                                      \
+    };                                                                                         \
+    friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; }      \
+    static_assert(1)
 
 #define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) BOOST_PP_TUPLE_ELEM(0, elem) BOOST_PP_TUPLE_ELEM(1, elem);
 #define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) BOOST_PP_TUPLE_ELEM(0, elem)
 #define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                                                        \
     template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
-    static GT_CONSTEXPR GT_FUNCTION T const &get(name const &obj) {                                         \
+    static constexpr GT_FUNCTION T const &get(name const &obj) {                                            \
         return obj.BOOST_PP_TUPLE_ELEM(1, elem);                                                            \
     }                                                                                                       \
     template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
-    static GT_FUNCTION T &get(name &obj) {                                                                  \
+    static constexpr GT_FUNCTION T &get(name &obj) {                                                        \
         return obj.BOOST_PP_TUPLE_ELEM(1, elem);                                                            \
     }                                                                                                       \
     template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
-    static GT_CONSTEXPR GT_FUNCTION T &&get(name &&obj) {                                                   \
+    static constexpr GT_FUNCTION T &&get(name &&obj) {                                                      \
         return static_cast<T &&>(obj.BOOST_PP_TUPLE_ELEM(1, elem));                                         \
     }
 #define GT_STRUCT_TUPLE_IMPL_(name, members)                                                                          \
@@ -218,7 +216,7 @@ namespace gridtools {
                 struct std_getter {
                     template <size_t I, class T>
                     GT_FORCE_INLINE static constexpr decltype(auto) get(T &&obj) noexcept {
-                        return std::get<I>(wstd::forward<T>(obj));
+                        return std::get<I>(std::forward<T>(obj));
                     }
                 };
             } // namespace _impl
@@ -415,12 +413,12 @@ namespace gridtools {
 
             template <class T, class Getter, class Types, class I>
             struct is_getter_valid<T, Getter, Types, I>
-                : std::bool_constant<std::is_same<decltype(Getter::template get<I::value>(std::declval<T const &>())),
-                                         meta::at<Types, I> const &>::value &&
-                                     std::is_same<decltype(Getter::template get<I::value>(std::declval<T &>())),
-                                         meta::at<Types, I> &>::value &&
-                                     std::is_same<decltype(Getter::template get<I::value>(std::declval<T &&>())),
-                                         meta::at<Types, I> &&>::value> {};
+                : std::bool_constant<std::is_same_v<decltype(Getter::template get<I::value>(std::declval<T const &>())),
+                                         meta::at<Types, I> const &> &&
+                                     std::is_same_v<decltype(Getter::template get<I::value>(std::declval<T &>())),
+                                         meta::at<Types, I> &> &&
+                                     std::is_same_v<decltype(Getter::template get<I::value>(std::declval<T &&>())),
+                                         meta::at<Types, I> &&>> {};
 
             template <class T,
                 class Types = traits::to_types<T>,
@@ -435,13 +433,13 @@ namespace gridtools {
                       // FromTypes metafunction is responsible for producing another `tuple_like` of the given kind from
                       // the list of types. We can not check it for all possible types but we at least can ensure that
                       // if we apply it to the current element types, we will get the current `tuple_like` type back.
-                      std::is_same<meta::rename<FromTypes::template apply, Types>, T>::value &&
+                      std::is_same_v<meta::rename<FromTypes::template apply, Types>, T> &&
                       // we should be able to construct `tuple_like` element wise
                       is_constructible_from_elements<T, Types>::value &&
                       // iff element types are all move_constructible, `tuple_like` is move constructible
-                      meta::all_of<std::is_move_constructible, Types>::value == std::is_move_constructible<T>::value &&
+                      meta::all_of<std::is_move_constructible, Types>::value == std::is_move_constructible_v<T> &&
                       // the same for copy_constructible
-                      meta::all_of<std::is_copy_constructible, Types>::value == std::is_copy_constructible<T>::value &&
+                      meta::all_of<std::is_copy_constructible, Types>::value == std::is_copy_constructible_v<T> &&
                       // check that the getters produce expected types for all indices
                       meta::all_of<meta::curry<is_getter_valid, T, Getter, Types>::template apply,
                           meta::make_indices_for<Types>>::value> {};
@@ -479,12 +477,12 @@ namespace gridtools {
 
 #ifdef GT_TARGET_HAS_DEVICE
 
-#define DEFINE_FUNCTOR_INSTANCE(name, functor)                                          \
-    template <class... Args>                                                            \
-    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) name(Args &&...args) { \
-        return functor()(wstd::forward<Args>(args)...);                                 \
-    }                                                                                   \
-    static_assert(1, "")
+#define DEFINE_FUNCTOR_INSTANCE(name, functor)                                \
+    template <class... Args>                                                  \
+    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) name(Args &&...args) { \
+        return functor()(std::forward<Args>(args)...);                        \
+    }                                                                         \
+    static_assert(1)
 
 #ifdef __NVCC__
 #define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) GT_DEVICE constexpr functor name = {}
@@ -511,15 +509,15 @@ namespace gridtools {
              * @param obj Tuple-like object.
              */
             template <size_t I, class T, class Getter = traits::getter<std::decay_t<T>>>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) get(T && obj) noexcept {
-                return Getter::template get<I>(wstd::forward<T>(obj));
+            GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) get(T && obj) noexcept {
+                return Getter::template get<I>(std::forward<T>(obj));
             }
 
             template <size_t I>
             struct get_nth_f {
                 template <class T, class Getter = traits::getter<std::decay_t<T>>>
-                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(T &&obj) const noexcept {
-                    return Getter::template get<I>(wstd::forward<T>(obj));
+                GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) operator()(T &&obj) const noexcept {
+                    return Getter::template get<I>(std::forward<T>(obj));
                 }
             };
 
@@ -535,10 +533,9 @@ namespace gridtools {
                 template <size_t I>
                 struct transform_elem_index_f {
                     template <class Fun, class... Tups>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(
-                        Fun &&fun, Tups &&...tups) const {
-                        return wstd::forward<Fun>(fun).template operator()<I>(
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...);
+                    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) operator()(Fun &&fun, Tups &&...tups) const {
+                        return std::forward<Fun>(fun).template operator()<I>(
+                            GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tups>(tups))...);
                     }
                 };
 
@@ -550,8 +547,8 @@ namespace gridtools {
                 template <template <class...> class L, class... Generators, class Res>
                 struct generate_f<L<Generators...>, Res> {
                     template <class... Args>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Args &&...args) const {
-                        return Res{Generators{}(wstd::forward<Args>(args)...)...};
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Args &&...args) const {
+                        return Res{Generators{}(std::forward<Args>(args)...)...};
                     }
                 };
 
@@ -563,13 +560,13 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <class Tup, class... Tups>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto operator()(Tup &&tup, Tups &&...tups) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Tup &&tup, Tups &&...tups) const {
                         using indices_t = meta::make_indices<size<std::decay_t<Tup>>>;
                         using res_t =
                             from_types<Tup, get_results_t<indices_t, get_accessors<Tup>, get_accessors<Tups>...>>;
                         using generators_t = meta::transform<get_transform_index_generator, indices_t>;
                         return generate_f<generators_t, res_t>()(
-                            m_fun, wstd::forward<Tup>(tup), wstd::forward<Tups>(tups)...);
+                            m_fun, std::forward<Tup>(tup), std::forward<Tups>(tups)...);
                     }
                 };
 
@@ -578,9 +575,9 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <size_t I, class... Args>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto operator()(Args &&...args) const
-                        -> decltype(m_fun(wstd::forward<Args>(args)...)) {
-                        return m_fun(wstd::forward<Args>(args)...);
+                    GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Args &&...args) const
+                        -> decltype(m_fun(std::forward<Args>(args)...)) {
+                        return m_fun(std::forward<Args>(args)...);
                     }
                 };
 
@@ -591,9 +588,8 @@ namespace gridtools {
                 struct for_each_adaptor_f {
                     Fun m_fun;
                     template <size_t I, class... Args>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR meta::lazy::id<void> operator()(
-                        Args &&...args) const {
-                        m_fun(wstd::forward<Args>(args)...);
+                    GT_TARGET GT_FORCE_INLINE constexpr meta::lazy::id<void> operator()(Args &&...args) const {
+                        m_fun(std::forward<Args>(args)...);
                         return {};
                     }
                 };
@@ -602,9 +598,8 @@ namespace gridtools {
                 struct for_each_index_adaptor_f {
                     Fun m_fun;
                     template <size_t I, class... Args>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR meta::lazy::id<void> operator()(
-                        Args &&...args) const {
-                        m_fun.template operator()<I>(wstd::forward<Args>(args)...);
+                    GT_TARGET GT_FORCE_INLINE constexpr meta::lazy::id<void> operator()(Args &&...args) const {
+                        m_fun.template operator()<I>(std::forward<Args>(args)...);
                         return {};
                     }
                 };
@@ -615,10 +610,9 @@ namespace gridtools {
                 template <template <class...> class L, class... Is>
                 struct apply_to_elements_f<L<Is...>> {
                     template <class Fun, class... Tups>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(
-                        Fun &&fun, Tups &&...tups) const {
-                        return wstd::forward<Fun>(fun)(
-                            GT_TARGET_NAMESPACE_NAME::get<Is::value>(wstd::forward<Tups>(tups))...);
+                    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) operator()(Fun &&fun, Tups &&...tups) const {
+                        return std::forward<Fun>(fun)(
+                            GT_TARGET_NAMESPACE_NAME::get<Is::value>(std::forward<Tups>(tups))...);
                     }
                 };
 
@@ -628,11 +622,10 @@ namespace gridtools {
                 template <template <class...> class Outer, class... Inners>
                 struct for_each_in_cartesian_product_impl_f<Outer<Inners...>> {
                     template <class Fun, class... Tups>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void operator()(Fun &&fun, Tups &&...tups) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr void operator()(Fun &&fun, Tups &&...tups) const {
                         using loop_t = int[sizeof...(Inners)];
-                        void(loop_t{
-                            (apply_to_elements_f<Inners>{}(wstd::forward<Fun>(fun), wstd::forward<Tups>(tups)...),
-                                0)...});
+                        void(loop_t{(
+                            apply_to_elements_f<Inners>{}(std::forward<Fun>(fun), std::forward<Tups>(tups)...), 0)...});
                     }
                 };
 
@@ -640,16 +633,16 @@ namespace gridtools {
                 struct for_each_in_cartesian_product_f {
                     Fun m_fun;
                     template <class... Tups>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void operator()(Tups &&...tups) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr void operator()(Tups &&...tups) const {
                         for_each_in_cartesian_product_impl_f<
                             meta::cartesian_product<meta::make_indices_c<size<std::decay_t<Tups>>::value>...>>{}(
-                            m_fun, wstd::forward<Tups>(tups)...);
+                            m_fun, std::forward<Tups>(tups)...);
                     }
                 };
 
                 struct skip_me {
                     template <class T>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR skip_me(T &&) {}
+                    GT_TARGET GT_FORCE_INLINE constexpr skip_me(T &&) {}
                 };
 
                 template <size_t>
@@ -661,9 +654,9 @@ namespace gridtools {
                 template <size_t... IndicesToSkip>
                 struct select_arg_f<std::index_sequence<IndicesToSkip...>> {
                     template <class T, class... Ts>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR T &&operator()(
+                    GT_TARGET GT_FORCE_INLINE constexpr T &&operator()(
                         skip_me_type<IndicesToSkip> &&..., T &&obj, Ts &&...) const {
-                        return wstd::forward<T>(obj);
+                        return std::forward<T>(obj);
                     }
                 };
 
@@ -672,9 +665,9 @@ namespace gridtools {
                     template <class OuterI, class InnerI>
                     struct generator_f {
                         template <class... Tups>
-                        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(Tups &&...tups) const {
+                        GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) operator()(Tups &&...tups) const {
                             return GT_TARGET_NAMESPACE_NAME::get<InnerI::value>(
-                                select_arg_f<std::make_index_sequence<OuterI::value>>{}(wstd::forward<Tups>(tups)...));
+                                select_arg_f<std::make_index_sequence<OuterI::value>>{}(std::forward<Tups>(tups)...));
                         }
                     };
 
@@ -683,13 +676,13 @@ namespace gridtools {
                         meta::make_indices_for<InnerTup>>;
 
                     template <class... Tups>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto operator()(Tups &&...tups) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Tups &&...tups) const {
                         using accessors_t = meta::transform<get_accessors, meta::list<Tups...>>;
                         using res_t =
                             typename ResultMaker::template apply<meta::flatten<accessors_t>, meta::list<Tups...>>;
                         using generators_t = meta::flatten<
                             meta::transform<get_inner_generators, meta::make_indices_for<accessors_t>, accessors_t>>;
-                        return generate_f<generators_t, res_t>{}(wstd::forward<Tups>(tups)...);
+                        return generate_f<generators_t, res_t>{}(std::forward<Tups>(tups)...);
                     }
                 };
 
@@ -698,9 +691,9 @@ namespace gridtools {
                     template <class OuterI, class InnerI>
                     struct generator_f {
                         template <class Tup>
-                        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(Tup &&tup) const {
+                        GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) operator()(Tup &&tup) const {
                             return GT_TARGET_NAMESPACE_NAME::get<InnerI::value>(
-                                GT_TARGET_NAMESPACE_NAME::get<OuterI::value>(wstd::forward<Tup>(tup)));
+                                GT_TARGET_NAMESPACE_NAME::get<OuterI::value>(std::forward<Tup>(tup)));
                         }
                     };
 
@@ -709,13 +702,13 @@ namespace gridtools {
                         meta::make_indices_for<InnerTup>>;
 
                     template <class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Tup &&tup) const {
                         static_assert(size<Tup>::value != 0, "can not flatten empty tuple");
                         using accessors_t = meta::transform<get_accessors, get_accessors<Tup>>;
                         using res_t = typename ResultMaker::template apply<meta::flatten<accessors_t>, to_types<Tup>>;
                         using generators_t = meta::flatten<
                             meta::transform<get_inner_generators, meta::make_indices_for<accessors_t>, accessors_t>>;
-                        return generate_f<generators_t, res_t>{}(wstd::forward<Tup>(tup));
+                        return generate_f<generators_t, res_t>{}(std::forward<Tup>(tup));
                     }
                 };
 
@@ -727,10 +720,10 @@ namespace gridtools {
                     template <class Tup,
                         class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::drop_front_c<N, Accessors>>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         using generators =
                             meta::transform<get_drop_front_generator, meta::make_indices_c<size<Accessors>::value - N>>;
-                        return generate_f<generators, Res>{}(wstd::forward<Tup>(tup));
+                        return generate_f<generators, Res>{}(std::forward<Tup>(tup));
                     }
                 };
 
@@ -740,9 +733,9 @@ namespace gridtools {
                 template <template <class T, T...> class L, class Int, Int... Is, class Res>
                 struct push_back_impl_f<L<Int, Is...>, Res> {
                     template <class Tup, class... Args>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup, Args &&...args) const {
-                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is>(wstd::forward<Tup>(tup))...,
-                            wstd::forward<Args>(args)...};
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&...args) const {
+                        return Res{
+                            GT_TARGET_NAMESPACE_NAME::get<Is>(std::forward<Tup>(tup))..., std::forward<Args>(args)...};
                     }
                 };
 
@@ -751,9 +744,9 @@ namespace gridtools {
                         class... Args,
                         class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::push_back<Accessors, Args &&...>>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup, Args &&...args) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&...args) const {
                         return push_back_impl_f<std::make_index_sequence<size<Accessors>::value>, Res>{}(
-                            wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
+                            std::forward<Tup>(tup), std::forward<Args>(args)...);
                     }
                 };
 
@@ -763,9 +756,9 @@ namespace gridtools {
                 template <template <class T, T...> class L, class Int, Int... Is, class Res>
                 struct push_front_impl_f<L<Int, Is...>, Res> {
                     template <class Tup, class... Args>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup, Args &&...args) const {
-                        return Res{wstd::forward<Args>(args)...,
-                            GT_TARGET_NAMESPACE_NAME::get<Is>(wstd::forward<Tup>(tup))...};
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&...args) const {
+                        return Res{
+                            std::forward<Args>(args)..., GT_TARGET_NAMESPACE_NAME::get<Is>(std::forward<Tup>(tup))...};
                     }
                 };
 
@@ -774,9 +767,9 @@ namespace gridtools {
                         class... Args,
                         class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::push_front<Accessors, Args &&...>>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup, Args &&...args) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&...args) const {
                         return push_front_impl_f<std::make_index_sequence<size<Accessors>::value>, Res>{}(
-                            wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
+                            std::forward<Tup>(tup), std::forward<Args>(args)...);
                     }
                 };
 
@@ -786,8 +779,8 @@ namespace gridtools {
                 template <template <class T, T...> class L, class Int, Int... Is, class Res>
                 struct pop_back_impl_f<L<Int, Is...>, Res> {
                     template <class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
-                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is>(wstd::forward<Tup>(tup))...};
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
+                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is>(std::forward<Tup>(tup))...};
                     }
                 };
 
@@ -795,9 +788,9 @@ namespace gridtools {
                     template <class Tup,
                         class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::pop_front<Accessors>>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         return pop_back_impl_f<std::make_index_sequence<size<Accessors>::value - 1>, Res>()(
-                            wstd::forward<Tup>(tup));
+                            std::forward<Tup>(tup));
                     }
                 };
 
@@ -807,8 +800,8 @@ namespace gridtools {
                 template <template <class T, T...> class L, class Int, Int... Is, class Res>
                 struct pop_front_impl_f<L<Int, Is...>, Res> {
                     template <class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
-                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is + 1>(wstd::forward<Tup>(tup))...};
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
+                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is + 1>(std::forward<Tup>(tup))...};
                     }
                 };
 
@@ -816,9 +809,9 @@ namespace gridtools {
                     template <class Tup,
                         class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::pop_front<Accessors>>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         return pop_front_impl_f<std::make_index_sequence<size<Accessors>::value - 1>, Res>()(
-                            wstd::forward<Tup>(tup));
+                            std::forward<Tup>(tup));
                     }
                 };
 
@@ -829,38 +822,38 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <size_t I, size_t N, class State, class Tup, std::enable_if_t<I == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR State impl(State &&state, Tup &&) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr State impl(State &&state, Tup &&) const {
                         return state;
                     }
 
                     template <size_t I, size_t N, class State, class Tup, std::enable_if_t<I + 1 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) impl(State &&state, Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) impl(State &&state, Tup &&tup) const {
                         return m_fun(
-                            wstd::forward<State>(state), GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup)));
+                            std::forward<State>(state), GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tup>(tup)));
                     }
 
                     template <size_t I, size_t N, class State, class Tup, std::enable_if_t<I + 2 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) impl(State &&state, Tup &&tup) const {
-                        return m_fun(m_fun(wstd::forward<State>(state),
-                                         GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
-                            GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup)));
+                    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) impl(State &&state, Tup &&tup) const {
+                        return m_fun(
+                            m_fun(std::forward<State>(state), GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tup>(tup))),
+                            GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tup>(tup)));
                     }
 
                     template <size_t I, size_t N, class State, class Tup, std::enable_if_t<I + 3 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) impl(State &&state, Tup &&tup) const {
-                        return m_fun(m_fun(m_fun(wstd::forward<State>(state),
-                                               GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
-                                         GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup))),
-                            GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup)));
+                    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) impl(State &&state, Tup &&tup) const {
+                        return m_fun(m_fun(m_fun(std::forward<State>(state),
+                                               GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tup>(tup))),
+                                         GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tup>(tup))),
+                            GT_TARGET_NAMESPACE_NAME::get<I + 2>(std::forward<Tup>(tup)));
                     }
 
                     template <size_t I, size_t N, class State, class Tup, std::enable_if_t<I + 4 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) impl(State &&state, Tup &&tup) const {
-                        return m_fun(m_fun(m_fun(m_fun(wstd::forward<State>(state),
-                                                     GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
-                                               GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup))),
-                                         GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup))),
-                            GT_TARGET_NAMESPACE_NAME::get<I + 3>(wstd::forward<Tup>(tup)));
+                    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) impl(State &&state, Tup &&tup) const {
+                        return m_fun(m_fun(m_fun(m_fun(std::forward<State>(state),
+                                                     GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tup>(tup))),
+                                               GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tup>(tup))),
+                                         GT_TARGET_NAMESPACE_NAME::get<I + 2>(std::forward<Tup>(tup))),
+                            GT_TARGET_NAMESPACE_NAME::get<I + 3>(std::forward<Tup>(tup)));
                     }
 
                     template <size_t I,
@@ -871,24 +864,24 @@ namespace gridtools {
                         class Accessors = meta::drop_front_c<I, AllAccessors>,
                         class Res = meta::foldl<meta_fun, State, Accessors>,
                         std::enable_if_t<(I + 4 < N), int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res impl(State &&state, Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res impl(State &&state, Tup &&tup) const {
                         return impl<I + 5, N>(
-                            m_fun(m_fun(m_fun(m_fun(m_fun(wstd::forward<State>(state),
-                                                        GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
-                                                  GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup))),
-                                            GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup))),
-                                      GT_TARGET_NAMESPACE_NAME::get<I + 3>(wstd::forward<Tup>(tup))),
-                                GT_TARGET_NAMESPACE_NAME::get<I + 4>(wstd::forward<Tup>(tup))),
-                            wstd::forward<Tup>(tup));
+                            m_fun(m_fun(m_fun(m_fun(m_fun(std::forward<State>(state),
+                                                        GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tup>(tup))),
+                                                  GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tup>(tup))),
+                                            GT_TARGET_NAMESPACE_NAME::get<I + 2>(std::forward<Tup>(tup))),
+                                      GT_TARGET_NAMESPACE_NAME::get<I + 3>(std::forward<Tup>(tup))),
+                                GT_TARGET_NAMESPACE_NAME::get<I + 4>(std::forward<Tup>(tup))),
+                            std::forward<Tup>(tup));
                     }
 
                     template <class State,
                         class Tup,
                         class Accessors = get_accessors<Tup>,
                         class Res = meta::foldl<meta_fun, State, Accessors>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(State &&state, Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(State &&state, Tup &&tup) const {
                         return impl<0, size<std::decay_t<Tup>>::value>(
-                            wstd::forward<State>(state), wstd::forward<Tup>(tup));
+                            std::forward<State>(state), std::forward<Tup>(tup));
                     }
 
                     template <class Tup,
@@ -896,9 +889,9 @@ namespace gridtools {
                         class StateAccessor = meta::first<AllAccessors>,
                         class Accessors = meta::drop_front_c<1, AllAccessors>,
                         class Res = meta::foldl<meta_fun, StateAccessor, Accessors>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         return impl<1, size<std::decay_t<Tup>>::value>(
-                            GT_TARGET_NAMESPACE_NAME::get<0>(wstd::forward<Tup>(tup)), wstd::forward<Tup>(tup));
+                            GT_TARGET_NAMESPACE_NAME::get<0>(std::forward<Tup>(tup)), std::forward<Tup>(tup));
                     }
                 };
 
@@ -907,49 +900,49 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <size_t I, size_t N, class... Tups, std::enable_if_t<I == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool impl(Tups &&...) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&...) const {
                         return true;
                     }
 
                     template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 1 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool impl(Tups &&...tups) const {
-                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...);
+                    GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 2 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool impl(Tups &&...tups) const {
-                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tups>(tups))...);
+                    GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 3 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool impl(Tups &&...tups) const {
-                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tups>(tups))...);
+                    GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(std::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 4 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool impl(Tups &&...tups) const {
-                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 3>(wstd::forward<Tups>(tups))...);
+                    GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 3>(std::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, std::enable_if_t<(I + 4 < N), int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool impl(Tups &&...tups) const {
-                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tups>(tups))...) &&
-                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 3>(wstd::forward<Tups>(tups))...) &&
-                               impl<I + 4, N>(wstd::forward<Tups>(tups)...);
+                    GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(std::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 3>(std::forward<Tups>(tups))...) &&
+                               impl<I + 4, N>(std::forward<Tups>(tups)...);
                     }
 
                     template <class Tup, class... Tups>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool operator()(Tup &&tup, Tups &&...tups) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr bool operator()(Tup &&tup, Tups &&...tups) const {
                         return impl<0, size<std::decay_t<Tup>>::value>(
-                            wstd::forward<Tup>(tup), wstd::forward<Tups>(tups)...);
+                            std::forward<Tup>(tup), std::forward<Tups>(tups)...);
                     }
                 };
 
@@ -957,8 +950,8 @@ namespace gridtools {
                 struct implicit_convert_to_f {
                     using type = implicit_convert_to_f;
                     template <class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR To operator()(Tup &&tup) const {
-                        return GT_TARGET_NAMESPACE_NAME::get<Index::value>(wstd::forward<Tup>(tup));
+                    GT_TARGET GT_FORCE_INLINE constexpr To operator()(Tup &&tup) const {
+                        return GT_TARGET_NAMESPACE_NAME::get<Index::value>(std::forward<Tup>(tup));
                     }
                 };
 
@@ -967,10 +960,10 @@ namespace gridtools {
                     template <class Tup,
                         class ToTypes = get_accessors<Tup>,
                         class Res = meta::rename<DstFromTypesMetaClass::template apply, ToTypes>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         using generators_t =
                             meta::transform<implicit_convert_to_f, to_types<Res>, meta::make_indices_for<ToTypes>>;
-                        return generate_f<generators_t, Res>{}(wstd::forward<Tup>(tup));
+                        return generate_f<generators_t, Res>{}(std::forward<Tup>(tup));
                     }
                 };
 
@@ -985,8 +978,8 @@ namespace gridtools {
                     using get_generator = transform_f<get_nth_f<I::value>>;
 
                     template <class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR
-                        std::enable_if_t<tuple_util::size<std::decay_t<Tup>>::value == 0>
+                    GT_TARGET
+                        GT_FORCE_INLINE constexpr std::enable_if_t<tuple_util::size<std::decay_t<Tup>>::value == 0>
                         operator()(Tup &&) const {
                         static_assert(tuple_util::size<std::decay_t<Tup>>::value,
                             "tuple_util::transpose input should not be empty");
@@ -998,10 +991,10 @@ namespace gridtools {
                         class Types = meta::transpose<Accessors>,
                         class InnerTuples = meta::transform<get_inner_tuple_f<Tup>::template apply, Types>,
                         class Res = from_types<First, InnerTuples>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         using inner_indices_t = meta::make_indices_for<to_types<First>>;
                         using generators_t = meta::transform<get_generator, inner_indices_t>;
-                        return generate_f<generators_t, Res>{}(wstd::forward<Tup>(tup));
+                        return generate_f<generators_t, Res>{}(std::forward<Tup>(tup));
                     }
                 };
 
@@ -1015,10 +1008,10 @@ namespace gridtools {
                     template <class Tup,
                         class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::reverse<Accessors>>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         using n_t = size<std::decay_t<Tup>>;
                         using generators_t = meta::transform<generator_f<n_t>::template apply, meta::make_indices<n_t>>;
-                        return generate_f<generators_t, Res>{}(wstd::forward<Tup>(tup));
+                        return generate_f<generators_t, Res>{}(std::forward<Tup>(tup));
                     }
                 };
 
@@ -1027,16 +1020,16 @@ namespace gridtools {
                     using type = insert_tup_generator_f;
 
                     template <class Tup, class Val>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(Tup &&tup, Val &&) const {
-                        return GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup));
+                    GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) operator()(Tup &&tup, Val &&) const {
+                        return GT_TARGET_NAMESPACE_NAME::get<I>(std::forward<Tup>(tup));
                     }
                 };
 
                 struct insert_val_generator_f {
                     using type = insert_val_generator_f;
                     template <class Tup, class Val>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Val operator()(Tup &&, Val &&val) const {
-                        return wstd::forward<Val>(val);
+                    GT_TARGET GT_FORCE_INLINE constexpr Val operator()(Tup &&, Val &&val) const {
+                        return std::forward<Val>(val);
                     }
                 };
 
@@ -1055,9 +1048,9 @@ namespace gridtools {
                         class Accessors = get_accessors<Tup>,
                         class Types = meta::insert_c<N, Accessors, Val>,
                         class Res = from_types<Tup, Types>>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(Tup &&tup) const {
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         using generators_t = meta::transform<get_generator, meta::make_indices_for<Types>>;
-                        return generate_f<generators_t, Res>{}(wstd::forward<Tup>(tup), m_val);
+                        return generate_f<generators_t, Res>{}(std::forward<Tup>(tup), m_val);
                     }
                 };
             } // namespace detail
@@ -1101,9 +1094,9 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun, class Tup, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto transform(Fun && fun, Tup && tup, Tups && ...tups) {
-                return detail::transform_f<Fun>{{wstd::forward<Fun>(fun)}}(
-                    wstd::forward<Tup>(tup), wstd::forward<Tups>(tups)...);
+            GT_TARGET GT_FORCE_INLINE constexpr auto transform(Fun && fun, Tup && tup, Tups && ...tups) {
+                return detail::transform_f<Fun>{{std::forward<Fun>(fun)}}(
+                    std::forward<Tup>(tup), std::forward<Tups>(tups)...);
             }
 
             /**
@@ -1135,20 +1128,19 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::transform_f<Fun> transform(Fun fun) {
-                return {wstd::move(fun)};
+            GT_TARGET GT_FORCE_INLINE constexpr detail::transform_f<Fun> transform(Fun fun) {
+                return {std::move(fun)};
             }
 
             template <class Fun, class Tup, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto transform_index(
-                Fun && fun, Tup && tup, Tups && ...tups) {
-                return detail::transform_index_f<Fun>{wstd::forward<Fun>(fun)}(
-                    wstd::forward<Tup>(tup), wstd::forward<Tups>(tups)...);
+            GT_TARGET GT_FORCE_INLINE constexpr auto transform_index(Fun && fun, Tup && tup, Tups && ...tups) {
+                return detail::transform_index_f<Fun>{std::forward<Fun>(fun)}(
+                    std::forward<Tup>(tup), std::forward<Tups>(tups)...);
             }
 
             template <class Fun>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::transform_index_f<Fun> transform_index(Fun fun) {
-                return {wstd::move(fun)};
+            GT_TARGET GT_FORCE_INLINE constexpr detail::transform_index_f<Fun> transform_index(Fun fun) {
+                return {std::move(fun)};
             }
 
             /**
@@ -1190,10 +1182,10 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun, class Tup, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void for_each(Fun && fun, Tup && tup, Tups && ...tups) {
-                transform_index(detail::for_each_adaptor_f<Fun>{wstd::forward<Fun>(fun)},
-                    wstd::forward<Tup>(tup),
-                    wstd::forward<Tups>(tups)...);
+            GT_TARGET GT_FORCE_INLINE constexpr void for_each(Fun && fun, Tup && tup, Tups && ...tups) {
+                transform_index(detail::for_each_adaptor_f<Fun>{std::forward<Fun>(fun)},
+                    std::forward<Tup>(tup),
+                    std::forward<Tups>(tups)...);
             }
 
             /**
@@ -1228,23 +1220,22 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::transform_index_f<detail::for_each_adaptor_f<Fun>>
-            for_each(Fun fun) {
-                return {{wstd::move(fun)}};
+            GT_TARGET GT_FORCE_INLINE constexpr detail::transform_index_f<detail::for_each_adaptor_f<Fun>> for_each(
+                Fun fun) {
+                return {{std::move(fun)}};
             }
 
             template <class Fun, class Tup, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void for_each_index(Fun && fun, Tup && tup, Tups && ...tups) {
-                transform_index(detail::for_each_index_adaptor_f<Fun>{wstd::forward<Fun>(fun)},
-                    wstd::forward<Tup>(tup),
-                    wstd::forward<Tups>(tups)...);
+            GT_TARGET GT_FORCE_INLINE constexpr void for_each_index(Fun && fun, Tup && tup, Tups && ...tups) {
+                transform_index(detail::for_each_index_adaptor_f<Fun>{std::forward<Fun>(fun)},
+                    std::forward<Tup>(tup),
+                    std::forward<Tups>(tups)...);
             }
 
             template <class Fun>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR
-                detail::transform_index_f<detail::for_each_index_adaptor_f<Fun>>
-                for_each_index(Fun fun) {
-                return {{wstd::move(fun)}};
+            GT_TARGET GT_FORCE_INLINE constexpr detail::transform_index_f<detail::for_each_index_adaptor_f<Fun>>
+            for_each_index(Fun fun) {
+                return {{std::move(fun)}};
             }
 
             /**
@@ -1277,16 +1268,16 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun, class Tup, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void for_each_in_cartesian_product(
+            GT_TARGET GT_FORCE_INLINE constexpr void for_each_in_cartesian_product(
                 Fun && fun, Tup && tup, Tups && ...tups) {
-                detail::for_each_in_cartesian_product_f<Fun>{wstd::forward<Fun>(fun)}(
-                    wstd::forward<Tup>(tup), wstd::forward<Tups>(tups)...);
+                detail::for_each_in_cartesian_product_f<Fun>{std::forward<Fun>(fun)}(
+                    std::forward<Tup>(tup), std::forward<Tups>(tups)...);
             }
 
             template <class Fun>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::for_each_in_cartesian_product_f<Fun>
+            GT_TARGET GT_FORCE_INLINE constexpr detail::for_each_in_cartesian_product_f<Fun>
             for_each_in_cartesian_product(Fun fun) {
-                return {wstd::move(fun)};
+                return {std::move(fun)};
             }
 
             /*
@@ -1374,8 +1365,8 @@ namespace gridtools {
              * @endcode
              */
             template <class Generators, class Res, class... Args>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res generate(Args && ...args) {
-                return detail::generate_f<Generators, Res>{}(wstd::forward<Args>(args)...);
+            GT_TARGET GT_FORCE_INLINE constexpr Res generate(Args && ...args) {
+                return detail::generate_f<Generators, Res>{}(std::forward<Args>(args)...);
             }
 
             /**
@@ -1460,9 +1451,8 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun, class Arg, class... Args>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) fold(Fun && fun, Arg && arg, Args && ...args) {
-                return detail::fold_f<Fun>{wstd::forward<Fun>(fun)}(
-                    wstd::forward<Arg>(arg), wstd::forward<Args>(args)...);
+            GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) fold(Fun && fun, Arg && arg, Args && ...args) {
+                return detail::fold_f<Fun>{std::forward<Fun>(fun)}(std::forward<Arg>(arg), std::forward<Args>(args)...);
             }
 
             /**
@@ -1490,18 +1480,18 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::fold_f<Fun> fold(Fun fun) {
-                return {wstd::move(fun)};
+            GT_TARGET GT_FORCE_INLINE constexpr detail::fold_f<Fun> fold(Fun fun) {
+                return {std::move(fun)};
             }
 
             template <class Pred, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR bool all_of(Pred && pred, Tups && ...tups) {
-                return detail::all_of_f<Pred>{wstd::forward<Pred>(pred)}(wstd::forward<Tups>(tups)...);
+            GT_TARGET GT_FORCE_INLINE constexpr bool all_of(Pred && pred, Tups && ...tups) {
+                return detail::all_of_f<Pred>{std::forward<Pred>(pred)}(std::forward<Tups>(tups)...);
             }
 
             template <class Pred>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::all_of_f<Pred> all_of(Pred pred) {
-                return {wstd::move(pred)};
+            GT_TARGET GT_FORCE_INLINE constexpr detail::all_of_f<Pred> all_of(Pred pred) {
+                return {std::move(pred)};
             }
 
             /**
@@ -1533,14 +1523,14 @@ namespace gridtools {
             namespace detail {
                 // in impl as it is not as powerful as std::invoke (does not support invoking member functions)
                 template <class Fun, class... Args>
-                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) invoke_impl(Fun &&f, Args &&...args) {
-                    return wstd::forward<Fun>(f)(wstd::forward<Args>(args)...);
+                GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) invoke_impl(Fun &&f, Args &&...args) {
+                    return std::forward<Fun>(f)(std::forward<Args>(args)...);
                 }
 
                 template <class Fun, class Tup, std::size_t... Is>
-                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) apply_impl(
+                GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) apply_impl(
                     Fun &&f, Tup &&tup, std::index_sequence<Is...>) {
-                    return invoke_impl(wstd::forward<Fun>(f), get<Is>(wstd::forward<Tup>(tup))...);
+                    return invoke_impl(std::forward<Fun>(f), get<Is>(std::forward<Tup>(tup))...);
                 }
             } // namespace detail
 
@@ -1555,16 +1545,16 @@ namespace gridtools {
              * See std::apply (c++17), with the limitation that it only works for FunctionObjects (not for any Callable)
              */
             template <class Fun, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) apply(Fun && fun, Tup && tup) {
-                return detail::apply_impl(wstd::forward<Fun>(fun),
-                    wstd::forward<Tup>(tup),
+            GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) apply(Fun && fun, Tup && tup) {
+                return detail::apply_impl(std::forward<Fun>(fun),
+                    std::forward<Tup>(tup),
                     std::make_index_sequence<size<std::decay_t<Tup>>::value>{});
             }
 
             /// Generalization of `std::tie`
             //
             template <template <class...> class L, class... Ts>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR L<Ts &...> tie(Ts & ...elems) {
+            GT_TARGET GT_FORCE_INLINE constexpr L<Ts &...> tie(Ts & ...elems) {
                 return L<Ts &...>{elems...};
             }
 
@@ -1594,8 +1584,7 @@ namespace gridtools {
                 class = std::void_t<L<int, int>>
 #endif
                 >
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::convert_to_f<_impl::to_tuple_converter_helper<L>>
-            convert_to() {
+            GT_TARGET GT_FORCE_INLINE constexpr detail::convert_to_f<_impl::to_tuple_converter_helper<L>> convert_to() {
                 return {};
             }
 
@@ -1610,31 +1599,31 @@ namespace gridtools {
 #endif
                 ,
                 class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto convert_to(Tup && tup) {
-                return detail::convert_to_f<_impl::to_tuple_converter_helper<L>>{}(wstd::forward<Tup>(tup));
+            GT_TARGET GT_FORCE_INLINE constexpr auto convert_to(Tup && tup) {
+                return detail::convert_to_f<_impl::to_tuple_converter_helper<L>>{}(std::forward<Tup>(tup));
             }
 
             template <template <class, size_t> class Arr, class D = void>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>
+            GT_TARGET GT_FORCE_INLINE constexpr detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>
             convert_to() {
                 return {};
             }
 
             template <template <class, size_t> class Arr, class D = void, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto convert_to(Tup && tup) {
-                return (detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>{}(wstd::forward<Tup>(tup)));
+            GT_TARGET GT_FORCE_INLINE constexpr auto convert_to(Tup && tup) {
+                return (detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>{}(std::forward<Tup>(tup)));
             }
 
             DEFINE_FUNCTOR_INSTANCE(reverse, detail::reverse_f);
 
             template <size_t I, class Val>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::insert_f<I, Val> insert(Val && val) {
-                return {wstd::forward<Val>(val)};
+            GT_TARGET GT_FORCE_INLINE constexpr detail::insert_f<I, Val> insert(Val && val) {
+                return {std::forward<Val>(val)};
             }
 
             template <size_t I, class Val, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto insert(Val && val, Tup && tup) {
-                return insert<I>(wstd::forward<Val>(val))(wstd::forward<Tup>(tup));
+            GT_TARGET GT_FORCE_INLINE constexpr auto insert(Val && val, Tup && tup) {
+                return insert<I>(std::forward<Val>(val))(std::forward<Tup>(tup));
             }
         }
     } // namespace tuple_util

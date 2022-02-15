@@ -43,14 +43,14 @@ namespace gridtools {
         return impl_::default_precision_impl<T>::value;
     }
 
-    template <class T, std::enable_if_t<std::is_floating_point<T>::value, int> = 0>
+    template <class T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
     GT_FUNCTION bool expect_with_threshold(T expected, T actual, double precision = default_precision<T>()) {
         auto abs_error = math::fabs(expected - actual);
         auto abs_max = math::max(math::fabs(expected), math::fabs(actual));
         return abs_error < precision || abs_error < abs_max * precision;
     }
 
-    template <class T, std::enable_if_t<!std::is_floating_point<T>::value, int> = 0>
+    template <class T, std::enable_if_t<!std::is_floating_point_v<T>, int> = 0>
     GT_FUNCTION bool expect_with_threshold(T const &expected, T const &actual, double = 0) {
         return actual == expected;
     }
@@ -62,8 +62,8 @@ namespace gridtools {
             return fun(tuple_util::get<Is>(indices)...);
         }
         template <class F, class Indices>
-        auto apply(F const &fun, Indices const &indices) -> decltype(
-            verify_impl_::apply_impl(fun, indices, std::make_index_sequence<tuple_util::size<Indices>::value>())) {
+        auto apply(F const &fun, Indices const &indices) -> decltype(verify_impl_::apply_impl(
+            fun, indices, std::make_index_sequence<tuple_util::size<Indices>::value>())) {
             return apply_impl(fun, indices, std::make_index_sequence<tuple_util::size<Indices>::value>());
         }
 

@@ -36,7 +36,7 @@ struct stage2 {
 
 template <class Arg, int... Is, class Spec>
 constexpr bool test_extent(Spec spec) {
-    return std::is_same<decltype(get_arg_extent(spec, Arg())), extent<Is...>>::value;
+    return std::is_same_v<decltype(get_arg_extent(spec, Arg())), extent<Is...>>;
 }
 
 template <class Plh, class Spec>
@@ -53,25 +53,25 @@ struct f {};
 
 constexpr auto mss0 = execute_parallel().stage(stage1(), a(), b(), c());
 
-static_assert(test_extent<a, 0, 1, -1, 0, 0, 1>(mss0), "");
-static_assert(test_extent<b, 0, 1, -1, 0, -1, 1>(mss0), "");
-static_assert(test_extent<c>(mss0), "");
+static_assert(test_extent<a, 0, 1, -1, 0, 0, 1>(mss0));
+static_assert(test_extent<b, 0, 1, -1, 0, -1, 1>(mss0));
+static_assert(test_extent<c>(mss0));
 
-static_assert(test_intent<a>(mss0, intent::in), "");
-static_assert(test_intent<b>(mss0, intent::in), "");
-static_assert(test_intent<c>(mss0, intent::inout), "");
+static_assert(test_intent<a>(mss0, intent::in));
+static_assert(test_intent<b>(mss0, intent::in));
+static_assert(test_intent<c>(mss0, intent::inout));
 
 constexpr auto mss1 = execute_parallel().stage(stage1(), a(), b(), c()).stage(stage2(), a(), c(), d());
 
-static_assert(test_extent<a, -1, 2, -2, 1, -1, 2>(mss1), "");
-static_assert(test_extent<b, -1, 2, -2, 0, -2, 2>(mss1), "");
-static_assert(test_extent<c, -1, 1, -1, 0, -1, 1>(mss1), "");
-static_assert(test_extent<d>(mss1), "");
+static_assert(test_extent<a, -1, 2, -2, 1, -1, 2>(mss1));
+static_assert(test_extent<b, -1, 2, -2, 0, -2, 2>(mss1));
+static_assert(test_extent<c, -1, 1, -1, 0, -1, 1>(mss1));
+static_assert(test_extent<d>(mss1));
 
-static_assert(test_intent<a>(mss1, intent::in), "");
-static_assert(test_intent<b>(mss1, intent::in), "");
-static_assert(test_intent<c>(mss1, intent::inout), "");
-static_assert(test_intent<d>(mss1, intent::inout), "");
+static_assert(test_intent<a>(mss1, intent::in));
+static_assert(test_intent<b>(mss1, intent::in));
+static_assert(test_intent<c>(mss1, intent::inout));
+static_assert(test_intent<d>(mss1, intent::inout));
 
 constexpr auto mss2 = execute_parallel()
                           .stage(stage1(), a(), b(), c())
@@ -107,16 +107,16 @@ constexpr auto mss2 = execute_parallel()
 //   b:  {-2, 3, -3, 1, -3, 3}
 //   a:  {-2, 3, -3, 1, -2, 3}
 
-static_assert(test_extent<a, -2, 3, -3, 1, -2, 3>(mss2), "");
-static_assert(test_extent<b, -2, 3, -3, 1, -3, 3>(mss2), "");
-static_assert(test_extent<c, -2, 2, -2, 1, -2, 2>(mss2), "");
-static_assert(test_extent<d, -1, 0, 0, 1, -1, 0>(mss2), "");
-static_assert(test_extent<e, -1, 1, -1, 0, -1, 1>(mss2), "");
-static_assert(test_extent<f>(mss2), "");
+static_assert(test_extent<a, -2, 3, -3, 1, -2, 3>(mss2));
+static_assert(test_extent<b, -2, 3, -3, 1, -3, 3>(mss2));
+static_assert(test_extent<c, -2, 2, -2, 1, -2, 2>(mss2));
+static_assert(test_extent<d, -1, 0, 0, 1, -1, 0>(mss2));
+static_assert(test_extent<e, -1, 1, -1, 0, -1, 1>(mss2));
+static_assert(test_extent<f>(mss2));
 
-static_assert(test_intent<a>(mss2, intent::in), "");
-static_assert(test_intent<b>(mss2, intent::in), "");
-static_assert(test_intent<c>(mss2, intent::inout), "");
-static_assert(test_intent<d>(mss2, intent::inout), "");
-static_assert(test_intent<e>(mss2, intent::inout), "");
-static_assert(test_intent<f>(mss2, intent::inout), "");
+static_assert(test_intent<a>(mss2, intent::in));
+static_assert(test_intent<b>(mss2, intent::in));
+static_assert(test_intent<c>(mss2, intent::inout));
+static_assert(test_intent<d>(mss2, intent::inout));
+static_assert(test_intent<e>(mss2, intent::inout));
+static_assert(test_intent<f>(mss2, intent::inout));

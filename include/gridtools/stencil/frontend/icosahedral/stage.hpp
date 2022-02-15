@@ -11,6 +11,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../../common/defs.hpp"
 #include "../../../common/for_each.hpp"
@@ -74,7 +75,7 @@ namespace gridtools {
                     template <class Key, class Offset>
                     GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
                         return Deref()(Key(),
-                            sid::multi_shifted<Key>(host_device::at_key<Key>(m_ptr), m_strides, wstd::move(offset)));
+                            sid::multi_shifted<Key>(host_device::at_key<Key>(m_ptr), m_strides, std::move(offset)));
                     }
 
                     template <class Accessor>
@@ -86,7 +87,7 @@ namespace gridtools {
                     template <class Accessor, class Offset>
                     GT_FUNCTION decltype(auto) neighbor(Accessor, Offset offset) const {
                         return apply_intent<Accessor::intent_v>(
-                            get_ref<meta::at_c<Keys, Accessor::index_t::value>>(wstd::move(offset)));
+                            get_ref<meta::at_c<Keys, Accessor::index_t::value>>(std::move(offset)));
                     }
 
                     static constexpr int_t color = Color;
@@ -94,8 +95,8 @@ namespace gridtools {
                     template <class Fun, class Accessor, class... Accessors>
                     GT_FUNCTION void for_neighbors(Fun &&fun, Accessor, Accessors...) const {
                         static_assert(
-                            std::conjunction<
-                                std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
+                            std::conjunction_v<
+                                std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>,
                             "All accessors should be of the same location");
                         host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
                             [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });

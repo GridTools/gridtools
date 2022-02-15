@@ -26,11 +26,11 @@ namespace gridtools {
                 struct const_ptr_holder {
                     ptr_holder_type<Sid> m_impl;
 
-                    GT_CONSTEXPR GT_FUNCTION std::add_const_t<sid::element_type<Sid>> *operator()() const {
+                    constexpr GT_FUNCTION std::add_const_t<sid::element_type<Sid>> *operator()() const {
                         return m_impl();
                     }
 
-                    friend GT_CONSTEXPR GT_FUNCTION const_ptr_holder operator+(
+                    friend constexpr GT_FUNCTION const_ptr_holder operator+(
                         const_ptr_holder const &obj, ptr_diff_type<Sid> offset) {
                         return {obj.m_impl + offset};
                     }
@@ -52,14 +52,14 @@ namespace gridtools {
          */
         template <class Src,
             class Ptr = sid::ptr_type<std::decay_t<Src>>,
-            std::enable_if_t<std::is_pointer<Ptr>::value && !std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
+            std::enable_if_t<std::is_pointer_v<Ptr> && !std::is_const_v<std::remove_pointer_t<Ptr>>, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(Src &&src) {
             return {std::forward<Src>(src)};
         }
 
         template <class Src,
             class Ptr = sid::ptr_type<std::decay_t<Src>>,
-            std::enable_if_t<!std::is_pointer<Ptr>::value || std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
+            std::enable_if_t<!std::is_pointer_v<Ptr> || std::is_const_v<std::remove_pointer_t<Ptr>>, int> = 0>
         decltype(auto) as_const(Src &&src) {
             return std::forward<Src>(src);
         }

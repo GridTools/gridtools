@@ -13,6 +13,7 @@
 #include <cassert>
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
@@ -136,7 +137,7 @@ namespace gridtools {
 #endif
                     return fold([](auto l, auto r) { return l + r; },
                         transform(
-                            [](auto i, auto s) { return i * s; }, wstd::forward<Indices>(indices), native_strides()));
+                            [](auto i, auto s) { return i * s; }, std::forward<Indices>(indices), native_strides()));
                 }
             };
 

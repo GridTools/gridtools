@@ -92,8 +92,8 @@ namespace gridtools {
                     template <class PlhInfo,
                         class Cached,
                         class Orig,
-                        std::enable_if_t<std::is_same<typename PlhInfo::cache_io_policies_t,
-                                             meta::list<cache_io_policy::fill>>::value,
+                        std::enable_if_t<
+                            std::is_same_v<typename PlhInfo::cache_io_policies_t, meta::list<cache_io_policy::fill>>,
                             int> = 0>
                     GT_FUNCTION void sync(Cached cached, Orig orig) {
                         *cached = *orig;
@@ -102,8 +102,8 @@ namespace gridtools {
                     template <class PlhInfo,
                         class Cached,
                         class Orig,
-                        std::enable_if_t<std::is_same<typename PlhInfo::cache_io_policies_t,
-                                             meta::list<cache_io_policy::flush>>::value,
+                        std::enable_if_t<
+                            std::is_same_v<typename PlhInfo::cache_io_policies_t, meta::list<cache_io_policy::flush>>,
                             int> = 0>
                     GT_FUNCTION void sync(Cached cached, Orig orig) {
                         *orig = *cached;
@@ -227,10 +227,10 @@ namespace gridtools {
                         class LastInterval,
                         class CurInterval>
                     struct make_sync_fun {
-                        static constexpr bool is_fill = std::is_same<typename PlhInfo::cache_io_policies_t,
-                            meta::list<cache_io_policy::fill>>::value;
-                        static constexpr bool is_first = std::is_same<FirstInterval, CurInterval>::value;
-                        static constexpr bool is_last = std::is_same<LastInterval, CurInterval>::value;
+                        static constexpr bool is_fill =
+                            std::is_same_v<typename PlhInfo::cache_io_policies_t, meta::list<cache_io_policy::fill>>;
+                        static constexpr bool is_first = std::is_same_v<FirstInterval, CurInterval>;
+                        static constexpr bool is_last = std::is_same_v<LastInterval, CurInterval>;
                         static constexpr int_t minus = PlhInfo::extent_t::kminus::value;
                         static constexpr int_t plus = PlhInfo::extent_t::kplus::value;
                         static constexpr bool close_to_first =
@@ -254,18 +254,18 @@ namespace gridtools {
 
                         static constexpr bool sync_all = is_forward == is_fill ? is_first : is_last;
 
-                        static_assert(
-                            !sync_all || std::is_same<meta::first<CurInterval>, meta::second<CurInterval>>::value,
+                        static_assert(!sync_all || std::is_same_v<meta::first<CurInterval>, meta::second<CurInterval>>,
                             "offset_limit too small");
 
-                        static constexpr range range_v =
-                            minus == plus ? range::minus
-                                          : sync_all ? range::all : is_forward == is_fill ? range::plus : range::minus;
+                        static constexpr range range_v = minus == plus           ? range::minus
+                                                         : sync_all              ? range::all
+                                                         : is_forward == is_fill ? range::plus
+                                                                                 : range::minus;
 
-                        static constexpr check check_v =
-                            minus == plus || PlhInfo::is_tmp_t::value
-                                ? check::none
-                                : close_to_first ? check::lo : close_to_last ? check::hi : check::none;
+                        static constexpr check check_v = minus == plus || PlhInfo::is_tmp_t::value ? check::none
+                                                         : close_to_first                          ? check::lo
+                                                         : close_to_last                           ? check::hi
+                                                                                                   : check::none;
 
                         using type = sync_fun<PlhInfo, range_v, check_v>;
                     };
@@ -325,13 +325,13 @@ namespace gridtools {
 
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::lo>, DataStores const &data_stores) {
-                        return make_global_parameter(
+                        return global_parameter(
                             sid::get_lower_bound<dim::k>(sid::get_lower_bounds(at_key<Plh>(data_stores))));
                     }
 
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::hi>, DataStores const &data_stores) {
-                        return make_global_parameter(
+                        return global_parameter(
                             sid::get_upper_bound<dim::k>(sid::get_upper_bounds(at_key<Plh>(data_stores))));
                     }
 

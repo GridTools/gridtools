@@ -11,10 +11,12 @@
 
 #include <cassert>
 #include <type_traits>
+#include <utility>
 
 #include "../common/functional.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta/is_instantiation_of.hpp"
 #include "../sid/concept.hpp"
 
@@ -24,7 +26,7 @@ namespace gridtools::fn {
         struct scan_pass {
             F m_f;
             Projector m_p;
-            constexpr scan_pass(F f, Projector p = {}) : m_f(f), m_p(p) {}
+            constexpr GT_FUNCTION scan_pass(F f, Projector p = {}) : m_f(f), m_p(p) {}
         };
 
         template <class T>
@@ -54,24 +56,24 @@ namespace gridtools::fn {
                     if constexpr (is_scan_pass<decltype(pass)>()) {
                         // scan
                         auto res =
-                            pass.m_f(wstd::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
+                            pass.m_f(std::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
                         *host_device::at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
                         inc();
                         return res;
                     } else {
                         // fold
-                        auto res = pass(wstd::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res = pass(std::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
                         inc();
                         return res;
                     }
                 };
                 if constexpr (ScanOrFold::value)
                     sid::shift(ptr, v_stride, size - 1);
-                auto acc = tuple_util::host_device::fold(next, wstd::move(seed), ScanOrFold::prologue());
+                auto acc = tuple_util::host_device::fold(next, std::move(seed), ScanOrFold::prologue());
                 std::size_t n = size - prologue_size - epilogue_size;
                 for (std::size_t i = 0; i < n; ++i)
-                    acc = next(wstd::move(acc), ScanOrFold::body());
-                return tuple_util::host_device::fold(next, wstd::move(acc), ScanOrFold::epilogue());
+                    acc = next(std::move(acc), ScanOrFold::body());
+                return tuple_util::host_device::fold(next, std::move(acc), ScanOrFold::epilogue());
             }
         };
 
@@ -82,9 +84,9 @@ namespace gridtools::fn {
                 Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 return tuple_util::host_device::fold(
                     [&](auto acc, auto stage) {
-                        return stage(wstd::move(acc), size, wstd::forward<MakeIterator>(make_iterator), ptr, strides);
+                        return stage(std::move(acc), size, std::forward<MakeIterator>(make_iterator), ptr, strides);
                     },
-                    wstd::move(seed),
+                    std::move(seed),
                     tuple(ColumnStages()...));
             }
         };

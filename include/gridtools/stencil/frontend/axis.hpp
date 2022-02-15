@@ -39,7 +39,7 @@ namespace gridtools {
             template <size_t Id, size_t... Ids>
             struct interval_impl {
                 static_assert(
-                    std::is_same<std::make_index_sequence<sizeof...(Ids) + 1>, std::index_sequence<0, Ids - Id...>>(),
+                    std::is_same_v<std::make_index_sequence<sizeof...(Ids) + 1>, std::index_sequence<0, Ids - Id...>>,
                     "Intervals must be continuous.");
                 static_assert(Id + sizeof...(Ids) < NIntervals, "Interval ID out of bounds for this axis.");
                 using type = core::interval<core::level<Id, 1, LevelOffsetLimit>,

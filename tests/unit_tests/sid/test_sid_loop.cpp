@@ -63,7 +63,7 @@ namespace gridtools {
             double *ptr = &data[0][0];
             auto strides = tuple(10_c, 1_c);
 
-            auto testee = host_device::compose(sid::make_loop<i_t>(10_c), sid::make_loop<j_t>(10_c));
+            auto testee = compose(sid::make_loop<i_t>(10_c), sid::make_loop<j_t>(10_c));
 
             testee(assignment_f{42})(ptr, strides);
 

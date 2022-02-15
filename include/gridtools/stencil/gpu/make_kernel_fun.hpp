@@ -15,7 +15,6 @@
 #include "../../common/gt_math.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../common/utility.hpp"
 #include "../../meta.hpp"
 #include "../../sid/blocked_dim.hpp"
 #include "../../sid/concept.hpp"
@@ -54,7 +53,7 @@ namespace gridtools {
                     template <class Ptr, class Strides, class Validator>
                     GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                         k_caches_type<Mss> k_caches;
-                        auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
+                        auto mixed_ptr = hymap::device::merge(k_caches.ptr(), std::move(ptr));
                         tuple_util::device::for_each(
                             [&](const int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
 #ifdef __HIPCC__
@@ -138,7 +137,7 @@ namespace gridtools {
                         sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
                         sid::shift(ptr, sid::get_stride<dim::i>(m_strides), i_block);
                         sid::shift(ptr, sid::get_stride<dim::j>(m_strides), j_block);
-                        k_loop(wstd::move(ptr), m_strides, wstd::move(validator));
+                        k_loop(std::move(ptr), m_strides, std::move(validator));
                     }
                 };
 

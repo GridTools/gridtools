@@ -25,7 +25,7 @@ namespace {
 
     template <class Env>
     const auto eq = [](auto lhs, auto rhs) {
-        return expect_with_threshold(lhs, rhs, std::is_same<typename Env::float_t, float>::value ? 1e-4 : 1e-9);
+        return expect_with_threshold(lhs, rhs, std::is_same_v<typename Env::float_t, float> ? 1e-4 : 1e-9);
     };
 
     GT_REGRESSION_TEST(curl_weights, icosahedral_test_environment<2>, stencil_backend_t) {

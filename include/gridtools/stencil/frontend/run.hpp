@@ -46,8 +46,8 @@ namespace gridtools {
             template <class T>
             struct is_accessor<T,
                 std::enable_if_t<is_extent<typename T::extent_t>::value &&
-                                 std::is_convertible<decltype(T::index_t::value), size_t>::value &&
-                                 std::is_same<intent, std::decay_t<decltype(T::intent_v)>>::value>> : std::true_type {};
+                                 std::is_convertible_v<decltype(T::index_t::value), size_t> &&
+                                 std::is_same_v<intent, std::decay_t<decltype(T::intent_v)>>>> : std::true_type {};
 
             template <class Param>
             using param_index = std::integral_constant<size_t, Param::index_t::value>;
@@ -239,7 +239,7 @@ namespace gridtools {
             }
 
             template <class Comp, class Backend, class Grid, class... Fields>
-            void run(Comp comp, Backend &&be, Grid const &grid, Fields &&... fields) {
+            void run(Comp comp, Backend &&be, Grid const &grid, Fields &&...fields) {
                 static_assert(
                     std::conjunction<is_sid<Fields>...>::value, "All computation fields must satisfy SID concept.");
                 run_impl(comp,
@@ -250,7 +250,7 @@ namespace gridtools {
             }
 
             template <class F, class Backend, class Grid, class... Fields>
-            void run_single_stage(F, Backend &&be, Grid const &grid, Fields &&... fields) {
+            void run_single_stage(F, Backend &&be, Grid const &grid, Fields &&...fields) {
                 return run([](auto... args) { return execute_parallel().stage(F(), args...); },
                     std::forward<Backend>(be),
                     grid,
