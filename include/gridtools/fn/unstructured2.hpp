@@ -59,14 +59,14 @@ namespace gridtools::fn {
 
         template <class Tag, class Ptr, class Strides, class Domain>
         GT_FUNCTION constexpr auto deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
-            assert(m_index != -1);
-            decltype(auto) stride = at_key<Tag>(sid::get_stride<dim::horizontal>(it.m_strides));
+            assert(can_deref(it));
+            decltype(auto) stride = host_device::at_key<Tag>(sid::get_stride<dim::horizontal>(it.m_strides));
             return *sid::shifted(it.m_ptr, stride, it.m_index);
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
         GT_FUNCTION constexpr auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset) {
-            auto const &table = at_key<Conn>(it.m_domain.m_tables);
+            auto const &table = host_device::at_key<Conn>(it.m_domain.m_tables);
             auto new_index = get<Offset::value>(neighbor_table::neighbors(table, it.m_index));
             auto shifted = it;
             shifted.m_index = new_index;
@@ -77,7 +77,7 @@ namespace gridtools::fn {
         GT_FUNCTION constexpr auto non_horizontal_shift(
             iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset) {
             auto shifted = it;
-            sid::shift(shifted.m_ptr, at_key<Tag>(sid::get_stride<Dim>(shifted.m_strides)), offset);
+            sid::shift(shifted.m_ptr, host_device::at_key<Tag>(sid::get_stride<Dim>(shifted.m_strides)), offset);
             return shifted;
         }
 
@@ -106,7 +106,8 @@ namespace gridtools::fn {
                 return [&](auto tag, auto const &ptr, auto const &strides) {
                     auto tptr = host_device::at_key<decltype(tag)>(ptr);
                     int index = *host_device::at_key<integral_constant<int, 0>>(ptr);
-                    decltype(auto) stride = at_key<decltype(tag)>(sid::get_stride<dim::horizontal>(strides));
+                    decltype(auto) stride =
+                        host_device::at_key<decltype(tag)>(sid::get_stride<dim::horizontal>(strides));
                     sid::shift(tptr, stride, -index);
                     return iterator<decltype(tag), decltype(tptr), decltype(strides), Domain>{
                         std::move(tptr), strides, m_domain, index};
