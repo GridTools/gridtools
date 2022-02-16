@@ -252,6 +252,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
 
     set(GT_STENCILS naive)
     set(GT_REDUCTIONS naive)
+    set(GT_FN_BACKENDS naive)
     set(GT_STORAGES cpu_kfirst cpu_ifirst)
     set(GT_GCL_ARCHS)
 
@@ -267,6 +268,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} reduction_gpu)
         target_link_libraries(${_gt_namespace}reduction_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
         list(APPEND GT_REDUCTIONS gpu)
+        list(APPEND GT_FN_BACKENDS gpu)
 
         if(MPI_CXX_FOUND)
             option(GT_GCL_GPU "Disable if your MPI implementation is not CUDA-aware" ON)

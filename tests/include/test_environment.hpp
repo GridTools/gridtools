@@ -26,6 +26,7 @@
 
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/timer/timer.hpp>
+#include <gridtools/fn/cartesian2.hpp>
 #include <gridtools/meta.hpp>
 #include <gridtools/stencil/frontend/axis.hpp>
 #include <gridtools/stencil/frontend/make_grid.hpp>
@@ -267,6 +268,11 @@ namespace gridtools {
                     std::enable_if_t<std::is_convertible_v<U const &, T>, int> = 0>
                 static auto icosahedral_make_storage(Location loc, U const &arg) {
                     return icosahedral_builder<T>(loc).value(arg).build();
+                }
+
+                static auto fn_cartesian_sizes() {
+                    return hymap::keys<fn::cartesian::dim::i, fn::cartesian::dim::j, fn::cartesian::dim::k>::
+                        make_values(ParamsSource::d(0), ParamsSource::d(1), ParamsSource::d(2));
                 }
 
                 template <class Comp>

@@ -1,3 +1,28 @@
+function(add_fn_testees prefix)
+    foreach(backend IN LISTS ARGN)
+        set(tgt ${prefix}_${backend})
+        add_library(${tgt} INTERFACE)
+        target_link_libraries(${tgt} INTERFACE reduction_${backend})
+        string(TOUPPER ${backend} u_backend)
+        target_compile_definitions(${tgt} INTERFACE GT_FN_${u_backend})
+        if (backend STREQUAL gpu)
+            target_link_libraries(${tgt} INTERFACE storage_gpu)
+        elseif (backend STREQUAL naive)
+            target_link_libraries(${tgt} INTERFACE storage_cpu_kfirst)
+        endif()
+    endforeach()
+endfunction()
+add_fn_testees(fn_testee ${GT_FN_BACKENDS})
+
+function(gridtools_add_fn_regression_test tgt_name)
+    gridtools_add_regression_test(${tgt_name} ${ARGN}
+        LIB_PREFIX fn_testee
+        KEYS ${GT_FN_BACKENDS}
+        LABELS fn)
+endfunction()
+
+gridtools_add_fn_regression_test(fn_cartesian_copy SOURCES fn_cartesian_copy.cpp)
+
 add_executable(fn_nabla2 fn_nabla2.cpp)
 target_link_libraries(fn_nabla2 gtest_main gmock gridtools)
 add_test(NAME fn_nabla2 COMMAND $<TARGET_FILE:fn_nabla2>)
