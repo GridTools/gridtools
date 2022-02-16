@@ -275,6 +275,10 @@ namespace gridtools {
                         make_values(ParamsSource::d(0), ParamsSource::d(1), ParamsSource::d(2));
                 }
 
+                static auto fn_unstructured_nvertices() { return ParamsSource::d(0) * ParamsSource::d(1); }
+
+                static auto fn_unstructured_nlevels() { return ParamsSource::d(2); }
+
                 template <class Comp>
                 static void benchmark(std::string const &name, Comp &&comp) {
                     size_t steps = ParamsSource::steps();
