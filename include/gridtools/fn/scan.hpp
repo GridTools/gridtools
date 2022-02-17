@@ -57,7 +57,13 @@ namespace gridtools::fn {
                         // scan
                         auto res =
                             pass.m_f(std::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
-                        *host_device::at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
+                        auto pro = pass.m_p(res);
+                        if constexpr (tuple_util::is_tuple_like<decltype(pro)>()) {
+                            tuple_util::for_each(
+                                [](auto &l, auto const &r) { l = r; }, *at_key<integral_constant<int, Out>>(ptr), pro);
+                        } else {
+                            *host_device::at_key<integral_constant<int, Out>>(ptr) = pro;
+                        }
                         inc();
                         return res;
                     } else {

@@ -11,6 +11,7 @@
 
 #include "../common/hymap.hpp"
 #include "../common/integral_constant.hpp"
+#include "../common/tuple_util.hpp"
 
 namespace gridtools::fn {
 
@@ -18,8 +19,13 @@ namespace gridtools::fn {
     struct stencil_stage {
         template <class MakeIterator, class Ptr, class Strides>
         GT_FUNCTION void operator()(MakeIterator &&make_iterator, Ptr &ptr, Strides const &strides) const {
-            *at_key<integral_constant<int, Out>>(ptr) =
-                Stencil()()(make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
+            auto res = Stencil()()(make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
+            if constexpr (tuple_util::is_tuple_like<decltype(res)>()) {
+                tuple_util::for_each(
+                    [](auto &l, auto const &r) { l = r; }, *at_key<integral_constant<int, Out>>(ptr), res);
+            } else {
+                *at_key<integral_constant<int, Out>>(ptr) = res;
+            }
         }
     };
 
