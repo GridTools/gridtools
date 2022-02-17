@@ -79,7 +79,7 @@ namespace gridtools {
     namespace test_environment_impl_ {
 
         template <class T>
-        void backend_init(T, int &argc, char **argv) {}
+        void backend_init(T, int & /*argc*/, char ** /*argv*/) {}
 
         template <class T>
         void backend_finalize(T) {}
