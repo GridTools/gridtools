@@ -28,9 +28,10 @@ namespace {
     };
 
     GT_REGRESSION_TEST(fn_unstructured_copy, test_environment<>, fn_backend_t) {
-        auto in = [](int i, int j) { return i + j; };
-        auto builder = storage::builder<typename TypeParam::storage_traits_t>.dimensions(TypeParam::fn_unstructured_nvertices(), TypeParam::fn_unstructured_nlevels()).template type<typename TypeParam::float_t>();
-        auto out = builder.build();
+        auto mesh = TypeParam::fn_unstructured_mesh();
+
+        auto in = [](int vertex, int k) { return vertex + k; };
+        auto out = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
 
         auto apply_copy = [](auto executor, auto &out, auto const &in) {
             executor().arg(out).arg(in).assign(0_c, copy_stencil(), 1_c);
@@ -42,8 +43,8 @@ namespace {
             apply_copy(backend.stencil_executor(), out, in);
         };
 
-        auto comp = [&, in = builder.initializer(in).build()] {
-            fencil(TypeParam::fn_unstructured_nvertices(), TypeParam::fn_unstructured_nlevels(), out, in);
+        auto comp = [&, in = mesh.make_const_storage(in, mesh.nvertices(), mesh.nlevels())] {
+            fencil(mesh.nvertices(), mesh.nlevels(), out, in);
         };
         comp();
         TypeParam::verify(in, out);
