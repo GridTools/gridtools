@@ -23,6 +23,7 @@ namespace gridtools::fn {
     namespace unstructured_impl_ {
         using gridtools::stencil::positional;
         namespace dim = unstructured::dim;
+        using backend::data_type;
         using backend::data_type_from_sid;
 
         template <class Tables, class Sizes>
@@ -122,6 +123,11 @@ namespace gridtools::fn {
         struct backend {
             Domain m_domain;
             TmpAllocator m_allocator;
+
+            template <class T>
+            auto make_tmp() {
+                return allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
+            }
 
             template <class Sid>
             auto make_tmp_like(Sid const &s) {

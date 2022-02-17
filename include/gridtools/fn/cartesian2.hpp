@@ -23,6 +23,7 @@ namespace gridtools::fn {
 
     namespace cartesian_impl_ {
         namespace dim = cartesian::dim;
+        using backend::data_type;
         using backend::data_type_from_sid;
 
         using domain_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
@@ -78,6 +79,11 @@ namespace gridtools::fn {
         struct backend {
             domain_t m_domain;
             TmpAllocator m_allocator;
+
+            template <class T>
+            auto make_tmp() {
+                return allocate_global_tmp(m_allocator, m_domain, data_type<T>());
+            }
 
             template <class Sid>
             auto make_tmp_like(Sid const &s) {
