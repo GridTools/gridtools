@@ -198,7 +198,7 @@ namespace gridtools {
                     return stencil::make_grid(halo_desc(d(0)), halo_desc(d(1)), Axis(d(2 + Is)...));
                 }
 
-                template <class Expected, class Actual, class EqualTo = default_equal_to<typename Actual::element_type>>
+                template <class Expected, class Actual, class EqualTo = default_equal_to>
                 static void verify(Expected const &expected, Actual const &actual, EqualTo equal_to = {}) {
                     if (!ParamsSource::needs_verification())
                         return;

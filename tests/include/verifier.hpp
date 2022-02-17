@@ -50,9 +50,17 @@ namespace gridtools {
         return abs_error < precision || abs_error < abs_max * precision;
     }
 
-    template <class T, std::enable_if_t<!std::is_floating_point_v<T>, int> = 0>
+    template <class T, std::enable_if_t<!std::is_floating_point_v<T> && !tuple_util::is_tuple_like<T>::value, int> = 0>
     GT_FUNCTION bool expect_with_threshold(T const &expected, T const &actual, double = 0) {
         return actual == expected;
+    }
+
+    template <class T, std::enable_if_t<tuple_util::is_tuple_like<T>::value, int> = 0>
+    GT_FUNCTION bool expect_with_threshold(T const &expected,
+        T const &actual,
+        double precision = default_precision<std::decay_t<decltype(tuple_util::get<0>(std::declval<T>()))>>()) {
+        return tuple_util::all_of(
+            [=](auto const &ex, auto const &ac) { return expect_with_threshold(ex, ac, precision); }, expected, actual);
     }
 
     namespace verify_impl_ {
@@ -76,18 +84,31 @@ namespace gridtools {
             std::void_t<decltype(verify_impl_::apply(std::declval<F const &>(), array<size_t, N>{}))>>
             : std::true_type {};
 
-        struct float_equal_to {
+        struct default_equal_to {
             template <class T>
             bool operator()(T lhs, T rhs) const {
                 return expect_with_threshold(lhs, rhs);
             }
         };
 
-        template <class DataStore>
-        using default_equal_to =
-            meta::if_<std::is_floating_point<typename DataStore::data_t>, float_equal_to, std::equal_to<>>;
+        template <class T, std::enable_if_t<tuple_util::is_tuple_like<T>::value, int> = 0>
+        std::ostream &operator<<(std::ostream &out, T const &t) {
+            out << "{";
+            bool first = true;
+            tuple_util::for_each(
+                [&](auto const &x) {
+                    if (first)
+                        first = false;
+                    else
+                        out << ", ";
+                    out << x;
+                },
+                t);
+            out << "}";
+            return out;
+        }
 
-        template <class Expected, class DataStore, class Halos, class EqualTo = default_equal_to<DataStore>>
+        template <class Expected, class DataStore, class Halos, class EqualTo = default_equal_to>
         std::enable_if_t<storage::is_data_store<DataStore>::value &&
                              is_view_compatible<Expected, DataStore::ndims>::value,
             bool>
@@ -117,13 +138,13 @@ namespace gridtools {
             return err_count == 0;
         }
 
-        template <class DataStore, class Halos, class EqualTo = default_equal_to<DataStore>>
+        template <class DataStore, class Halos, class EqualTo = default_equal_to>
         std::enable_if_t<storage::is_data_store_ptr<DataStore>::value, bool> verify_data_store(
             DataStore const &expected, DataStore const &actual, Halos const &halos, EqualTo equal_to = {}) {
             return verify_data_store(expected->const_host_view(), actual, halos, equal_to);
         }
 
-        template <class T, class DataStore, class Halos, class EqualTo = default_equal_to<DataStore>>
+        template <class T, class DataStore, class Halos, class EqualTo = default_equal_to>
         std::enable_if_t<storage::is_data_store<DataStore>::value &&
                              std::is_convertible<T, typename DataStore::data_t>::value,
             bool>
