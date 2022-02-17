@@ -21,12 +21,6 @@ namespace {
     using namespace unstructured;
     using namespace literals;
 
-    struct copy_stencil {
-        GT_FUNCTION constexpr auto operator()() const {
-            return [](auto const &in) { return deref(in); };
-        }
-    };
-
     struct zavg_stencil {
         constexpr auto operator()() const {
             return [](auto const &pp, auto const &s) {
@@ -67,8 +61,9 @@ namespace {
     };
 
     GT_REGRESSION_TEST(fn_unstructured_copy, test_environment<>, fn_backend_t) {
-        auto mesh = TypeParam::fn_unstructured_mesh();
         using float_t = typename TypeParam::float_t;
+
+        auto mesh = TypeParam::fn_unstructured_mesh();
 
         auto v2e_table = mesh.v2e_table();
         auto e2v_table = mesh.e2v_table();
