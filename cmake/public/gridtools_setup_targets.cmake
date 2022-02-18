@@ -241,6 +241,9 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} reduction_naive)
     target_link_libraries(${_gt_namespace}reduction_naive INTERFACE ${_gt_namespace}gridtools)
 
+    _gt_add_library(${_config_mode} fn_naive)
+    target_link_libraries(${_gt_namespace}fn_naive INTERFACE ${_gt_namespace}gridtools)
+
     set(_required_nlohmann_json_version "3.10.4")
     include(get_nlohmann_json)
     get_nlohmann_json(${_required_nlohmann_json_version})
@@ -268,6 +271,9 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} reduction_gpu)
         target_link_libraries(${_gt_namespace}reduction_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
         list(APPEND GT_REDUCTIONS gpu)
+
+        _gt_add_library(${_config_mode} fn_gpu)
+        target_link_libraries(${_gt_namespace}fn_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
         list(APPEND GT_FN_BACKENDS gpu)
 
         if(MPI_CXX_FOUND)
