@@ -40,8 +40,15 @@ namespace {
 #endif
 #include <gridtools/fn/backend2/gpu.hpp>
 namespace {
-    using fn_backend_t = gridtools::fn::backend::gpu;
-}
+    template <int... sizes>
+    using block_sizes_t =
+        gridtools::meta::zip<gridtools::meta::iseq_to_list<std::make_integer_sequence<int, sizeof...(sizes)>,
+                                 gridtools::meta::list,
+                                 gridtools::integral_constant>,
+            gridtools::meta::list<gridtools::integral_constant<int, sizes>...>>;
+
+    using fn_backend_t = gridtools::fn::backend::gpu<block_sizes_t<32, 8, 1>>;
+} // namespace
 #endif
 
 #include "stencil_select.hpp"
