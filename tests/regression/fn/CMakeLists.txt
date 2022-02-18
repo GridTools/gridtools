@@ -21,8 +21,7 @@ function(gridtools_add_fn_regression_test tgt_name)
         LABELS fn)
 endfunction()
 
-gridtools_add_fn_regression_test(fn_cartesian_copy SOURCES fn_cartesian_copy.cpp)
-gridtools_add_fn_regression_test(fn_unstructured_copy SOURCES fn_unstructured_copy.cpp)
+gridtools_add_fn_regression_test(fn_copy SOURCES fn_copy.cpp)
 gridtools_add_fn_regression_test(fn_unstructured_nabla SOURCES fn_unstructured_nabla.cpp)
 gridtools_add_fn_regression_test(fn_tridiagonal_solve SOURCES fn_tridiagonal_solve.cpp)
 

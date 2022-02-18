@@ -18,7 +18,6 @@
 namespace {
     using namespace gridtools;
     using namespace fn;
-    using namespace unstructured;
     using namespace literals;
 
     struct zavg_stencil {
