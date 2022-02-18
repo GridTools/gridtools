@@ -60,7 +60,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(fn_unstructured_copy, test_environment<>, fn_backend_t) {
+    GT_REGRESSION_TEST(fn_unstructured_nabla, test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
 
         auto mesh = TypeParam::fn_unstructured_mesh();
