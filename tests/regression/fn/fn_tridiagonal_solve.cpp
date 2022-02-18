@@ -61,37 +61,14 @@ namespace {
         }
     };
 
-    GT_ENVIRONMENT_TEST_SUITE(fn_cartesian_tridiagonal_solve,
-        vertical_test_environment<>,
-        fn_backend_t,
-        (double, inlined_params<12, 33, 6>),
-        (double, inlined_params<23, 11, 6>));
-    GT_ENVIRONMENT_TYPED_TEST(fn_cartesian_tridiagonal_solve, test) {
+    GT_REGRESSION_TEST(fn_cartesian_tridiagonal_solve, vertical_test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
 
         auto a = [](int, int, int) -> float_t { return -1; };
         auto b = [](int, int, int) -> float_t { return 3; };
         auto c = [](int, int, int) -> float_t { return 1; };
-        auto d = [](int, int, int k) -> float_t { return k == 0 ? 4 : k == 5 ? 2 : 3; };
-        auto cpdp = [&](int i, int j, int k) {
-            auto rec = [&](auto &&rec, int i, int j, int k) -> tuple<float_t, float_t> {
-                if (k == 0)
-                    return {c(i, j, k) / b(i, j, k), d(i, j, k) / b(i, j, k)};
-                auto [cp, dp] = rec(rec, i, j, k - 1);
-                return {c(i, j, k) / (b(i, j, k) - a(i, j, k) * cp),
-                    (d(i, j, k) - a(i, j, k) * dp) / (b(i, j, k) - a(i, j, k) * cp)};
-            };
-            return rec(rec, i, j, k);
-        };
-        auto expected = [&, kmax = TypeParam::d(2) - 1](int i, int j, int k) {
-            auto rec = [&](auto &&rec, int i, int j, int k) -> float_t {
-                auto [cp, dp] = cpdp(i, j, k);
-                if (k == kmax)
-                    return dp;
-                return dp - cp * rec(rec, i, j, k + 1);
-            };
-            return rec(rec, i, j, k);
-        };
+        auto d = [kmax = TypeParam::d(2) - 1](int, int, int k) -> float_t { return k == 0 ? 4 : k == kmax ? 2 : 3; };
+        auto expected = [](int, int, int) -> float_t { return 1; };
 
         auto tridiagonal_solve =
             [](auto executor, auto const &a, auto const &b, auto const &c, auto const &d, auto &cpdp, auto &x) {
