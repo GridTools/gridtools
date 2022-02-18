@@ -27,43 +27,40 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(fn_copy, test_environment<>, fn_backend_t) {
-        auto in = [](auto... indices) { return (... + indices); };
+    constexpr inline auto in = [](auto... indices) { return (... + indices); };
 
-        auto apply_copy = [](auto executor, auto &out, auto const &in) {
-            executor().arg(out).arg(in).assign(0_c, copy_stencil(), 1_c);
+    constexpr inline auto apply_copy = [](auto &&executor, auto &out, auto const &in) {
+        executor().arg(out).arg(in).assign(0_c, copy_stencil(), 1_c);
+    };
+
+    GT_REGRESSION_TEST(fn_cartesian_copy, test_environment<>, fn_backend_t) {
+        auto out = TypeParam::make_storage();
+        auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
+            auto domain = cartesian_domain(sizes);
+            auto backend = make_backend(fn_backend_t(), domain);
+            apply_copy(backend.stencil_executor(), out, in);
         };
 
-        {
-            auto out = TypeParam::make_storage();
-            auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
-                auto domain = cartesian_domain(sizes);
-                auto backend = make_backend(fn_backend_t(), domain);
-                apply_copy(backend.stencil_executor(), out, in);
-            };
+        auto comp = [&, in = TypeParam::make_const_storage(in)] { fencil(TypeParam::fn_cartesian_sizes(), out, in); };
+        comp();
+        TypeParam::verify(in, out);
+        TypeParam::benchmark("fn_cartesian_copy", comp);
+    }
 
-            auto comp = [&, in = TypeParam::make_const_storage(in)] {
-                fencil(TypeParam::fn_cartesian_sizes(), out, in);
-            };
-            comp();
-            TypeParam::verify(in, out);
-            TypeParam::benchmark("fn_cartesian_copy", comp);
-        }
-        {
-            auto mesh = TypeParam::fn_unstructured_mesh();
-            auto out = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
-            auto fencil = [&](int nvertices, int nlevels, auto &out, auto const &in) {
-                auto domain = unstructured_domain(nvertices, nlevels);
-                auto backend = make_backend(fn_backend_t(), domain);
-                apply_copy(backend.stencil_executor(), out, in);
-            };
+    GT_REGRESSION_TEST(fn_unstructured_copy, test_environment<>, fn_backend_t) {
+        auto fencil = [&](int nvertices, int nlevels, auto &out, auto const &in) {
+            auto domain = unstructured_domain(nvertices, nlevels);
+            auto backend = make_backend(fn_backend_t(), domain);
+            apply_copy(backend.stencil_executor(), out, in);
+        };
 
-            auto comp = [&, in = mesh.make_const_storage(in, mesh.nvertices(), mesh.nlevels())] {
-                fencil(mesh.nvertices(), mesh.nlevels(), out, in);
-            };
-            comp();
-            TypeParam::verify(in, out);
-            TypeParam::benchmark("fn_unstructured_copy", comp);
-        }
+        auto mesh = TypeParam::fn_unstructured_mesh();
+        auto out = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
+        auto comp = [&, in = mesh.make_const_storage(in, mesh.nvertices(), mesh.nlevels())] {
+            fencil(mesh.nvertices(), mesh.nlevels(), out, in);
+        };
+        comp();
+        TypeParam::verify(in, out);
+        TypeParam::benchmark("fn_unstructured_copy", comp);
     }
 } // namespace
