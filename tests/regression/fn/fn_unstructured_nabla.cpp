@@ -97,7 +97,8 @@ namespace {
             executor().arg(nabla).arg(zavg).arg(sign).arg(vol).assign(0_c, nabla_stencil(), 1_c, 2_c, 3_c);
         };
 
-    constexpr inline auto fencil = [](int nvertices,
+    constexpr inline auto fencil = [](auto backend,
+                                       int nvertices,
                                        int nedges,
                                        int nlevels,
                                        auto const &v2e_table,
@@ -111,15 +112,16 @@ namespace {
         auto e2v_conn = connectivity<e2v>(e2v_table);
         auto edge_domain = unstructured_domain(nedges, nlevels, e2v_conn);
         auto vertex_domain = unstructured_domain(nvertices, nlevels, v2e_conn);
-        auto edge_backend = make_backend(backend::naive(), edge_domain);
-        auto vertex_backend = make_backend(backend::naive(), vertex_domain);
+        auto edge_backend = make_backend(backend, edge_domain);
+        auto vertex_backend = make_backend(backend, vertex_domain);
         auto zavg = edge_backend.make_tmp_like(nabla);
         apply_zavg(edge_backend.stencil_executor(), zavg, pp, s);
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };
 
-    constexpr inline auto make_comp = [](auto const &mesh, auto &nabla) {
-        return [&nabla,
+    constexpr inline auto make_comp = [](auto backend, auto const &mesh, auto &nabla) {
+        return [backend,
+                   &nabla,
                    nvertices = mesh.nvertices(),
                    nedges = mesh.nedges(),
                    nlevels = mesh.nlevels(),
@@ -131,7 +133,7 @@ namespace {
                    s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
             auto v2e_ptr = reinterpret_cast<array<int, 6> const *>(v2e_table->get_const_target_ptr());
             auto e2v_ptr = reinterpret_cast<array<int, 2> const *>(e2v_table->get_const_target_ptr());
-            fencil(nvertices, nedges, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
+            fencil(backend, nvertices, nedges, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
         };
     };
 
@@ -148,7 +150,7 @@ namespace {
 
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla = mesh.template make_storage<tuple<float_t, float_t>>(mesh.nvertices(), mesh.nlevels());
-        auto comp = make_comp(mesh, nabla);
+        auto comp = make_comp(fn_backend_t(), mesh, nabla);
         comp();
         auto expected = make_expected(mesh);
         TypeParam::verify(expected, nabla);
@@ -162,7 +164,7 @@ namespace {
         auto nabla =
             sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(nabla0, nabla1);
 
-        auto comp = make_comp(mesh, nabla);
+        auto comp = make_comp(fn_backend_t(), mesh, nabla);
         comp();
         auto expected = make_expected(mesh);
         TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
