@@ -92,7 +92,7 @@ namespace gridtools {
 
         template <class T = FloatType, class Init, class... Dims, std::enable_if_t<!std::is_integral_v<Init>, int> = 0>
         auto make_storage(Init const &init, Dims... dims) const {
-            return storage::builder<StorageTraits>.dimensions(dims...).template type<T>().initializer(init).build();
+            return storage::builder<StorageTraits>.dimensions(dims...).template type<T>().initializer(init).unknown_id().build();
         }
 
         template <class T = FloatType,
@@ -103,7 +103,7 @@ namespace gridtools {
         }
 
         template <class T = FloatType, class... Args>
-        auto make_const_storage(Args &&...args) const {
+        auto make_const_storage(Args &&... args) const {
             return make_storage<T const>(std::forward<Args>(args)...);
         }
 
