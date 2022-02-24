@@ -175,7 +175,7 @@ namespace gridtools::fn::backend {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
             auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);
-            auto v_size = at_key<Vertical>(sizes);
+            int v_size = at_key<Vertical>(sizes);
 
             auto [blocks, threads] = blocks_and_threads<BlockSizes>(h_sizes);
             cuda_util::launch(blocks,
