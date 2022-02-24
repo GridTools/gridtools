@@ -24,7 +24,6 @@ namespace gridtools::fn {
         using gridtools::stencil::positional;
         namespace dim = unstructured::dim;
         using backend::data_type;
-        using backend::data_type_from_sid;
 
         template <class Tables, class Sizes>
         struct domain {
@@ -39,7 +38,7 @@ namespace gridtools::fn {
 
         template <class... Connectivities>
         auto unstructured_domain(
-            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &...conns) {
+            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &... conns) {
             auto table_map = hymap::concat(conns...);
             auto sizes = hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size);
             return domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
@@ -134,11 +133,6 @@ namespace gridtools::fn {
             template <class T>
             auto make_tmp() {
                 return allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
-            }
-
-            template <class Sid>
-            auto make_tmp_like(Sid const &s) {
-                return allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type_from_sid(s));
             }
 
             auto stencil_executor() const {

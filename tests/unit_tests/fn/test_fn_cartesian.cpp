@@ -46,7 +46,7 @@ namespace gridtools::fn {
             auto fencil = [&](auto sizes, auto &out, auto const &in) {
                 auto domain = cartesian_domain(sizes);
                 auto backend = make_backend(backend::naive(), domain);
-                auto tmp = backend.make_tmp_like(out);
+                auto tmp = backend.template make_tmp<int>();
                 apply_stencil(backend.stencil_executor(), tmp, in);
                 apply_stencil(backend.stencil_executor(), out, tmp);
             };

@@ -121,13 +121,14 @@ TEST(unstructured, nabla) {
                       auto const &s,
                       auto const &sign,
                       auto const &vol) {
+        using float_t = std::remove_const_t<sid::element_type<decltype(pp)>>;
         auto v2e_conn = connectivity<v2e_t>(v2e_table);
         auto e2v_conn = connectivity<e2v_t>(e2v_table);
         auto edge_domain = unstructured_domain(n_edges, K, e2v_conn);
         auto vertex_domain = unstructured_domain(n_vertices, K, v2e_conn);
         auto edge_backend = make_backend(backend::naive(), edge_domain);
         auto vertex_backend = make_backend(backend::naive(), vertex_domain);
-        auto zavg = edge_backend.make_tmp_like(nabla);
+        auto zavg = edge_backend.template make_tmp<tuple<float_t, float_t>>();
         apply_zavg(edge_backend.stencil_executor(), zavg, pp, s);
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };
