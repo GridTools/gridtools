@@ -67,7 +67,7 @@ namespace {
         return [&e2v](int edge, int k) {
             double tmp = 0.0;
             for (int neighbor = 0; neighbor < 2; ++neighbor)
-                tmp += pp(e2v(edge, neighbor), k);
+                tmp += pp(e2v(edge)[neighbor], k);
             tmp /= 2.0;
             return tuple{tmp * get<0>(s(edge, k)), tmp * get<1>(s(edge, k))};
         };
@@ -77,7 +77,7 @@ namespace {
         return [&v2e, zavg = zavg(e2v)](int vertex, int k) {
             auto res = tuple(0.0, 0.0);
             for (int neighbor = 0; neighbor < 6; ++neighbor) {
-                int edge = v2e(vertex, neighbor);
+                int edge = v2e(vertex)[neighbor];
                 if (edge != -1) {
                     get<0>(res) += get<0>(zavg(edge, k)) * sign(vertex)[neighbor];
                     get<1>(res) += get<1>(zavg(edge, k)) * sign(vertex)[neighbor];
@@ -131,8 +131,8 @@ namespace {
                    sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
                    vol = mesh.make_const_storage(vol, mesh.nvertices()),
                    s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
-            auto v2e_ptr = reinterpret_cast<array<int, 6> const *>(v2e_table->get_const_target_ptr());
-            auto e2v_ptr = reinterpret_cast<array<int, 2> const *>(e2v_table->get_const_target_ptr());
+            auto v2e_ptr = v2e_table->get_const_target_ptr();
+            auto e2v_ptr = e2v_table->get_const_target_ptr();
             fencil(backend, nvertices, nedges, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
         };
     };
