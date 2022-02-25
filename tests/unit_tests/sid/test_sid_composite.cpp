@@ -237,5 +237,22 @@ namespace gridtools {
             EXPECT_EQ(at_key<a>(stride_j), 0);
             EXPECT_EQ(at_key<b>(stride_j), 1);
         }
+
+        TEST(composite, assign) {
+            using field_t = double[1][1];
+
+            field_t const src0 = {42};
+            field_t const src1 = {24};
+            field_t dst0 = {};
+            field_t dst1 = {};
+
+            sid::composite::keys<a, b>::values<field_t const &, field_t const &> src(src0, src1);
+            sid::composite::keys<b, a>::values<field_t &, field_t &> dst(dst0, dst1);
+
+            *sid::get_origin(dst)() = *sid::get_origin(src)();
+
+            EXPECT_EQ(dst0[0][0], 24);
+            EXPECT_EQ(dst1[0][0], 42);
+        }
     } // namespace
 } // namespace gridtools
