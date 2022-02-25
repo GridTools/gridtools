@@ -101,7 +101,6 @@
 #include "../meta.hpp"
 #include "defs.hpp"
 #include "enable_maker.hpp"
-#include "for_each.hpp"
 #include "host_device.hpp"
 #include "integral_constant.hpp"
 #include "tuple.hpp"
