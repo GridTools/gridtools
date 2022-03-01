@@ -14,4 +14,8 @@ if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     add_executable(fn_nabla fn_nabla.cpp)
     target_link_libraries(fn_nabla gtest_main gmock gridtools)
     add_test(NAME fn_nabla COMMAND $<TARGET_FILE:fn_nabla>)
+
+    add_executable(fn_nested_reduce fn_nested_reduce.cpp)
+    target_link_libraries(fn_nested_reduce gtest_main gmock gridtools)
+    add_test(NAME fn_nested_reduce COMMAND $<TARGET_FILE:fn_nested_reduce>)
 endif()

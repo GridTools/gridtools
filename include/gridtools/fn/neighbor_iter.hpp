@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <concepts>
 #include <tuple>
 #include <type_traits>
 
@@ -18,15 +19,17 @@
 
 namespace gridtools::fn {
 
-    template <class Horizintal, class Offsets, class Impl>
-    struct neighbors_iter {
-        Offsets const &offsets;
-        Impl impl;
+    template <Connectivity ConnT, ConnT Conn, class Nested>
+    struct partial_iter {
+        Nested nested;
 
-        neighbors_iter(Horizintal, Offsets const &offsets, Impl impl) : offsets(offsets), impl(std::move(impl)) {}
+        int horizontal_offset() const { return nested.horizontal_offset(); }
 
-        friend constexpr bool fn_builtin(builtins::can_deref, neighbors_iter const &it) { return false; }
-        friend constexpr Offsets const &fn_offsets(neighbors_iter const &it) { return it.offsets; }
+        friend constexpr bool fn_builtin(builtins::can_deref, partial_iter const &it) { return false; }
+
+        friend constexpr auto const &fn_offsets(partial_iter const &it) {
+            return get_neighbour_offsets(Conn, it.horizontal_offset());
+        }
     };
 
     template <class Horizontal, class Impl>
@@ -37,12 +40,15 @@ namespace gridtools::fn {
         constexpr neighbor_iter(int offset, Impl impl) : offset(offset), impl(std::move(impl)) {}
         constexpr neighbor_iter(Horizontal, int offset, Impl impl) : offset(offset), impl(std::move(impl)) {}
 
+        int horizontal_offset() const { return offset; }
+
         template <auto Dim, auto Val>
         friend constexpr neighbor_iter fn_builtin(builtins::shift<Dim, Val>, neighbor_iter const &it) {
             return {it.offset, shift<Dim, Val>(it.impl)};
         }
 
         template <Connectivity ConnT, ConnT Conn, auto Offset>
+        requires std::integral<decltype(Offset)>
         friend constexpr neighbor_iter fn_builtin(builtins::shift<Conn, Offset>, neighbor_iter const &it) {
             return {tuple_util::get<Offset>(get_neighbour_offsets(Conn, it.offset)), it.impl};
         }
@@ -57,13 +63,26 @@ namespace gridtools::fn {
         return it.impl.sid_access(Horizontal(), it.offset);
     }
 
-    template <class Horizontal, class Offsets, class Impl, auto I>
-    constexpr auto fn_builtin(builtins::shift<I>, neighbors_iter<Horizontal, Offsets, Impl> const &it) {
-        return neighbor_iter(Horizontal(), tuple_util::get<I>(offsets(it)), it.impl);
+    template <auto I, Connectivity ConnT, ConnT Conn, class Nested>
+    requires std::integral<decltype(I)>
+    constexpr auto fn_builtin(builtins::shift<I>, partial_iter<ConnT, Conn, Nested> const &it) {
+        return shift<Conn, I>(it.nested);
     }
 
-    template <class Horizontal, class Impl, Connectivity ConnT, ConnT Conn>
+    template <Connectivity ConnT, ConnT Conn, auto I, Connectivity ConnT2, ConnT2 Conn2, class Nested>
+    requires std::integral<decltype(I)>
+    constexpr auto fn_builtin(builtins::shift<Conn, I>, partial_iter<ConnT2, Conn2, Nested> const &it) {
+        auto nested = shift<Conn, I>(it.nested);
+        return partial_iter<ConnT2, Conn2, decltype(nested)>(std::move(nested));
+    }
+
+    template <Connectivity ConnT, ConnT Conn, class Horizontal, class Impl>
     constexpr auto fn_builtin(builtins::shift<Conn>, neighbor_iter<Horizontal, Impl> const &it) {
-        return neighbors_iter(Horizontal(), get_neighbour_offsets(Conn, it.offset), it.impl);
+        return partial_iter<ConnT, Conn, neighbor_iter<Horizontal, Impl>>{it};
+    }
+
+    template <Connectivity ConnT, ConnT Conn, Connectivity ConnT2, ConnT2 Conn2, class Nested>
+    constexpr auto fn_builtin(builtins::shift<Conn>, partial_iter<ConnT2, Conn2, Nested> const &it) {
+        return partial_iter<ConnT, Conn, partial_iter<ConnT2, Conn2, Nested>>{it};
     }
 } // namespace gridtools::fn

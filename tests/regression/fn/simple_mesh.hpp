@@ -40,4 +40,12 @@ namespace simple_mesh {
         {7, 8, 9, -1, -1, -1},
         {9, 10, 11, -1, -1, -1}};
 
-} // namespace fgridtools::fn::simple_mesh
+    constexpr std::array<int, 6> v2v[n_vertices] = {{1, 2, 3, 4, 5, 6},
+        {0, 2, 6, -1, -1, -1},
+        {1, 0, 3, -1, -1, -1},
+        {2, 0, 5, -1, -1, -1},
+        {3, 0, 5, -1, -1, -1},
+        {4, 0, 6, -1, -1, -1},
+        {5, 0, 1, -1, -1, -1}};
+
+} // namespace simple_mesh
