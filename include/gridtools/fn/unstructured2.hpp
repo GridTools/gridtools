@@ -132,13 +132,6 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class Domain, class Offsets>
-        using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes), Offsets, 1>;
-
-        template <class Backend, class Domain, class Offsets>
-        using vertical_exec_t =
-            vertical_executor<Backend, make_iterator<Domain>, dim::vertical, decltype(Domain::m_sizes), Offsets, 1>;
-
         template <class Backend, class Domain, class TmpAllocator>
         struct backend {
             Domain m_domain;
@@ -153,20 +146,22 @@ namespace gridtools::fn {
 
             auto stencil_executor() const {
                 using domain_t = decltype(Domain::m_domain);
-                using offsets_t = decltype(Domain::m_offsets);
                 return [&] {
-                    auto exec = stencil_exec_t<Backend, domain_t, offsets_t>{
-                        m_domain.m_domain.m_sizes, m_domain.m_offsets, make_iterator<domain_t>{m_domain.m_domain}};
+                    auto exec = make_stencil_executor<1>(Backend(),
+                        m_domain.m_domain.m_sizes,
+                        m_domain.m_offsets,
+                        make_iterator<domain_t>{m_domain.m_domain});
                     return std::move(exec).arg(index);
                 };
             }
 
             auto vertical_executor() const {
                 using domain_t = decltype(Domain::m_domain);
-                using offsets_t = decltype(Domain::m_offsets);
                 return [&] {
-                    auto exec = vertical_exec_t<Backend, domain_t, offsets_t>{
-                        m_domain.m_domain.m_sizes, m_domain.m_offsets, make_iterator<domain_t>{m_domain.m_domain}};
+                    auto exec = make_vertical_executor<dim::vertical, 1>(Backend(),
+                        m_domain.m_domain.m_sizes,
+                        m_domain.m_offsets,
+                        make_iterator<domain_t>{m_domain.m_domain});
                     return std::move(exec).arg(index);
                 };
             }

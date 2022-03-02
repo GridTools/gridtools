@@ -31,10 +31,26 @@ namespace gridtools::fn {
             Sizes m_sizes;
             Offsets m_offsets;
             MakeIterator m_make_iterator;
-            Args m_args = {};
-            Specs m_specs = {};
+            Args m_args;
+            Specs m_specs;
             bool m_active = true;
 
+            executor(MakeSpec,
+                RunSpecs,
+                Sizes sizes,
+                Offsets offsets,
+                MakeIterator make_iterator,
+                Args args = {},
+                Specs specs = {})
+                : m_sizes(std::move(sizes)), m_offsets(std::move(offsets)), m_make_iterator(std::move(make_iterator)),
+                  m_args(std::move(args)), m_specs(std::move(specs)) {}
+
+            executor(executor &&other)
+                : m_sizes(std::move(other.m_sizes)), m_offsets(std::move(other.m_offsets)),
+                  m_make_iterator(std::move(other.m_make_iterator)), m_args(std::move(other.m_args)),
+                  m_specs(std::move(other.m_specs)), m_active(other.m_active) {
+                other.m_active = false;
+            }
             executor(executor const &) = delete;
             ~executor() {
                 if (m_active)
@@ -47,12 +63,13 @@ namespace gridtools::fn {
                 auto args = tuple_util::deep_copy(
                     tuple_util::push_back(std::move(m_args), sid::shift_sid_origin(std::forward<Arg>(arg), m_offsets)));
                 m_active = false;
-                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, decltype(args), Specs>{
+                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, decltype(args), Specs>(MakeSpec(),
+                    RunSpecs(),
                     std::move(m_sizes),
                     std::move(m_offsets),
                     std::move(m_make_iterator),
                     std::move(args),
-                    std::move(m_specs)};
+                    std::move(m_specs));
             }
 
             template <class... SpecArgs>
@@ -61,7 +78,8 @@ namespace gridtools::fn {
                 auto specs = tuple_util::deep_copy(
                     tuple_util::push_back(std::move(m_specs), MakeSpec()(std::forward<SpecArgs>(args)...)));
                 m_active = false;
-                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, Args, decltype(specs)>{
+                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, Args, decltype(specs)>{MakeSpec(),
+                    RunSpecs(),
                     std::move(m_sizes),
                     std::move(m_offsets),
                     std::move(m_make_iterator),
@@ -87,9 +105,12 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class MakeIterator, class Sizes, class Offsets, int ArgOffset = 0>
-        using stencil_executor =
-            executor<make_stencil_spec_f<ArgOffset>, run_stencil_specs_f<Backend>, Sizes, Offsets, MakeIterator>;
+        template <int ArgOffset = 0, class Backend, class Sizes, class Offsets, class MakeIterator>
+        auto make_stencil_executor(
+            Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
+            return executor(
+                make_stencil_spec_f<ArgOffset>(), run_stencil_specs_f<Backend>(), sizes, offsets, make_iterator);
+        }
 
         template <class Vertical, int ArgOffset>
         struct make_vertical_spec_f {
@@ -114,14 +135,17 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class MakeIterator, class Vertical, class Sizes, class Offsets, int ArgOffset = 0>
-        using vertical_executor = executor<make_vertical_spec_f<Vertical, ArgOffset>,
-            run_vertical_specs_f<Backend, Vertical>,
-            Sizes,
-            Offsets,
-            MakeIterator>;
+        template <class Vertical, int ArgOffset = 0, class Backend, class Sizes, class Offsets, class MakeIterator>
+        auto make_vertical_executor(
+            Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
+            return executor(make_vertical_spec_f<Vertical, ArgOffset>(),
+                run_vertical_specs_f<Backend, Vertical>(),
+                sizes,
+                offsets,
+                make_iterator);
+        }
     } // namespace executor_impl_
 
-    using executor_impl_::stencil_executor;
-    using executor_impl_::vertical_executor;
+    using executor_impl_::make_stencil_executor;
+    using executor_impl_::make_vertical_executor;
 } // namespace gridtools::fn

@@ -68,13 +68,6 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class Domain>
-        using stencil_exec_t =
-            stencil_executor<Backend, make_iterator, decltype(Domain::m_sizes), decltype(Domain::m_offsets)>;
-        template <class Backend, class Domain>
-        using vertical_exec_t =
-            vertical_executor<Backend, make_iterator, dim::k, decltype(Domain::m_sizes), decltype(Domain::m_offsets)>;
-
         template <class Backend, class Domain, class TmpAllocator>
         struct backend {
             Domain m_domain;
@@ -87,13 +80,14 @@ namespace gridtools::fn {
 
             auto stencil_executor() const {
                 return [&] {
-                    return stencil_exec_t<Backend, Domain>{m_domain.m_sizes, m_domain.m_offsets, make_iterator{}};
+                    return make_stencil_executor(Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator());
                 };
             }
 
             auto vertical_executor() const {
                 return [&] {
-                    return vertical_exec_t<Backend, Domain>{m_domain.m_sizes, m_domain.m_offsets, make_iterator{}};
+                    return make_vertical_executor<dim::k>(
+                        Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator());
                 };
             }
         };
