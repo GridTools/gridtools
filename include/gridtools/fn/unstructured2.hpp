@@ -31,10 +31,13 @@ namespace gridtools::fn {
             Sizes m_sizes;
         };
 
-        template <class Domain, class Offsets>
+        template <class Tables, class Sizes, class Offsets>
         struct domain_with_offsets {
-            Domain m_domain;
+            domain<Tables, Sizes> m_domain;
             Offsets m_offsets;
+
+            domain_with_offsets(Tables const &tables, Sizes const &sizes, Offsets const &offsets)
+                : m_domain{tables, sizes}, m_offsets(offsets) {}
         };
 
         template <class Tag, class NeighborTable>
@@ -42,19 +45,18 @@ namespace gridtools::fn {
             return {nt};
         }
 
-        template <class... Connectivities>
-        auto unstructured_domain(int horizontal_size, int vertical_size, Connectivities const &...conns) {
-            auto table_map = hymap::concat(conns...);
-            auto sizes = hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size);
-            auto d = domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
-            return domain_with_offsets<decltype(d), std::tuple<>>{std::move(d), std::tuple()};
-        };
-
         template <class Sizes, class Offsets, class... Connectivities>
         auto unstructured_domain(Sizes const &sizes, Offsets const &offsets, Connectivities const &...conns) {
-            auto table_map = hymap::concat(conns...);
-            auto d = domain<decltype(table_map), Sizes>{std::move(table_map), sizes};
-            return domain_with_offsets<decltype(d), Offsets>{std::move(d), offsets};
+
+            return domain_with_offsets(hymap::concat(conns...), sizes, offsets);
+        };
+
+        template <class... Connectivities>
+        auto unstructured_domain(int horizontal_size, int vertical_size, Connectivities const &...conns) {
+            return unstructured_domain(
+                hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size),
+                hymap::keys<>::values<>(),
+                conns...);
         };
 
         template <class Tag, class Ptr, class Strides, class Domain>
@@ -168,10 +170,11 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class Domain, class Offsets>
-        auto make_backend(Backend, domain_with_offsets<Domain, Offsets> const &d) {
+        template <class Backend, class Tables, class Sizes, class Offsets>
+        auto make_backend(Backend, domain_with_offsets<Tables, Sizes, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
-            return backend<Backend, domain_with_offsets<Domain, Offsets>, decltype(allocator)>{d, std::move(allocator)};
+            return backend<Backend, domain_with_offsets<Tables, Sizes, Offsets>, decltype(allocator)>{
+                d, std::move(allocator)};
         }
     } // namespace unstructured_impl_
 
