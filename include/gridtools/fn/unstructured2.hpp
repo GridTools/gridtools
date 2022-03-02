@@ -31,17 +31,30 @@ namespace gridtools::fn {
             Sizes m_sizes;
         };
 
+        template <class Domain, class Offsets>
+        struct domain_with_offsets {
+            Domain m_domain;
+            Offsets m_offsets;
+        };
+
         template <class Tag, class NeighborTable>
         typename hymap::keys<Tag>::template values<NeighborTable> connectivity(NeighborTable const &nt) {
             return {nt};
         }
 
         template <class... Connectivities>
-        auto unstructured_domain(
-            std::size_t horizontal_size, std::size_t vertical_size, Connectivities const &... conns) {
+        auto unstructured_domain(int horizontal_size, int vertical_size, Connectivities const &...conns) {
             auto table_map = hymap::concat(conns...);
             auto sizes = hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size);
-            return domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
+            auto d = domain<decltype(table_map), decltype(sizes)>{std::move(table_map), std::move(sizes)};
+            return domain_with_offsets<decltype(d), std::tuple<>>{std::move(d), std::tuple()};
+        };
+
+        template <class Sizes, class Offsets, class... Connectivities>
+        auto unstructured_domain(Sizes const &sizes, Offsets const &offsets, Connectivities const &...conns) {
+            auto table_map = hymap::concat(conns...);
+            auto d = domain<decltype(table_map), Sizes>{std::move(table_map), sizes};
+            return domain_with_offsets<decltype(d), Offsets>{std::move(d), offsets};
         };
 
         template <class Tag, class Ptr, class Strides, class Domain>
@@ -115,45 +128,50 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class Domain>
-        using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes), tuple<>, 1>;
+        template <class Backend, class Domain, class Offsets>
+        using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes), Offsets, 1>;
 
-        template <class Backend, class Domain>
+        template <class Backend, class Domain, class Offsets>
         using vertical_exec_t =
-            vertical_executor<Backend, make_iterator<Domain>, dim::vertical, decltype(Domain::m_sizes), tuple<>, 1>;
+            vertical_executor<Backend, make_iterator<Domain>, dim::vertical, decltype(Domain::m_sizes), Offsets, 1>;
 
         template <class Backend, class Domain, class TmpAllocator>
         struct backend {
             Domain m_domain;
             TmpAllocator m_allocator;
 
-            using horizontal_t = meta::at_c<get_keys<std::remove_reference_t<decltype(m_domain.m_sizes)>>, 0>;
-            static constexpr auto index = positional<horizontal_t>();
+            static constexpr auto index = positional<dim::horizontal>();
 
             template <class T>
             auto make_tmp() {
-                return allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
+                return allocate_global_tmp(m_allocator, m_domain.m_domain.m_sizes, data_type<T>());
             }
 
             auto stencil_executor() const {
+                using domain_t = decltype(Domain::m_domain);
+                using offsets_t = decltype(Domain::m_offsets);
                 return [&] {
-                    auto exec = stencil_exec_t<Backend, Domain>{m_domain.m_sizes, {}, make_iterator<Domain>{m_domain}};
+                    auto exec = stencil_exec_t<Backend, domain_t, offsets_t>{
+                        m_domain.m_domain.m_sizes, m_domain.m_offsets, make_iterator<domain_t>{m_domain.m_domain}};
                     return std::move(exec).arg(index);
                 };
             }
 
             auto vertical_executor() const {
+                using domain_t = decltype(Domain::m_domain);
+                using offsets_t = decltype(Domain::m_offsets);
                 return [&] {
-                    auto exec = vertical_exec_t<Backend, Domain>{m_domain.m_sizes, {}, make_iterator<Domain>{m_domain}};
+                    auto exec = vertical_exec_t<Backend, domain_t, offsets_t>{
+                        m_domain.m_domain.m_sizes, m_domain.m_offsets, make_iterator<domain_t>{m_domain.m_domain}};
                     return std::move(exec).arg(index);
                 };
             }
         };
 
-        template <class Backend, class Tables, class Sizes>
-        auto make_backend(Backend, domain<Tables, Sizes> const &d) {
+        template <class Backend, class Domain, class Offsets>
+        auto make_backend(Backend, domain_with_offsets<Domain, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
-            return backend<Backend, domain<Tables, Sizes>, decltype(allocator)>{d, std::move(allocator)};
+            return backend<Backend, domain_with_offsets<Domain, Offsets>, decltype(allocator)>{d, std::move(allocator)};
         }
     } // namespace unstructured_impl_
 

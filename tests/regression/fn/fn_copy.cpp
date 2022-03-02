@@ -84,4 +84,25 @@ namespace {
         TypeParam::verify(in, out);
         TypeParam::benchmark("fn_unstructured_copy", comp);
     }
+
+    GT_REGRESSION_TEST(fn_unstructured_copy_with_domain_offsets, test_environment<>, fn_backend_t) {
+        auto fencil = [&](int nvertices, int nlevels, auto &out, auto const &in) {
+            using namespace unstructured;
+            auto offsets = hymap::keys<dim::horizontal, dim::vertical>::make_values(1, 3);
+            auto sizes = hymap::keys<dim::horizontal, dim::vertical>::make_values(
+                std::max(nvertices - 1, 0), std::max(nlevels - 3, 0));
+            auto domain = unstructured_domain(sizes, offsets);
+            auto backend = make_backend(fn_backend_t(), domain);
+            apply_copy(backend.stencil_executor(), out, in);
+        };
+
+        auto mesh = TypeParam::fn_unstructured_mesh();
+        auto out = mesh.make_storage([](int i, int j) { return -in(i, j); }, mesh.nvertices(), mesh.nlevels());
+        auto comp = [&, in = mesh.make_const_storage(in, mesh.nvertices(), mesh.nlevels())] {
+            fencil(mesh.nvertices(), mesh.nlevels(), out, in);
+        };
+        comp();
+        auto expected = [](int i, int j) { return (i >= 1 && j >= 3 ? 1 : -1) * in(i, j); };
+        TypeParam::verify(expected, out);
+    }
 } // namespace
