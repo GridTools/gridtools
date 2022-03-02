@@ -31,7 +31,7 @@ namespace {
                             tmp += deref(shifted_pp);
                     },
                     meta::rename<tuple, meta::make_indices_c<2>>());
-                tmp /= 2.0;
+                tmp /= 2;
                 auto ss = deref(s);
                 return tuple(tmp * get<0>(ss), tmp * get<1>(ss));
             };
@@ -50,6 +50,39 @@ namespace {
                         if (can_deref(shifted_zavg)) {
                             get<0>(tmp) += get<0>(deref(shifted_zavg)) * get<i.value>(signs);
                             get<1>(tmp) += get<1>(deref(shifted_zavg)) * get<i.value>(signs);
+                        }
+                    },
+                    meta::rename<tuple, meta::make_indices_c<6>>());
+                auto v = deref(vol);
+                return tuple(get<0>(tmp) / v, get<1>(tmp) / v);
+            };
+        }
+    };
+
+    struct nabla_stencil_fused {
+        constexpr auto operator()() const {
+            return [](auto const &sign, auto const &vol, auto const &pp, auto const &s) {
+                using float_t = std::decay_t<decltype(deref(vol))>;
+                auto signs = deref(sign);
+                tuple<float_t, float_t> tmp(0, 0);
+                tuple_util::for_each(
+                    [&](auto i) {
+                        auto shifted_s = shift(s, v2e(), i);
+                        if (can_deref(shifted_s)) {
+                            float_t tmp2 = 0;
+                            tuple_util::for_each(
+                                [&](auto const &j) {
+                                    auto shifted_pp = shift(pp, v2e(), i, e2v(), j);
+                                    if (can_deref(shifted_pp))
+                                        tmp2 += deref(shifted_pp);
+                                },
+                                meta::rename<tuple, meta::make_indices_c<2>>());
+                            tmp2 /= 2;
+                            auto ss = deref(shifted_s);
+                            auto zavg = tuple(tmp2 * get<0>(ss), tmp2 * get<1>(ss));
+
+                            get<0>(tmp) += get<0>(zavg) * get<i.value>(signs);
+                            get<1>(tmp) += get<1>(zavg) * get<i.value>(signs);
                         }
                     },
                     meta::rename<tuple, meta::make_indices_c<6>>());
@@ -96,6 +129,11 @@ namespace {
         [](auto executor, auto &nabla, auto const &zavg, auto const &sign, auto const &vol) {
             executor().arg(nabla).arg(zavg).arg(sign).arg(vol).assign(0_c, nabla_stencil(), 1_c, 2_c, 3_c);
         };
+    constexpr inline auto apply_nabla_fused =
+        [](auto executor, auto &nabla, auto const &sign, auto const &vol, auto const &pp, auto const &s) {
+            executor().arg(nabla).arg(sign).arg(vol).arg(pp).arg(s).assign(
+                0_c, nabla_stencil_fused(), 1_c, 2_c, 3_c, 4_c);
+        };
 
     constexpr inline auto fencil = [](auto backend,
                                        int nvertices,
@@ -120,6 +158,23 @@ namespace {
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };
 
+    constexpr inline auto fencil_fused = [](auto backend,
+                                             int nvertices,
+                                             int nlevels,
+                                             auto const &v2e_table,
+                                             auto const &e2v_table,
+                                             auto &nabla,
+                                             auto const &pp,
+                                             auto const &s,
+                                             auto const &sign,
+                                             auto const &vol) {
+        auto v2e_conn = connectivity<v2e>(v2e_table);
+        auto e2v_conn = connectivity<e2v>(e2v_table);
+        auto vertex_domain = unstructured_domain(nvertices, nlevels, v2e_conn, e2v_conn);
+        auto vertex_backend = make_backend(backend, vertex_domain);
+        apply_nabla_fused(vertex_backend.stencil_executor(), nabla, sign, vol, pp, s);
+    };
+
     constexpr inline auto make_comp = [](auto backend, auto const &mesh, auto &nabla) {
         return [backend,
                    &nabla,
@@ -135,6 +190,23 @@ namespace {
             auto v2e_ptr = v2e_table->get_const_target_ptr();
             auto e2v_ptr = e2v_table->get_const_target_ptr();
             fencil(backend, nvertices, nedges, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
+        };
+    };
+
+    constexpr inline auto make_comp_fused = [](auto backend, auto const &mesh, auto &nabla) {
+        return [backend,
+                   &nabla,
+                   nvertices = mesh.nvertices(),
+                   nlevels = mesh.nlevels(),
+                   v2e_table = mesh.v2e_table(),
+                   e2v_table = mesh.e2v_table(),
+                   pp = mesh.make_const_storage(pp, mesh.nvertices(), mesh.nlevels()),
+                   sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
+                   vol = mesh.make_const_storage(vol, mesh.nvertices()),
+                   s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
+            auto v2e_ptr = v2e_table->get_const_target_ptr();
+            auto e2v_ptr = e2v_table->get_const_target_ptr();
+            fencil_fused(backend, nvertices, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
         };
     };
 
@@ -156,6 +228,18 @@ namespace {
         auto expected = make_expected(mesh);
         TypeParam::verify(expected, nabla);
         TypeParam::benchmark("fn_unstructured_nabla_field_of_tuples", comp);
+    }
+
+    GT_REGRESSION_TEST(fn_unstructured_nabla_fused_field_of_tuples, test_environment<>, fn_backend_t) {
+        using float_t = typename TypeParam::float_t;
+
+        auto mesh = TypeParam::fn_unstructured_mesh();
+        auto nabla = mesh.template make_storage<tuple<float_t, float_t>>(mesh.nvertices(), mesh.nlevels());
+        auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
+        comp();
+        auto expected = make_expected(mesh);
+        TypeParam::verify(expected, nabla);
+        TypeParam::benchmark("fn_unstructured_nabla_fused_field_of_tuples", comp);
     }
 
 #if 0
