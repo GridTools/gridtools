@@ -25,29 +25,14 @@ namespace gridtools::fn {
         namespace dim = cartesian::dim;
         using backend::data_type;
 
-        template <class Sizes, class Offsets>
-        struct domain {
+        template <class Sizes, class Offsets = std::tuple<>>
+        struct cartesian_domain {
             Sizes m_sizes;
             Offsets m_offsets;
 
-            using sizes_t = Sizes;
-            using offsets_t = Offsets;
+            cartesian_domain(Sizes const &sizes, Offsets const &offsets = {}) : m_sizes(sizes), m_offsets(offsets) {}
         };
 
-        inline auto cartesian_domain(int i, int j, int k) {
-            auto sizes = hymap::keys<dim::i, dim::j, dim::k>::make_values(i, j, k);
-            return domain<decltype(sizes), tuple<>>{sizes, {}};
-        }
-
-        template <class Sizes>
-        domain<Sizes, tuple<>> cartesian_domain(Sizes const &sizes) {
-            return {sizes, {}};
-        }
-
-        template <class Sizes, class Offsets>
-        domain<Sizes, Offsets> cartesian_domain(Sizes const &sizes, Offsets const &offsets) {
-            return {sizes, offsets};
-        }
         template <class Tag, class Ptr, class Strides>
         struct iterator {
             Ptr m_ptr;
@@ -85,10 +70,10 @@ namespace gridtools::fn {
 
         template <class Backend, class Domain>
         using stencil_exec_t =
-            stencil_executor<Backend, make_iterator, typename Domain::sizes_t, typename Domain::offsets_t>;
+            stencil_executor<Backend, make_iterator, decltype(Domain::m_sizes), decltype(Domain::m_offsets)>;
         template <class Backend, class Domain>
         using vertical_exec_t =
-            vertical_executor<Backend, make_iterator, dim::k, typename Domain::sizes_t, typename Domain::offsets_t>;
+            vertical_executor<Backend, make_iterator, dim::k, decltype(Domain::m_sizes), decltype(Domain::m_offsets)>;
 
         template <class Backend, class Domain, class TmpAllocator>
         struct backend {
@@ -114,9 +99,9 @@ namespace gridtools::fn {
         };
 
         template <class Backend, class Sizes, class Offsets>
-        auto make_backend(Backend, domain<Sizes, Offsets> const &d) {
+        auto make_backend(Backend, cartesian_domain<Sizes, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
-            return backend<Backend, domain<Sizes, Offsets>, decltype(allocator)>{d, std::move(allocator)};
+            return backend<Backend, cartesian_domain<Sizes, Offsets>, decltype(allocator)>{d, std::move(allocator)};
         }
     } // namespace cartesian_impl_
     using cartesian_impl_::cartesian_domain;
