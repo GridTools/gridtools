@@ -13,21 +13,23 @@
 
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
+#include "../sid/sid_shift_origin.hpp"
 #include "./run.hpp"
 #include "./scan.hpp"
 #include "./stencil_stage.hpp"
-#include "gridtools/meta/debug.hpp"
 
 namespace gridtools::fn {
     namespace executor_impl_ {
         template <class MakeSpec,
             class RunSpecs,
-            class Domain,
+            class Sizes,
+            class Offsets,
             class MakeIterator,
             class Args = std::tuple<>,
             class Specs = std::tuple<>>
         struct executor {
-            Domain m_domain;
+            Sizes m_sizes;
+            Offsets m_offsets;
             MakeIterator m_make_iterator;
             Args m_args = {};
             Specs m_specs = {};
@@ -36,16 +38,21 @@ namespace gridtools::fn {
             executor(executor const &) = delete;
             ~executor() {
                 if (m_active)
-                    RunSpecs()(m_domain, m_make_iterator, std::move(m_args), std::move(m_specs));
+                    RunSpecs()(m_sizes, m_make_iterator, std::move(m_args), std::move(m_specs));
             }
 
             template <class Arg>
             auto arg(Arg &&arg) && {
                 assert(m_active);
-                auto args = tuple_util::push_back(std::move(m_args), std::forward<Arg>(arg));
+                auto args = tuple_util::deep_copy(
+                    tuple_util::push_back(std::move(m_args), sid::shift_sid_origin(std::forward<Arg>(arg), m_offsets)));
                 m_active = false;
-                return executor<MakeSpec, RunSpecs, Domain, MakeIterator, decltype(args), Specs>{
-                    std::move(m_domain), std::move(m_make_iterator), std::move(args), std::move(m_specs)};
+                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, decltype(args), Specs>{
+                    std::move(m_sizes),
+                    std::move(m_offsets),
+                    std::move(m_make_iterator),
+                    std::move(args),
+                    std::move(m_specs)};
             }
 
             template <class... SpecArgs>
@@ -54,8 +61,12 @@ namespace gridtools::fn {
                 auto specs = tuple_util::deep_copy(
                     tuple_util::push_back(std::move(m_specs), MakeSpec()(std::forward<SpecArgs>(args)...)));
                 m_active = false;
-                return executor<MakeSpec, RunSpecs, Domain, MakeIterator, Args, decltype(specs)>{
-                    std::move(m_domain), std::move(m_make_iterator), std::move(m_args), std::move(specs)};
+                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, Args, decltype(specs)>{
+                    std::move(m_sizes),
+                    std::move(m_offsets),
+                    std::move(m_make_iterator),
+                    std::move(m_args),
+                    std::move(specs)};
             }
         };
 
@@ -76,9 +87,9 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class MakeIterator, class Domain, int ArgOffset = 0>
+        template <class Backend, class MakeIterator, class Sizes, class Offsets, int ArgOffset = 0>
         using stencil_executor =
-            executor<make_stencil_spec_f<ArgOffset>, run_stencil_specs_f<Backend>, Domain, MakeIterator>;
+            executor<make_stencil_spec_f<ArgOffset>, run_stencil_specs_f<Backend>, Sizes, Offsets, MakeIterator>;
 
         template <class Vertical, int ArgOffset>
         struct make_vertical_spec_f {
@@ -103,10 +114,11 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class MakeIterator, class Vertical, class Domain, int ArgOffset = 0>
+        template <class Backend, class MakeIterator, class Vertical, class Sizes, class Offsets, int ArgOffset = 0>
         using vertical_executor = executor<make_vertical_spec_f<Vertical, ArgOffset>,
             run_vertical_specs_f<Backend, Vertical>,
-            Domain,
+            Sizes,
+            Offsets,
             MakeIterator>;
     } // namespace executor_impl_
 

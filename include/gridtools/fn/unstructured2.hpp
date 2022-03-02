@@ -116,11 +116,11 @@ namespace gridtools::fn {
         };
 
         template <class Backend, class Domain>
-        using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes), 1>;
+        using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes), tuple<>, 1>;
 
         template <class Backend, class Domain>
         using vertical_exec_t =
-            vertical_executor<Backend, make_iterator<Domain>, dim::vertical, decltype(Domain::m_sizes), 1>;
+            vertical_executor<Backend, make_iterator<Domain>, dim::vertical, decltype(Domain::m_sizes), tuple<>, 1>;
 
         template <class Backend, class Domain, class TmpAllocator>
         struct backend {
@@ -137,14 +137,14 @@ namespace gridtools::fn {
 
             auto stencil_executor() const {
                 return [&] {
-                    auto exec = stencil_exec_t<Backend, Domain>{m_domain.m_sizes, make_iterator<Domain>{m_domain}};
+                    auto exec = stencil_exec_t<Backend, Domain>{m_domain.m_sizes, {}, make_iterator<Domain>{m_domain}};
                     return std::move(exec).arg(index);
                 };
             }
 
             auto vertical_executor() const {
                 return [&] {
-                    auto exec = vertical_exec_t<Backend, Domain>{m_domain.m_sizes, make_iterator<Domain>{m_domain}};
+                    auto exec = vertical_exec_t<Backend, Domain>{m_domain.m_sizes, {}, make_iterator<Domain>{m_domain}};
                     return std::move(exec).arg(index);
                 };
             }

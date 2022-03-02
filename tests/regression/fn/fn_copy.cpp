@@ -47,6 +47,27 @@ namespace {
         TypeParam::benchmark("fn_cartesian_copy", comp);
     }
 
+    GT_REGRESSION_TEST(fn_cartesian_copy_with_domain_offsets, test_environment<>, fn_backend_t) {
+        auto out = TypeParam::make_storage([](int i, int j, int k) { return -in(i, j, k); });
+        auto fencil = [&](auto const &sizes, auto const &offsets, auto &out, auto const &in) {
+            auto domain = cartesian_domain(sizes, offsets);
+            auto backend = make_backend(fn_backend_t(), domain);
+            apply_copy(backend.stencil_executor(), out, in);
+        };
+
+        auto comp = [&, in = TypeParam::make_const_storage(in)] {
+            using namespace cartesian;
+            auto offsets = hymap::keys<dim::i, dim::k>::make_values(1, 3);
+            auto sizes = hymap::keys<dim::i, dim::j, dim::k>::make_values(
+                std::max((int)TypeParam::d(0) - 1, 0), (int)TypeParam::d(1), std::max((int)TypeParam::d(2) - 3, 0));
+
+            fencil(sizes, offsets, out, in);
+        };
+        comp();
+        auto expected = [](int i, int j, int k) { return (i >= 1 && k >= 3 ? 1 : -1) * in(i, j, k); };
+        TypeParam::verify(expected, out);
+    }
+
     GT_REGRESSION_TEST(fn_unstructured_copy, test_environment<>, fn_backend_t) {
         auto fencil = [&](int nvertices, int nlevels, auto &out, auto const &in) {
             auto domain = unstructured_domain(nvertices, nlevels);

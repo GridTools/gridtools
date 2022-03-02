@@ -57,7 +57,8 @@ namespace gridtools::fn {
                     c[i][j] = 3 * i + j;
 
             {
-                stencil_executor<backend_t, make_iterator_mock, decltype(domain)>{domain, make_iterator_mock{}}
+                stencil_executor<backend_t, make_iterator_mock, decltype(domain), std::tuple<>>{
+                    domain, {}, make_iterator_mock{}}
                     .arg(a)
                     .arg(b)
                     .arg(c)
@@ -83,8 +84,8 @@ namespace gridtools::fn {
                     c[i][j] = 3 * i + j;
 
             {
-                vertical_executor<backend_t, make_iterator_mock, int_t<1>, decltype(domain)>{
-                    domain, make_iterator_mock{}}
+                vertical_executor<backend_t, make_iterator_mock, int_t<1>, decltype(domain), std::tuple<>>{
+                    domain, {}, make_iterator_mock{}}
                     .arg(a)
                     .arg(b)
                     .arg(c)
