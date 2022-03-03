@@ -9,8 +9,11 @@
  */
 #pragma once
 
+#include <functional>
+
 #include "../common/tuple_util.hpp"
 #include "../sid/concept.hpp"
+#include "../sid/sid_shift_origin.hpp"
 #include "./backend2/common.hpp"
 #include "./executor.hpp"
 
@@ -75,7 +78,9 @@ namespace gridtools::fn {
 
             template <class T>
             auto make_tmp() {
-                return allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
+                auto data = allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
+                auto offsets = tuple_util::transform(std::negate(), m_domain.m_offsets);
+                return sid::shift_sid_origin(std::move(data), std::move(offsets));
             }
 
             auto stencil_executor() const {
