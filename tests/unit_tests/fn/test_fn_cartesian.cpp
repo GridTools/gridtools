@@ -43,22 +43,23 @@ namespace gridtools::fn {
                 executor().arg(out).arg(in).assign(0_c, stencil(), 1_c);
             };
 
-            auto fencil = [&](auto sizes, auto &out, auto const &in) {
+            auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
                 auto domain = cartesian_domain(sizes);
                 auto backend = make_backend(backend::naive(), domain);
                 auto tmp = backend.template make_tmp<int>();
-                apply_stencil(backend.stencil_executor(), tmp, in);
-                apply_stencil(backend.stencil_executor(), out, tmp);
+                auto compute_domain = cartesian_domain(std::array{sizes[0] - 1, sizes[1], sizes[2]});
+                auto compute_backend = make_backend(backend::naive(), compute_domain);
+                apply_stencil(compute_backend.stencil_executor(), tmp, in);
+                apply_stencil(compute_backend.stencil_executor(), out, tmp);
             };
 
-            std::array<int, 3> sizes = {5, 3, 2};
             int in[5][3][2], out[5][3][2] = {};
             for (int i = 0; i < 5; ++i)
                 for (int j = 0; j < 3; ++j)
                     for (int k = 0; k < 2; ++k)
                         in[i][j][k] = 6 * i + 2 * j + k;
 
-            fencil(sizes, out, in);
+            fencil(std::array{5, 3, 2}, out, in);
 
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
