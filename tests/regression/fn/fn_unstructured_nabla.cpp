@@ -242,8 +242,6 @@ namespace {
         TypeParam::benchmark("fn_unstructured_nabla_fused_field_of_tuples", comp);
     }
 
-#if 0
-    // TODO: re-enable after updated sid::composite is available
     GT_REGRESSION_TEST(fn_unstructured_nabla_tuple_of_fields, test_environment<>, fn_backend_t) {
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla0 = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
@@ -258,5 +256,4 @@ namespace {
         TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
         TypeParam::benchmark("fn_unstructured_nabla_tuple_of_fields", comp);
     }
-#endif
 } // namespace
