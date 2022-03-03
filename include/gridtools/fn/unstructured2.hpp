@@ -32,12 +32,13 @@ namespace gridtools::fn {
         };
 
         template <class Tables, class Sizes, class Offsets>
-        struct domain_with_offsets {
-            domain<Tables, Sizes> m_domain;
+        struct domain_with_offsets : domain<Tables, Sizes> {
             Offsets m_offsets;
 
             domain_with_offsets(Tables const &tables, Sizes const &sizes, Offsets const &offsets)
-                : m_domain{tables, sizes}, m_offsets(offsets) {}
+                : domain<Tables, Sizes>{tables, sizes}, m_offsets(offsets) {}
+
+            domain<Tables, Sizes> const &without_offsets() const { return *this; }
         };
 
         template <class Tag, class NeighborTable>
@@ -119,6 +120,8 @@ namespace gridtools::fn {
         struct make_iterator {
             Domain m_domain;
 
+            explicit make_iterator(Domain const &domain) : m_domain(domain) {}
+
             GT_FUNCTION auto operator()() const {
                 return [&](auto tag, auto const &ptr, auto const &strides) {
                     auto tptr = host_device::at_key<decltype(tag)>(ptr);
@@ -141,28 +144,22 @@ namespace gridtools::fn {
 
             template <class T>
             auto make_tmp() {
-                return allocate_global_tmp(m_allocator, m_domain.m_domain.m_sizes, data_type<T>());
+                return allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
             }
 
             auto stencil_executor() const {
-                using domain_t = decltype(Domain::m_domain);
                 return [&] {
-                    auto exec = make_stencil_executor<1>(Backend(),
-                        m_domain.m_domain.m_sizes,
-                        m_domain.m_offsets,
-                        make_iterator<domain_t>{m_domain.m_domain});
-                    return std::move(exec).arg(index);
+                    return make_stencil_executor<1>(
+                        Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
+                        .arg(index);
                 };
             }
 
             auto vertical_executor() const {
-                using domain_t = decltype(Domain::m_domain);
                 return [&] {
-                    auto exec = make_vertical_executor<dim::vertical, 1>(Backend(),
-                        m_domain.m_domain.m_sizes,
-                        m_domain.m_offsets,
-                        make_iterator<domain_t>{m_domain.m_domain});
-                    return std::move(exec).arg(index);
+                    return make_vertical_executor<dim::vertical, 1>(
+                        Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
+                        .arg(index);
                 };
             }
         };
