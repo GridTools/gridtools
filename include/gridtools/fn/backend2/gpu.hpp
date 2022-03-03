@@ -33,8 +33,9 @@ namespace gridtools::fn::backend {
 
         template <class BlockSizes, class Sizes>
         GT_FUNCTION_DEVICE auto global_thread_index() {
-            using ndims_t = meta::length<Sizes>;
-            using keys_t = meta::take_c<std::min(3, (int)ndims_t::value), get_keys<Sizes>>;
+            using all_keys_t = get_keys<Sizes>;
+            using ndims_t = meta::length<all_keys_t>;
+            using keys_t = meta::rename<hymap::keys, meta::take_c<std::min(3, (int)ndims_t::value), all_keys_t>>;
             if constexpr (ndims_t::value == 0) {
                 return hymap::keys<>::values<>();
             } else if constexpr (ndims_t::value == 1) {
@@ -86,7 +87,7 @@ namespace gridtools::fn::backend {
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            if constexpr (meta::length<Sizes>::value <= 3) {
+            if constexpr (tuple_util::size<Sizes>::value <= 3) {
                 fun(ptr, strides);
             } else {
                 using loop_dims_t = meta::drop_front_c<3, SizeKeys>;
