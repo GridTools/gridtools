@@ -289,8 +289,14 @@ namespace gridtools {
         //
         namespace lazy {
             template <size_t I, class T>
-            using element = meta::lazy::at_c<traits::to_types<T>, I>;
-        }
+            struct element {
+                using type = meta::at_c<traits::to_types<T>, I>;
+            };
+            template <size_t I, class T>
+            struct element<I, T const> {
+                using type = std::add_const_t<meta::at_c<traits::to_types<T>, I>>;
+            };
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(element, (size_t I, class T), (I, T));
 
         template <class T, class = void>

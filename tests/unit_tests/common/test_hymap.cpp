@@ -188,14 +188,13 @@ namespace gridtools {
             EXPECT_EQ(16, at_key<c>(testee));
         }
 
-        TEST(concat, smoke) {
-            auto m1 = hymap::keys<a, b>::make_values(1, 2);
-            auto m2 = hymap::keys<c>::make_values(3.5);
-
-            auto testee = hymap::concat(m1, m2);
-            EXPECT_EQ(1, at_key<a>(testee));
-            EXPECT_EQ(2, at_key<b>(testee));
-            EXPECT_EQ(3.5, at_key<c>(testee));
+        TEST(assingment, smoke) {
+            hymap::keys<a, b>::values<double, double> testee;
+            auto src = hymap::keys<b, a, c>::make_values(88, 3.5, 16);
+            testee = src;
+            EXPECT_EQ(3.5, at_key<a>(testee));
+            EXPECT_EQ(88, at_key<b>(testee));
         }
+
     } // namespace
 } // namespace gridtools
