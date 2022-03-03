@@ -47,7 +47,7 @@ namespace gridtools::fn {
                 auto domain = cartesian_domain(sizes);
                 auto backend = make_backend(backend::naive(), domain);
                 auto tmp = backend.template make_tmp<int>();
-                auto compute_domain = cartesian_domain(std::array{sizes[0] - 1, sizes[1], sizes[2]});
+                auto compute_domain = cartesian_domain(std::array<int, 3>{sizes[0] - 1, sizes[1], sizes[2]});
                 auto compute_backend = make_backend(backend::naive(), compute_domain);
                 apply_stencil(compute_backend.stencil_executor(), tmp, in);
                 apply_stencil(compute_backend.stencil_executor(), out, tmp);
