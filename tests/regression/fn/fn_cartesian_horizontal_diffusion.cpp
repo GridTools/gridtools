@@ -90,7 +90,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(horizontal_diffusion, test_environment<2>, fn_backend_t) {
+    GT_REGRESSION_TEST(fn_cartesian_horizontal_diffusion, test_environment<2>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
         horizontal_diffusion_repository repo(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2));
         auto out = TypeParam::make_storage();
