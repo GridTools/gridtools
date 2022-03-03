@@ -24,6 +24,7 @@ namespace {
     using namespace fn;
     using namespace cartesian;
     using namespace literals;
+    using stencil::global_parameter;
 
     struct u_forward_scan : fwd {
         static GT_FUNCTION constexpr auto prologue() {
@@ -173,7 +174,7 @@ namespace {
                         u_stage = TypeParam::make_storage(repo.u_stage),
                         u_pos = TypeParam::make_storage(repo.u_pos),
                         wcon = TypeParam::make_storage(repo.wcon),
-                        dtr_stage = stencil::global_parameter(float_t(repo.dtr_stage))] {
+                        dtr_stage = global_parameter(float_t(repo.dtr_stage))] {
             fencil(hymap::keys<dim::i, dim::j, dim::k>::make_values(
                        TypeParam::d(0) - 6, TypeParam::d(1) - 6, TypeParam::d(2)),
                 hymap::keys<dim::i, dim::j>::make_values(3, 3),
