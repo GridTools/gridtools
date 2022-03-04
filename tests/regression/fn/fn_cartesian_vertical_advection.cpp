@@ -154,7 +154,6 @@ namespace {
 
         auto fencil = [](auto const &sizes,
                           auto const &offsets,
-                          auto &cd,
                           auto &utens_stage,
                           auto const &utens,
                           auto const &u_stage,
@@ -163,22 +162,20 @@ namespace {
                           auto const &dtr_stage) {
             auto domain = cartesian_domain(sizes, offsets);
             auto backend = make_backend(fn_backend_t(), domain);
-            auto cdt = backend.template make_tmp<tuple<float_t, float_t>>();
-            vadv_solver(backend.vertical_executor(), cdt, utens_stage, utens, u_stage, u_pos, wcon, dtr_stage);
+            auto cd = backend.template make_tmp<tuple<float_t, float_t>>();
+            vadv_solver(backend.vertical_executor(), cd, utens_stage, utens, u_stage, u_pos, wcon, dtr_stage);
         };
 
         auto utens_stage = TypeParam::make_storage(repo.utens_stage_in);
         auto comp = [&,
-                        cd = TypeParam::template make_storage<tuple<float_t, float_t>>(),
                         utens = TypeParam::make_storage(repo.utens),
                         u_stage = TypeParam::make_storage(repo.u_stage),
                         u_pos = TypeParam::make_storage(repo.u_pos),
                         wcon = TypeParam::make_storage(repo.wcon),
-                        dtr_stage = global_parameter(float_t(repo.dtr_stage))] {
+                        dtr_stage = stencil::global_parameter(float_t(repo.dtr_stage))] {
             fencil(hymap::keys<dim::i, dim::j, dim::k>::make_values(
                        TypeParam::d(0) - 6, TypeParam::d(1) - 6, TypeParam::d(2)),
                 hymap::keys<dim::i, dim::j>::make_values(3, 3),
-                cd,
                 utens_stage,
                 utens,
                 u_stage,
