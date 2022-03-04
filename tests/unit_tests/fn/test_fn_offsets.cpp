@@ -39,7 +39,5 @@ namespace gridtools::fn {
         TEST(reduce, smoke) { EXPECT_EQ(sum(testee()), 4 + 5 + 6); }
 
         TEST(reduce, two_args) { EXPECT_EQ(dot(testee(), testee()), 16 + 25 + 36); }
-
-        TEST(reduce, sparse) { EXPECT_EQ(dot(testee(), std::array{2, 2, 2, 2}), 4 * 2 + 5 * 2 + 6 * 2); }
     } // namespace
 } // namespace gridtools::fn

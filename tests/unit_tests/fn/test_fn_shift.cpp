@@ -24,10 +24,5 @@ namespace gridtools::fn {
 
         static_assert(std::is_same_v<std::decay_t<decltype(zero(dummy<42>{}))>, dummy<42>>);
         static_assert(std::is_same_v<decltype(sh(dummy<42>{})), dummy<42, 1, 2, 3>>);
-
-        TEST(shift, default) {
-            auto arr = std::array{41, 42, 43};
-            EXPECT_EQ(shift<1>(arr), &arr[1]);
-        }
     } // namespace
 } // namespace gridtools::fn

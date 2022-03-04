@@ -19,8 +19,11 @@ using namespace gridtools;
 using namespace fn;
 using namespace literals;
 
-constexpr auto zero = []<class T>(T) { return T{}; };
+constexpr auto zero = []<class T>(T, auto...) { return T{}; };
 constexpr auto sum = reduce<plus, zero>;
+
+constexpr auto dot_fun = [](auto acc, auto x, auto y) { return acc + x * y; };
+constexpr auto dot = reduce<dot_fun, zero>;
 
 template <auto V2E>
 constexpr auto nb_sum = [](auto const &x) { return sum(shift<V2E>(x)); };
@@ -31,6 +34,14 @@ constexpr auto nb_nb_sum = [](auto const &x) { return sum(shift<V2V>(lift<sum, U
 template <auto V2V, auto V2E, bool UseTmp>
 constexpr auto nb_nb_nb_sum =
     [](auto const &x) { return sum(shift<V2V>(lift<sum, UseTmp>(shift<V2V>(lift<sum, UseTmp>(shift<V2E>(x)))))); };
+
+template <auto V2E>
+constexpr auto nb_dot = [](auto const &x, auto const &y) { return dot(shift<V2E>(x), sparse(y)); };
+
+template <auto V2V, auto V2E, bool UseTmp>
+constexpr auto nb_nb_dot = [](auto const &x, auto const &y) {
+    return dot(shift<V2V>(lift<dot, UseTmp>(shift<V2E>(x), sparse(y))), sparse(y));
+};
 
 using namespace simple_mesh;
 constexpr auto K = 3_c;
@@ -137,6 +148,79 @@ TYPED_TEST(lift_test, nb_nb_nb_sum) {
     constexpr auto testee = fencil<naive, stage_t>;
     constexpr auto domain = unstructured(std::tuple(n_vertices, K));
     testee(domain, actual, x);
+
+    for (int h = 0; h < n_vertices; ++h)
+        for (int v = 0; v < K; ++v)
+            EXPECT_DOUBLE_EQ(actual[h][v], expected(h, v));
+}
+
+TYPED_TEST(lift_test, nb_dot) {
+    double x[n_edges][K];
+    for (auto &xx : x)
+        for (auto &xxx : xx)
+            xxx = rand() % 100;
+    std::array<double, n_vertices> y[n_vertices][K];
+    for (auto &yy : y)
+        for (auto &yyy : yy)
+            for (auto &yyyy : yyy)
+                yyyy = rand() % 100;
+
+    auto expected = [&](int h, int v) {
+        double res = 0.0;
+        for (int i = 0; i < n_v2e; ++i) {
+            auto ei = v2e[h][i];
+            if (ei != -1)
+                res += x[ei][v] * y[h][v][i];
+        }
+        return res;
+    };
+
+    double actual[n_vertices][K] = {};
+
+    using stage_t = make_stage<nb_dot<v2e>, std::identity{}, 0, 1, 2>;
+    constexpr auto testee = fencil<naive, stage_t>;
+    constexpr auto domain = unstructured(std::tuple(n_vertices, K));
+    testee(domain, actual, x, y);
+
+    for (int h = 0; h < n_vertices; ++h)
+        for (int v = 0; v < K; ++v)
+            EXPECT_DOUBLE_EQ(actual[h][v], expected(h, v));
+}
+
+TYPED_TEST(lift_test, nb_nb_dot) {
+    double x[n_edges][K];
+    for (auto &xx : x)
+        for (auto &xxx : xx)
+            xxx = rand() % 100;
+    std::array<double, n_vertices> y[n_vertices][K];
+    for (auto &yy : y)
+        for (auto &yyy : yy)
+            for (auto &yyyy : yyy)
+                yyyy = rand() % 100;
+
+    auto expected = [&](int h, int v) {
+        double res = 0.0;
+        for (int i = 0; i < n_v2v; ++i) {
+            auto vi = v2v[h][i];
+            if (vi != -1) {
+                double inner_res = 0.0;
+                for (int j = 0; j < n_v2e; ++j) {
+                    auto ej = v2e[vi][j];
+                    if (ej != -1)
+                        inner_res += x[ej][v] * y[vi][v][j];
+                }
+                res += inner_res * y[h][v][i];
+            }
+        }
+        return res;
+    };
+
+    double actual[n_vertices][K] = {};
+
+    using stage_t = make_stage<nb_nb_dot<v2v, v2e, TypeParam::value>, std::identity{}, 0, 1, 2>;
+    constexpr auto testee = fencil<naive, stage_t>;
+    constexpr auto domain = unstructured(std::tuple(n_vertices, K));
+    testee(domain, actual, x, y);
 
     for (int h = 0; h < n_vertices; ++h)
         for (int v = 0; v < K; ++v)

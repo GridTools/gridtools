@@ -49,6 +49,7 @@ namespace gridtools::fn {
         struct or_ {};
         template <class IsBackward, class Init, class Body, class Prologues, class Epilogues>
         struct scan {};
+        struct sparse {};
     }; // namespace builtins
 
     namespace builtins_impl_ {
@@ -58,7 +59,7 @@ namespace gridtools::fn {
         undefined fn_builtin(...);
 
         template <class Tag, class... Args>
-        constexpr decltype(auto) builtin_fun(Tag tag, Args &&... args);
+        constexpr decltype(auto) builtin_fun(Tag tag, Args &&...args);
 
         template <class Arg>
         constexpr decltype(auto) fn_default(builtins::deref, Arg &&arg) {
@@ -76,11 +77,6 @@ namespace gridtools::fn {
         template <class Arg>
         constexpr decltype(auto) fn_default(builtins::shift<>, Arg &&arg) {
             return std::forward<Arg>(arg);
-        }
-
-        template <auto V, class Arg>
-        constexpr auto fn_default(builtins::shift<V>, Arg const &arg) {
-            return &tuple_util::get<V>(arg);
         }
 
         template <auto V0, auto V1, auto... Vs, class Arg>
@@ -126,7 +122,7 @@ namespace gridtools::fn {
         constexpr decltype(auto) get_offsets(auto const &arg, ...) { return offsets(arg); }
 
         template <class F, class Init, class... Args>
-        constexpr auto fn_default(builtins::reduce<F, Init>, Args const &... args) {
+        constexpr auto fn_default(builtins::reduce<F, Init>, Args const &...args) {
             auto res =
                 Init::value(decltype(builtin_fun(builtins::deref(), builtin_fun(builtins::shift<0>(), args))){}...);
             auto const &offsets = get_offsets(args...);
@@ -142,7 +138,7 @@ namespace gridtools::fn {
         }
 
         template <class... Args>
-        constexpr decltype(auto) fn_default(builtins::plus, Args &&... args) {
+        constexpr decltype(auto) fn_default(builtins::plus, Args &&...args) {
             return (... + std::forward<Args>(args));
         }
 
@@ -152,22 +148,22 @@ namespace gridtools::fn {
         }
 
         template <class... Args>
-        constexpr decltype(auto) fn_default(builtins::minus, Args &&... args) {
+        constexpr decltype(auto) fn_default(builtins::minus, Args &&...args) {
             return (... - std::forward<Args>(args));
         }
 
         template <class... Args>
-        constexpr decltype(auto) fn_default(builtins::multiplies, Args &&... args) {
+        constexpr decltype(auto) fn_default(builtins::multiplies, Args &&...args) {
             return (... * std::forward<Args>(args));
         }
 
         template <class... Args>
-        constexpr decltype(auto) fn_default(builtins::divides, Args &&... args) {
+        constexpr decltype(auto) fn_default(builtins::divides, Args &&...args) {
             return (... / std::forward<Args>(args));
         }
 
         template <class... Args>
-        constexpr decltype(auto) fn_default(builtins::make_tuple, Args &&... args) {
+        constexpr decltype(auto) fn_default(builtins::make_tuple, Args &&...args) {
             return std::tuple(std::forward<Args>(args)...);
         }
 
@@ -202,12 +198,12 @@ namespace gridtools::fn {
         }
 
         template <class... Args>
-        constexpr decltype(auto) fn_default(builtins::and_, Args &&... args) {
+        constexpr decltype(auto) fn_default(builtins::and_, Args &&...args) {
             return (... && std::forward<Args>(args));
         }
 
         template <class... Args>
-        constexpr decltype(auto) fn_default(builtins::or_, Args &&... args) {
+        constexpr decltype(auto) fn_default(builtins::or_, Args &&...args) {
             return (... || std::forward<Args>(args));
         }
 
@@ -226,13 +222,13 @@ namespace gridtools::fn {
                                                 meta::val<Pass, Get>,
                                                 meta::list<meta::val<ProloguePasses, PrologueGets>...>,
                                                 meta::list<meta::val<EpiloguePasses, EpilogueGets>...>>,
-            Args &&... args) {
+            Args &&...args) {
             assert(false);
             return InitGet(InitPass(std::forward<Args>(args)...));
         }
 
         template <class Tag, class... Args>
-        constexpr decltype(auto) builtin_fun(Tag tag, Args &&... args) {
+        constexpr decltype(auto) builtin_fun(Tag tag, Args &&...args) {
             if constexpr (std::is_same_v<decltype(fn_builtin(tag, std::forward<Args>(args)...)), undefined>)
                 return builtins_impl_::fn_default(tag, std::forward<Args>(args)...);
             else
@@ -240,7 +236,7 @@ namespace gridtools::fn {
         }
 
         template <class Tag>
-        constexpr auto builtin = []<class... Args>(Args &&... args) -> decltype(auto) {
+        constexpr auto builtin = []<class... Args>(Args &&...args) -> decltype(auto) {
             return builtin_fun(Tag(), std::forward<Args>(args)...);
         };
 
@@ -250,7 +246,7 @@ namespace gridtools::fn {
         template <bool IsBackward, class Init, class Body, class... Prologues, class... Epilogues>
         struct scan_wrapper<IsBackward, Init, Body, meta::list<Prologues...>, meta::list<Epilogues...>> {
             template <class... Args>
-            decltype(auto) operator()(Args &&... args) const {
+            decltype(auto) operator()(Args &&...args) const {
                 return builtin_fun(builtins::scan<std::bool_constant<IsBackward>,
                                        Init,
                                        Body,
@@ -315,4 +311,6 @@ namespace gridtools::fn {
     constexpr builtins_impl_::scan_wrapper<true, meta::val<InitPass, InitGet>, meta::val<Pass, Get>> scan_bwd{};
     template <auto InitPass, auto Pass, auto InitGet = std::identity{}, auto Get = std::identity{}>
     constexpr builtins_impl_::scan_wrapper<false, meta::val<InitPass, InitGet>, meta::val<Pass, Get>> scan_fwd{};
+
+    constexpr auto sparse = builtin<builtins::sparse>;
 } // namespace gridtools::fn

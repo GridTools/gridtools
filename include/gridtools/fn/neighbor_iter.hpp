@@ -25,7 +25,7 @@ namespace gridtools::fn {
 
         int horizontal_offset() const { return nested.horizontal_offset(); }
 
-        friend constexpr bool fn_builtin(builtins::can_deref, partial_iter const &it) { return false; }
+        friend constexpr bool fn_builtin(builtins::can_deref, partial_iter) { return false; }
 
         friend constexpr auto const &fn_offsets(partial_iter const &it) {
             return get_neighbour_offsets(Conn, it.horizontal_offset());

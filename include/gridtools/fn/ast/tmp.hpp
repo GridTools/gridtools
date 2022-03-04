@@ -12,6 +12,7 @@
 #include "../../meta.hpp"
 #include "../builtins.hpp"
 #include "../connectivity.hpp"
+#include "../sparse_iter.hpp"
 #include "generate.hpp"
 #include "nodes.hpp"
 #include "parse.hpp"
@@ -310,6 +311,10 @@ namespace gridtools::fn::ast {
                 return {};
             }
         };
+        template <class T, std::size_t N>
+        dummy_iter<T> fn_builtin(builtins::sparse, dummy_iter<std::array<T, N>>) {
+            return {};
+        }
 
         template <class Map>
         struct arg_num_f {

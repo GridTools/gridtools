@@ -18,6 +18,7 @@
 #include "../../../sid/rename_dimensions.hpp"
 #include "../../../stencil/positional.hpp"
 #include "../../neighbor_iter.hpp"
+#include "../../sparse_iter.hpp"
 #include "../../strided_iter.hpp"
 #include "../../unstructured.hpp"
 #include "apply.hpp"

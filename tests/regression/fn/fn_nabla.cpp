@@ -57,7 +57,7 @@ constexpr auto nabla = [](auto const &pp, auto const &s, auto const &sign, auto 
     // auto tmp = tuple_dot(shift<V2E>(lift<zavg<E2V>>(pp, s)), deref(sign));
     // auto v = deref(vol);
     // return std::tuple { std::get<0>(tmp) / v, std::get<1>(tmp) / v };
-    return lambda<nabla_helper>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(pp, s)), deref(sign)), deref(vol));
+    return lambda<nabla_helper>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(pp, s)), sparse(sign)), deref(vol));
 };
 
 using namespace simple_mesh;
@@ -73,8 +73,8 @@ TYPED_TEST_SUITE(lift_test, params_t);
 
 TYPED_TEST(lift_test, nabla) {
     double pp[n_vertices][K];
-    for (auto& ppp : pp)
-        for (auto& p : ppp)
+    for (auto &ppp : pp)
+        for (auto &p : ppp)
             p = rand() % 100;
 
     std::array<int, n_v2e> sign[n_vertices];
@@ -87,8 +87,8 @@ TYPED_TEST(lift_test, nabla) {
         v = rand() % 2 + 1;
 
     std::tuple<double, double> s[n_edges][K];
-    for (auto& ss : s)
-        for (auto& sss : ss)
+    for (auto &ss : s)
+        for (auto &sss : ss)
             sss = {rand() % 100, rand() % 100};
 
     auto zavg = [&](int h, int v) -> std::array<double, 2> {
