@@ -66,7 +66,15 @@ namespace gridtools::fn {
                         inc();
                         return res;
                     }
+#ifdef __NVCC__
+// disable incorrect warning "missing return statement at end of non-void function"
+#pragma push
+#pragma diag_suppress 940
+#endif
                 };
+#ifdef __NVCC__
+#pragma pop
+#endif
                 if constexpr (ScanOrFold::value)
                     sid::shift(ptr, v_stride, size - 1);
                 auto acc = tuple_util::host_device::fold(next, std::move(seed), ScanOrFold::prologue());
