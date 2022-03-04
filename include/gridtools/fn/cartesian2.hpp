@@ -79,7 +79,7 @@ namespace gridtools::fn {
             template <class T>
             auto make_tmp() {
                 auto data = allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
-                auto offsets = tuple_util::transform(std::negate(), m_domain.m_offsets);
+                auto offsets = tuple_util::transform(std::negate<>(), m_domain.m_offsets);
                 return sid::shift_sid_origin(std::move(data), std::move(offsets));
             }
 
