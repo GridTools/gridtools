@@ -50,15 +50,16 @@ namespace gridtools::fn {
                 executor().arg(out).arg(in).assign(0_c, stencil(), 1_c);
             };
 
-            auto fencil = [&](auto sizes, auto &out, auto const &in) {
+            auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
                 auto domain = cartesian_domain(sizes);
                 auto backend = make_backend(backend::gpu<block_sizes_t>(), domain);
                 auto tmp = backend.template make_tmp<int>();
-                apply_stencil(backend.stencil_executor(), tmp, in);
-                apply_stencil(backend.stencil_executor(), out, tmp);
+                auto compute_domain = cartesian_domain(std::array<int, 3>{sizes[0] - 1, sizes[1], sizes[2]});
+                auto compute_backend = make_backend(backend::gpu<block_sizes_t>(), compute_domain);
+                apply_stencil(compute_backend.stencil_executor(), tmp, in);
+                apply_stencil(compute_backend.stencil_executor(), out, tmp);
             };
 
-            std::array<int, 3> sizes = {5, 3, 2};
             auto in = cuda_util::cuda_malloc<int>(5 * 3 * 2);
             auto out = cuda_util::cuda_malloc<int>(5 * 3 * 2);
             int inh[5][3][2], outh[5][3][2] = {};
@@ -75,7 +76,7 @@ namespace gridtools::fn {
 
             auto out_s = as_synthetic(out.get());
             auto in_s = as_synthetic(in.get());
-            fencil(sizes, out_s, in_s);
+            fencil(std::array{5, 3, 2}, out_s, in_s);
 
             cudaMemcpy(outh, out.get(), 5 * 3 * 2 * sizeof(int), cudaMemcpyDeviceToHost);
 
