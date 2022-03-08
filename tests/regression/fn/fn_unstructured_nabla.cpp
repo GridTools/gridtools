@@ -93,7 +93,7 @@ namespace {
     };
 
     constexpr inline auto pp = [](int vertex, int k) { return (vertex + k) % 19; };
-    constexpr inline auto sign = [](int vertex) { return array{0, 1, vertex % 2, 1, (vertex + 1) % 2, 0}; };
+    constexpr inline auto sign = [](int vertex) { return array<int, 6>{0, 1, vertex % 2, 1, (vertex + 1) % 2, 0}; };
     constexpr inline auto vol = [](int vertex) { return vertex % 13 + 1; };
     constexpr inline auto s = [](int edge, int k) { return tuple((edge + k) % 17, (edge + k) % 7); };
     constexpr inline auto zavg = [](auto const &e2v) {
