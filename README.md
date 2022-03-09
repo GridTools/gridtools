@@ -51,7 +51,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | Cray clang version 10.0.2 + NVCC 11.2 | all backends | Piz Daint | P100 GPU | 
 | Cray clang version 12.0.3 | all backends | Piz Daint | with -std=c++20
 | GNU 11.2.0 + NVCC 11.0 | all backends | Piz Daint | P100 GPU |
-| GNU 10.3.0 + NVCC 11.2 | all backends | Dom | P100 GPU |
+| GNU 11.2.0 + NVCC 11.2 | all backends | Dom | P100 GPU |
 | GNU 8.3.0 + NVCC 11.2 | all backends | Tsa | V100 GPU |
 
 ##### Known issues
