@@ -88,6 +88,7 @@ namespace gridtools::fn::backend {
             class PtrHolder,
             class Strides,
             class Fun,
+            class NDims = tuple_util::size<Sizes>,
             class SizeKeys = get_keys<Sizes>>
         __global__ void kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
             auto thread_idx = global_thread_index<BlockSizes, Sizes>();
@@ -95,7 +96,7 @@ namespace gridtools::fn::backend {
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            if constexpr (tuple_util::size<Sizes>::value <= 3) {
+            if constexpr (NDims::value <= 3) {
                 fun(ptr, strides);
             } else {
                 using loop_dims_t = meta::drop_front_c<3, SizeKeys>;
