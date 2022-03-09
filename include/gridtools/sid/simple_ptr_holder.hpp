@@ -30,22 +30,31 @@ namespace gridtools {
             template <class T>
             struct simple_ptr_holder {
                 T m_val;
+
+#if defined(__cpp_deduction_guides) and __cpp_deduction_guides >= 201907
+// CTAD for aggregates works
+#else
+                // Enables CTAD in C++17.
+                simple_ptr_holder() = default;
+                GT_TARGET GT_FORCE_INLINE constexpr simple_ptr_holder(T const &ptr) : m_val{ptr} {}
+#endif
                 GT_TARGET GT_FORCE_INLINE constexpr T const &operator()() const { return m_val; }
             };
 
             template <class T>
-            constexpr simple_ptr_holder<T> make_simple_ptr_holder(T const &ptr) {
+            [[deprecated("use simple_ptr_holder class template argument deduction")]] constexpr simple_ptr_holder<T>
+            make_simple_ptr_holder(T const &ptr) {
                 return {ptr};
             }
 
             template <class T, class Arg>
             constexpr auto operator+(simple_ptr_holder<T> const &obj, Arg &&arg) {
-                return make_simple_ptr_holder(obj.m_val + std::forward<Arg>(arg));
+                return simple_ptr_holder(obj.m_val + std::forward<Arg>(arg));
             }
 
             template <class T, class Arg>
             constexpr auto operator+(simple_ptr_holder<T> &&obj, Arg &&arg) {
-                return make_simple_ptr_holder(std::move(obj).m_val + std::forward<Arg>(arg));
+                return simple_ptr_holder(std::move(obj).m_val + std::forward<Arg>(arg));
             }
         }
     } // namespace sid

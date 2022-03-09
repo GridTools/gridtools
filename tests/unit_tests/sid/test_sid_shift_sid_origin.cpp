@@ -28,7 +28,7 @@ namespace gridtools {
             double data[3][5][7];
 
             auto src = sid::synthetic()
-                           .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
+                           .set<property::origin>(sid::simple_ptr_holder(&data[0][0][0]))
                            .set<property::strides>(tuple(5_c * 7_c, 7_c, 1_c))
                            .set<property::upper_bounds>(tuple(3));
 
