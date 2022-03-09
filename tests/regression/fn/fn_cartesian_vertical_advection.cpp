@@ -48,7 +48,7 @@ namespace {
                     auto divided = float_t(1) / b;
                     return tuple(c * divided, d * divided);
                 },
-                identity()));
+                host_device::identity()));
         }
 
         static GT_FUNCTION constexpr auto body() {
@@ -77,7 +77,7 @@ namespace {
                     auto divided = float_t(1) / (b - cp * a);
                     return tuple(c * divided, (d - dp * a) * divided);
                 },
-                identity());
+                host_device::identity());
         }
 
         static GT_FUNCTION constexpr auto epilogue() {
@@ -102,7 +102,7 @@ namespace {
                     auto divided = float_t(1) / (b - cp * a);
                     return tuple(float_t(0), (d - dp * a) * divided);
                 },
-                identity()));
+                host_device::identity()));
         }
     };
 

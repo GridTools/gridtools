@@ -49,7 +49,7 @@ namespace gridtools::fn {
 
         template <class Tag, class Ptr, class Strides, class Dim, class Offset, class... Offsets>
         GT_FUNCTION void shift_impl(iterator<Tag, Ptr, Strides> &it, Dim, Offset offset, Offsets... offsets) {
-            sid::shift(it.m_ptr, at_key<Tag>(sid::get_stride<Dim>(it.m_strides)), offset);
+            sid::shift(it.m_ptr, host_device::at_key<Tag>(sid::get_stride<Dim>(it.m_strides)), offset);
             shift_impl(it, offsets...);
         }
         template <class Tag, class Ptr, class Strides>

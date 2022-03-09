@@ -27,7 +27,7 @@ namespace {
                 [](auto /*acc*/, auto const & /*a*/, auto const &b, auto const &c, auto const &d) {
                     return tuple(deref(c) / deref(b), deref(d) / deref(b));
                 },
-                identity()));
+                host_device::identity()));
         }
 
         static GT_FUNCTION constexpr auto body() {
@@ -37,7 +37,7 @@ namespace {
                     return tuple(
                         deref(c) / (deref(b) - deref(a) * cp), (deref(d) - deref(a) * dp) / (deref(b) - deref(a) * cp));
                 },
-                identity());
+                host_device::identity());
         }
     };
 
@@ -48,7 +48,7 @@ namespace {
                     auto [cp, dp] = deref(cpdp);
                     return dp;
                 },
-                identity()));
+                host_device::identity()));
         }
 
         static GT_FUNCTION constexpr auto body() {
@@ -57,7 +57,7 @@ namespace {
                     auto [cp, dp] = deref(cpdp);
                     return dp - cp * xp;
                 },
-                identity());
+                host_device::identity());
         }
     };
 

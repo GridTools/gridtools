@@ -24,7 +24,7 @@ namespace {
         constexpr auto operator()() const {
             return [](auto const &pp, auto const &s) {
                 std::decay_t<decltype(deref(pp))> tmp = 0;
-                tuple_util::for_each(
+                tuple_util::host_device::for_each(
                     [&](auto i) {
                         auto shifted_pp = shift(pp, e2v(), i);
                         if (can_deref(shifted_pp))
@@ -44,7 +44,7 @@ namespace {
                 using float_t = std::decay_t<decltype(deref(vol))>;
                 auto signs = deref(sign);
                 tuple<float_t, float_t> tmp(0, 0);
-                tuple_util::for_each(
+                tuple_util::host_device::for_each(
                     [&](auto i) {
                         auto shifted_zavg = shift(zavg, v2e(), i);
                         if (can_deref(shifted_zavg)) {
@@ -65,12 +65,12 @@ namespace {
                 using float_t = std::decay_t<decltype(deref(vol))>;
                 auto signs = deref(sign);
                 tuple<float_t, float_t> tmp(0, 0);
-                tuple_util::for_each(
+                tuple_util::host_device::for_each(
                     [&](auto i) {
                         auto shifted_s = shift(s, v2e(), i);
                         if (can_deref(shifted_s)) {
                             float_t tmp2 = 0;
-                            tuple_util::for_each(
+                            tuple_util::host_device::for_each(
                                 [&](auto const &j) {
                                     auto shifted_pp = shift(pp, v2e(), i, e2v(), j);
                                     if (can_deref(shifted_pp))

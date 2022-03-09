@@ -19,7 +19,7 @@ namespace gridtools::fn {
     struct stencil_stage {
         template <class MakeIterator, class Ptr, class Strides>
         GT_FUNCTION void operator()(MakeIterator &&make_iterator, Ptr &ptr, Strides const &strides) const {
-            *at_key<integral_constant<int, Out>>(ptr) =
+            *host_device::at_key<integral_constant<int, Out>>(ptr) =
                 Stencil()()(make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
         }
     };
