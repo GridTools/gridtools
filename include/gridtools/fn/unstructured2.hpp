@@ -54,16 +54,16 @@ namespace gridtools::fn {
             class Offsets,
             class... Connectivities,
             std::enable_if_t<!std::is_integral_v<Sizes>, int> = 0>
-        auto unstructured_domain(Sizes const &sizes, Offsets const &offsets, Connectivities const &...conns) {
+        auto unstructured_domain(Sizes const &sizes, Offsets const &offsets, Connectivities const &... conns) {
 
             return domain_with_offsets(hymap::concat(conns...), sizes, offsets);
         };
 
         template <class... Connectivities>
-        auto unstructured_domain(int horizontal_size, int vertical_size, Connectivities const &...conns) {
+        auto unstructured_domain(int horizontal_size, int vertical_size, Connectivities const &... conns) {
             return domain_with_offsets(hymap::concat(conns...),
                 hymap::keys<dim::horizontal, dim::vertical>::make_values(horizontal_size, vertical_size),
-                std::tuple());
+                std::tuple<>());
         };
 
         template <class Tag, class Ptr, class Strides, class Domain>
