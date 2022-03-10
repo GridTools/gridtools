@@ -93,7 +93,7 @@ namespace gridtools {
             tuple_impl &operator=(tuple_impl &&) = default;
 
             template <class... Args>
-            constexpr GT_FUNCTION tuple_impl(Args &&... args) noexcept
+            constexpr GT_FUNCTION tuple_impl(Args &&...args) noexcept
                 : tuple_leaf<Is, Ts>(std::forward<Args>(args))... {}
 
             template <class Src>
@@ -149,13 +149,7 @@ namespace gridtools {
             }
 
             template <size_t I>
-            static
-#if !defined(__NVCC__) || defined(__CUDACC_VER_MAJOR__) && \
-                              (__CUDACC_VER_MAJOR__ > 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ > 0)
-                constexpr
-#endif
-                GT_FUNCTION decltype(auto)
-                get(tuple &obj) noexcept {
+            static constexpr GT_FUNCTION decltype(auto) get(tuple &obj) noexcept {
                 return impl_::tuple_leaf_getter::get<I>(obj.m_impl);
             }
 
@@ -176,13 +170,13 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        constexpr GT_FUNCTION tuple(Ts const &... args) noexcept : m_impl(args...) {}
+        constexpr GT_FUNCTION tuple(Ts const &...args) noexcept : m_impl(args...) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                  std::conjunction_v<std::is_constructible<Ts, Args &&>...>,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(Args &&... args) noexcept : m_impl(std::forward<Args>(args)...) {}
+        constexpr GT_FUNCTION tuple(Args &&...args) noexcept : m_impl(std::forward<Args>(args)...) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
