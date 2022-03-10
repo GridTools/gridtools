@@ -21,7 +21,7 @@
 #include "../sid/concept.hpp"
 
 namespace gridtools::fn {
-    namespace scan_impl_ {
+    namespace column_stage_impl_ {
         template <class F, class Projector = host_device::identity>
         struct scan_pass {
             F m_f;
@@ -98,11 +98,11 @@ namespace gridtools::fn {
                     tuple(ColumnStages()...));
             }
         };
-    } // namespace scan_impl_
+    } // namespace column_stage_impl_
 
-    using scan_impl_::bwd;
-    using scan_impl_::column_stage;
-    using scan_impl_::fwd;
-    using scan_impl_::merged_column_stage;
-    using scan_impl_::scan_pass;
+    using column_stage_impl_::bwd;
+    using column_stage_impl_::column_stage;
+    using column_stage_impl_::fwd;
+    using column_stage_impl_::merged_column_stage;
+    using column_stage_impl_::scan_pass;
 } // namespace gridtools::fn

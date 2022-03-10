@@ -14,8 +14,8 @@
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "../sid/sid_shift_origin.hpp"
+#include "./column_stage.hpp"
 #include "./run.hpp"
-#include "./scan.hpp"
 #include "./stencil_stage.hpp"
 
 namespace gridtools::fn {
@@ -60,7 +60,7 @@ namespace gridtools::fn {
             }
 
             template <class... SpecArgs>
-            auto assign(SpecArgs &&... args) && {
+            auto assign(SpecArgs &&...args) && {
                 assert(m_active);
                 auto specs = tuple_util::deep_copy(
                     tuple_util::push_back(std::move(m_specs), MakeSpec()(std::forward<SpecArgs>(args)...)));
