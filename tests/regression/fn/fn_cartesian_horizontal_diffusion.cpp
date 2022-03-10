@@ -125,4 +125,23 @@ namespace {
         TypeParam::verify(repo.out, out);
         TypeParam::benchmark("fn_cartesian_horizontal_diffusion", comp);
     }
+
+    GT_REGRESSION_TEST(fn_cartesian_horizontal_diffusion_fused, test_environment<2>, fn_backend_t) {
+        horizontal_diffusion_repository repo(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2));
+        auto out = TypeParam::make_storage();
+        auto fencil = [&](int i, int j, int k, auto &out, auto const &in, auto const &coeff) {
+            using sizes_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
+            auto domain = cartesian_domain(sizes_t{i - 4, j - 4, k}, sizes_t{2, 2, 0});
+            auto backend = make_backend(fn_backend_t(), domain);
+
+            backend.stencil_executor()().arg(out).arg(in).arg(coeff).assign(0_c, hdiff_fused(), 1_c, 2_c);
+        };
+        auto comp =
+            [&, coeff = TypeParam::make_const_storage(repo.coeff), in = TypeParam::make_const_storage(repo.in)] {
+                fencil(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2), out, in, coeff);
+            };
+        comp();
+        TypeParam::verify(repo.out, out);
+        TypeParam::benchmark("fn_cartesian_horizontal_diffusion_fused", comp);
+    }
 } // namespace
