@@ -56,10 +56,9 @@ namespace gridtools::fn {
         GT_FUNCTION void shift_impl(iterator<Tag, Ptr, Strides> &) {}
 
         template <class Tag, class Ptr, class Strides, class... Offsets>
-        GT_FUNCTION auto shift(iterator<Tag, Ptr, Strides> const &it, Offsets... offsets) {
-            auto shifted = it;
-            shift_impl(shifted, offsets...);
-            return shifted;
+        GT_FUNCTION auto shift(iterator<Tag, Ptr, Strides> it, Offsets... offsets) {
+            shift_impl(it, offsets...);
+            return it;
         }
 
         struct make_iterator {
