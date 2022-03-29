@@ -95,9 +95,11 @@ namespace {
         using float_t = typename TypeParam::float_t;
 
         auto fencil = [&](auto sizes, auto const &a, auto const &b, auto const &c, auto const &d, auto &x) {
+            constexpr auto be = fn_backend_t();
             auto domain = cartesian_domain(sizes);
-            auto backend = make_backend(fn_backend_t(), domain);
-            auto cpdp = backend.template make_tmp<tuple<float_t, float_t>>();
+            auto backend = make_backend(be, domain);
+            auto alloc = tmp_allocator(be);
+            auto cpdp = allocate_global_tmp<tuple<float_t, float_t>>(alloc, sizes);
             tridiagonal_solve(backend.vertical_executor(), a, b, c, d, cpdp, x);
         };
 
@@ -118,9 +120,11 @@ namespace {
 
         auto fencil =
             [&](int nvertices, int nlevels, auto const &a, auto const &b, auto const &c, auto const &d, auto &x) {
+                constexpr auto be = fn_backend_t();
                 auto domain = unstructured_domain(nvertices, nlevels);
-                auto backend = make_backend(fn_backend_t(), domain);
-                auto cpdp = backend.template make_tmp<tuple<float_t, float_t>>();
+                auto backend = make_backend(be, domain);
+                auto alloc = tmp_allocator(be);
+                auto cpdp = allocate_global_tmp<tuple<float_t, float_t>>(alloc, domain.sizes());
                 tridiagonal_solve(backend.vertical_executor(), a, b, c, d, cpdp, x);
             };
 

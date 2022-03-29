@@ -17,7 +17,6 @@
 #include <test_environment.hpp>
 
 #include "../vertical_advection_repository.hpp"
-#include "gridtools/common/host_device.hpp"
 
 namespace {
     using namespace gridtools;
@@ -160,9 +159,11 @@ namespace {
                           auto const &u_pos,
                           auto const &wcon,
                           auto const &dtr_stage) {
+            constexpr auto be = fn_backend_t();
             auto domain = cartesian_domain(sizes, offsets);
-            auto backend = make_backend(fn_backend_t(), domain);
-            auto cd = backend.template make_tmp<tuple<float_t, float_t>>();
+            auto backend = make_backend(be, domain);
+            auto alloc = tmp_allocator(be);
+            auto cd = allocate_global_tmp<tuple<float_t, float_t>>(alloc, domain.sizes());
             vadv_solver(backend.vertical_executor(), cd, utens_stage, utens, u_stage, u_pos, wcon, dtr_stage);
         };
 

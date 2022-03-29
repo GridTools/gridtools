@@ -14,9 +14,8 @@
 #include "../common/hymap.hpp"
 #include "../meta/logical.hpp"
 #include "../sid/concept.hpp"
-#include "../sid/sid_shift_origin.hpp"
 #include "../stencil/positional.hpp"
-#include "./backend2/common.hpp"
+#include "./common_interface.hpp"
 #include "./executor.hpp"
 #include "./neighbor_table.hpp"
 
@@ -29,12 +28,13 @@ namespace gridtools::fn {
     namespace unstructured_impl_ {
         using gridtools::stencil::positional;
         namespace dim = unstructured::dim;
-        using backend::data_type;
 
         template <class Tables, class Sizes>
         struct domain {
             Tables m_tables;
             Sizes m_sizes;
+
+            Sizes const &sizes() const { return m_sizes; }
         };
 
         template <class Tables, class Sizes, class Offsets>
@@ -151,13 +151,6 @@ namespace gridtools::fn {
             TmpAllocator m_allocator;
 
             static constexpr auto index = positional<dim::horizontal>();
-
-            template <class T>
-            auto make_tmp() {
-                auto data = allocate_global_tmp(m_allocator, m_domain.m_sizes, data_type<T>());
-                auto offsets = tuple_util::transform(std::negate<>(), m_domain.m_offsets);
-                return sid::shift_sid_origin(std::move(data), std::move(offsets));
-            }
 
             auto stencil_executor() const {
                 return [&] {

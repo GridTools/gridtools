@@ -153,7 +153,8 @@ namespace {
         auto vertex_domain = unstructured_domain(nvertices, nlevels, v2e_conn);
         auto edge_backend = make_backend(backend, edge_domain);
         auto vertex_backend = make_backend(backend, vertex_domain);
-        auto zavg = edge_backend.template make_tmp<tuple<float_t, float_t>>();
+        auto alloc = tmp_allocator(backend);
+        auto zavg = allocate_global_tmp<tuple<float_t, float_t>>(alloc, edge_domain.sizes());
         apply_zavg(edge_backend.stencil_executor(), zavg, pp, s);
         apply_nabla(vertex_backend.stencil_executor(), nabla, zavg, sign, vol);
     };

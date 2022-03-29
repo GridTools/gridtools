@@ -96,12 +96,14 @@ namespace {
         auto out = TypeParam::make_storage();
         auto fencil = [&](int i, int j, int k, auto &out, auto const &in, auto const &coeff) {
             using sizes_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
+            constexpr auto be = fn_backend_t();
             auto full_domain = cartesian_domain(sizes_t{i, j, k});
-            auto full_domain_backend = make_backend(fn_backend_t(), full_domain);
+            auto full_domain_backend = make_backend(be, full_domain);
 
-            auto lap = full_domain_backend.template make_tmp<float_t>();
-            auto flx = full_domain_backend.template make_tmp<float_t>();
-            auto fly = full_domain_backend.template make_tmp<float_t>();
+            auto alloc = tmp_allocator(be);
+            auto lap = allocate_global_tmp<float_t>(alloc, sizes_t{i, j, k});
+            auto flx = allocate_global_tmp<float_t>(alloc, sizes_t{i, j, k});
+            auto fly = allocate_global_tmp<float_t>(alloc, sizes_t{i, j, k});
 
             auto domain = cartesian_domain(sizes_t{i - 2, j - 2, k}, sizes_t{1, 1, 0});
             auto backend = make_backend(fn_backend_t(), domain);

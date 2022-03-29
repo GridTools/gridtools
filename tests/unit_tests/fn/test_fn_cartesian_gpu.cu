@@ -51,13 +51,13 @@ namespace gridtools::fn {
             };
 
             auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
-                auto domain = cartesian_domain(sizes);
-                auto backend = make_backend(backend::gpu<block_sizes_t>(), domain);
-                auto tmp = backend.template make_tmp<int>();
-                auto compute_domain = cartesian_domain(std::array<int, 3>{sizes[0] - 1, sizes[1], sizes[2]});
-                auto compute_backend = make_backend(backend::gpu<block_sizes_t>(), compute_domain);
-                apply_stencil(compute_backend.stencil_executor(), tmp, in);
-                apply_stencil(compute_backend.stencil_executor(), out, tmp);
+                constexpr auto be = backend::gpu<block_sizes_t>();
+                auto alloc = tmp_allocator(be);
+                auto tmp = allocate_global_tmp<int>(alloc, sizes);
+                auto domain = cartesian_domain(std::array<int, 3>{sizes[0] - 1, sizes[1], sizes[2]});
+                auto backend = make_backend(be, domain);
+                apply_stencil(backend.stencil_executor(), tmp, in);
+                apply_stencil(backend.stencil_executor(), out, tmp);
             };
 
             auto in = cuda_util::cuda_malloc<int>(5 * 3 * 2);
