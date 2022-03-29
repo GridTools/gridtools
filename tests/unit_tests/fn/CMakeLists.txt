@@ -4,7 +4,7 @@ gridtools_add_unit_test(test_fn_cartesian SOURCES test_fn_cartesian.cpp LABELS f
 gridtools_add_unit_test(test_fn_executor SOURCES test_fn_executor.cpp LABELS fn)
 gridtools_add_unit_test(test_fn_neighbor_table SOURCES test_fn_neighbor_table.cpp LABELS fn)
 gridtools_add_unit_test(test_fn_run SOURCES test_fn_run.cpp)
-gridtools_add_unit_test(test_fn_scan SOURCES test_fn_scan.cpp)
+gridtools_add_unit_test(test_fn_column_stage SOURCES test_fn_column_stage.cpp)
 gridtools_add_unit_test(test_fn_stencil_stage SOURCES test_fn_stencil_stage.cpp LABELS fn)
 gridtools_add_unit_test(test_fn_unstructured SOURCES test_fn_unstructured.cpp LABELS fn)
 if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
@@ -22,8 +22,8 @@ if(TARGET _gridtools_cuda)
             SOURCES test_fn_cartesian_gpu.cu
             LIBRARIES _gridtools_cuda
             LABELS cuda fn)
-    gridtools_add_unit_test(test_fn_scan_cuda
-            SOURCES test_fn_scan.cu
+    gridtools_add_unit_test(test_fn_column_stage_cuda
+            SOURCES test_fn_column_stage.cu
             LIBRARIES _gridtools_cuda
             LABELS cuda fn)
     gridtools_add_unit_test(test_fn_unstructured_gpu_cuda
