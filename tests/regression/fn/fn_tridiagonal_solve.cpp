@@ -68,15 +68,10 @@ namespace {
         return [kmax = ksize - 1](auto... indices) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
-#ifdef __NVCC__
-#pragma push
-#pragma diag_suppress 174
-#endif
+            GT_NVCC_DIAG_PUSH_SUPPRESS(174)
             int k = (..., indices);
 #pragma GCC diagnostic pop
-#ifdef __NVCC__
-#pragma pop
-#endif
+            GT_NVCC_DIAG_POP_SUPPRESS(174)
             return k == 0 ? 4 : k == kmax ? 2 : 3;
         };
     };

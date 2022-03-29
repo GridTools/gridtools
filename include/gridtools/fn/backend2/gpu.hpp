@@ -57,15 +57,10 @@ namespace gridtools::fn::backend {
                     blockIdx.y * block_dim_y::value + threadIdx.y,
                     blockIdx.z * block_dim_z::value + threadIdx.z);
             }
-#ifdef __NVCC__
-// disable incorrect warning "missing return statement at end of non-void function"
-#pragma push
-#pragma diag_suppress 940
-#endif
+            // disable incorrect warning "missing return statement at end of non-void function"
+            GT_NVCC_DIAG_PUSH_SUPPRESS(940)
         }
-#ifdef __NVCC__
-#pragma pop
-#endif
+        GT_NVCC_DIAG_POP_SUPPRESS(940)
 
         template <class Key>
         struct at_generator_f {
