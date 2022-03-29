@@ -88,9 +88,10 @@ namespace gridtools::fn {
                 };
             }
 
-            auto vertical_executor() const {
+            template <class Vertical = dim::k>
+            auto vertical_executor(Vertical = {}) const {
                 return [&] {
-                    return make_vertical_executor<dim::k>(
+                    return make_vertical_executor<Vertical>(
                         Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator());
                 };
             }
