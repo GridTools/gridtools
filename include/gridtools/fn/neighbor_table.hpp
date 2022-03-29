@@ -7,6 +7,8 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#pragma once
+
 #include "../common/tuple_util.hpp"
 #include "gridtools/meta/logical.hpp"
 #include <type_traits>
