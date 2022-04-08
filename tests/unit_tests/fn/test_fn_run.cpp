@@ -62,7 +62,8 @@ namespace gridtools::fn {
                 for (int j = 0; j < 3; ++j)
                     c[i][j] = 3 * i + j;
 
-            run_stencils(backend_t(), stages_specs_t(), make_iterator_mock(), domain, std::forward_as_tuple(a, b, c));
+            run_stencil_stages(
+                backend_t(), stages_specs_t(), make_iterator_mock(), domain, std::forward_as_tuple(a, b, c));
 
             for (int i = 0; i < 2; ++i)
                 for (int j = 0; j < 3; ++j) {
@@ -84,7 +85,7 @@ namespace gridtools::fn {
                 for (int j = 0; j < 3; ++j)
                     c[i][j] = 3 * i + j;
 
-            run_vertical(backend_t(),
+            run_column_stages(backend_t(),
                 stages_specs_t(),
                 make_iterator_mock(),
                 domain,

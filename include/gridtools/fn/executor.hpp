@@ -88,7 +88,7 @@ namespace gridtools::fn {
             constexpr auto operator()(
                 Domain const &domain, MakeIterator const &make_iterator, Args &&args, Specs) const {
                 using stages_t = meta::rename<meta::list, Specs>;
-                run_stencils(Backend(), stages_t(), make_iterator, domain, std::forward<Args>(args));
+                run_stencil_stages(Backend(), stages_t(), make_iterator, domain, std::forward<Args>(args));
             }
         };
 
@@ -110,7 +110,7 @@ namespace gridtools::fn {
         };
 
         template <class Backend, class Vertical>
-        struct run_vertical_specs_f {
+        struct run_column_stages_specs_f {
             template <class Domain, class MakeIterator, class Args, class Specs>
             constexpr auto operator()(
                 Domain const &domain, MakeIterator const &make_iterator, Args &&args, Specs const &specs) const {
@@ -118,7 +118,7 @@ namespace gridtools::fn {
                     meta::transform<std::remove_reference_t, meta::rename<meta::list, Specs>>>;
                 auto seeds = tuple_util::transform(
                     [](auto &&t) { return tuple_util::get<1>(std::forward<decltype(t)>(t)); }, specs);
-                run_vertical(Backend(),
+                run_column_stages(Backend(),
                     stages_t(),
                     make_iterator,
                     domain,
@@ -132,7 +132,7 @@ namespace gridtools::fn {
         auto make_vertical_executor(
             Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
             return executor<make_vertical_spec_f<Vertical, ArgOffset>,
-                run_vertical_specs_f<Backend, Vertical>,
+                run_column_stages_specs_f<Backend, Vertical>,
                 Sizes,
                 Offsets,
                 MakeIterator>(sizes, offsets, make_iterator);
