@@ -151,19 +151,21 @@ namespace {
         using float_t = typename TypeParam::float_t;
         vertical_advection_repository repo{TypeParam::d(0), TypeParam::d(1), TypeParam::d(2)};
 
-        auto fencil = [](auto const &sizes,
-                          auto const &offsets,
+        auto fencil = [](int i,
+                          int j,
+                          int k,
                           auto &utens_stage,
                           auto const &utens,
                           auto const &u_stage,
                           auto const &u_pos,
                           auto const &wcon,
                           auto const &dtr_stage) {
+            using sizes_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
             constexpr auto be = fn_backend_t();
-            auto domain = cartesian_domain(sizes, offsets);
+            auto domain = cartesian_domain(sizes_t(i - 6, j - 6, k), sizes_t(3, 3, 0));
             auto backend = make_backend(be, domain);
             auto alloc = tmp_allocator(be);
-            auto cd = allocate_global_tmp<tuple<float_t, float_t>>(alloc, domain.sizes());
+            auto cd = allocate_global_tmp<tuple<float_t, float_t>>(alloc, sizes_t(i, j, k));
             vadv_solver(backend.vertical_executor(), cd, utens_stage, utens, u_stage, u_pos, wcon, dtr_stage);
         };
 
@@ -174,15 +176,8 @@ namespace {
                         u_pos = TypeParam::make_storage(repo.u_pos),
                         wcon = TypeParam::make_storage(repo.wcon),
                         dtr_stage = stencil::global_parameter(float_t(repo.dtr_stage))] {
-            fencil(hymap::keys<dim::i, dim::j, dim::k>::make_values(
-                       TypeParam::d(0) - 6, TypeParam::d(1) - 6, TypeParam::d(2)),
-                hymap::keys<dim::i, dim::j>::make_values(3, 3),
-                utens_stage,
-                utens,
-                u_stage,
-                u_pos,
-                wcon,
-                dtr_stage);
+            fencil(
+                TypeParam::d(0), TypeParam::d(1), TypeParam::d(2), utens_stage, utens, u_stage, u_pos, wcon, dtr_stage);
         };
         comp();
         TypeParam::verify(repo.utens_stage_out, utens_stage);
