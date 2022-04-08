@@ -135,6 +135,7 @@ namespace gridtools::fn {
             GT_FUNCTION auto operator()() const {
                 return [&](auto tag, auto const &ptr, auto const &strides) {
                     auto tptr = host_device::at_key<decltype(tag)>(ptr);
+                    // the first argument is always the horizontal index
                     int index = *host_device::at_key<integral_constant<int, 0>>(ptr);
                     decltype(auto) stride =
                         host_device::at_key<decltype(tag)>(sid::get_stride<dim::horizontal>(strides));
@@ -156,7 +157,7 @@ namespace gridtools::fn {
                 return [&] {
                     return make_stencil_executor<1>(
                         Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
-                        .arg(index);
+                        .arg(index); // the horizontal index is passed as the first argument
                 };
             }
 
@@ -165,7 +166,7 @@ namespace gridtools::fn {
                 return [&] {
                     return make_vertical_executor<Vertical, 1>(
                         Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
-                        .arg(index);
+                        .arg(index); // the horizontal index is passed as the first argument
                 };
             }
         };

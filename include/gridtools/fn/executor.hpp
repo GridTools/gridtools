@@ -92,6 +92,7 @@ namespace gridtools::fn {
             }
         };
 
+        // ArgOffset allows passing some args for backend usage while keeping them hidden from the user
         template <int ArgOffset = 0, class Backend, class Sizes, class Offsets, class MakeIterator>
         auto make_stencil_executor(
             Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
@@ -128,6 +129,7 @@ namespace gridtools::fn {
             }
         };
 
+        // ArgOffset allows passing some args for backend usage while keeping them hidden from the user
         template <class Vertical, int ArgOffset = 0, class Backend, class Sizes, class Offsets, class MakeIterator>
         auto make_vertical_executor(
             Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
