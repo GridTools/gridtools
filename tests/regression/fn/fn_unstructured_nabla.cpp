@@ -149,8 +149,8 @@ namespace {
         using float_t = std::remove_const_t<sid::element_type<decltype(pp)>>;
         auto v2e_conn = connectivity<v2e>(v2e_table);
         auto e2v_conn = connectivity<e2v>(e2v_table);
-        auto edge_domain = unstructured_domain(nedges, nlevels, e2v_conn);
-        auto vertex_domain = unstructured_domain(nvertices, nlevels, v2e_conn);
+        auto edge_domain = unstructured_domain({nedges, nlevels}, {}, e2v_conn);
+        auto vertex_domain = unstructured_domain({nvertices, nlevels}, {}, v2e_conn);
         auto edge_backend = make_backend(backend, edge_domain);
         auto vertex_backend = make_backend(backend, vertex_domain);
         auto alloc = tmp_allocator(backend);
@@ -171,7 +171,7 @@ namespace {
                                              auto const &vol) {
         auto v2e_conn = connectivity<v2e>(v2e_table);
         auto e2v_conn = connectivity<e2v>(e2v_table);
-        auto vertex_domain = unstructured_domain(nvertices, nlevels, v2e_conn, e2v_conn);
+        auto vertex_domain = unstructured_domain({nvertices, nlevels}, {}, v2e_conn, e2v_conn);
         auto vertex_backend = make_backend(backend, vertex_domain);
         apply_nabla_fused(vertex_backend.stencil_executor(), nabla, sign, vol, pp, s);
     };

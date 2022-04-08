@@ -70,7 +70,7 @@ namespace {
 
     GT_REGRESSION_TEST(fn_unstructured_copy, test_environment<>, fn_backend_t) {
         auto fencil = [&](int nvertices, int nlevels, auto &out, auto const &in) {
-            auto domain = unstructured_domain(nvertices, nlevels);
+            auto domain = unstructured_domain({nvertices, nlevels}, {});
             auto backend = make_backend(fn_backend_t(), domain);
             apply_copy(backend.stencil_executor(), out, in);
         };

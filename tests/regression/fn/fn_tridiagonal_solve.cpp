@@ -121,7 +121,7 @@ namespace {
         auto fencil =
             [&](int nvertices, int nlevels, auto const &a, auto const &b, auto const &c, auto const &d, auto &x) {
                 constexpr auto be = fn_backend_t();
-                auto domain = unstructured_domain(nvertices, nlevels);
+                auto domain = unstructured_domain({nvertices, nlevels}, {});
                 auto backend = make_backend(be, domain);
                 auto alloc = tmp_allocator(be);
                 auto cpdp = allocate_global_tmp<tuple<float_t, float_t>>(alloc, domain.sizes());

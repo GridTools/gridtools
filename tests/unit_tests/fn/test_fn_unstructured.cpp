@@ -44,7 +44,7 @@ namespace gridtools::fn {
             };
             auto fencil = [&](auto const &v2v_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2v_conn = connectivity<v2v>(v2v_table);
-                auto domain = unstructured_domain(nvertices, nlevels, v2v_conn);
+                auto domain = unstructured_domain({nvertices, nlevels}, {}, v2v_conn);
                 auto backend = make_backend(backend::naive(), domain);
                 apply_stencil(backend.stencil_executor(), out, in);
             };
@@ -76,7 +76,7 @@ namespace gridtools::fn {
             };
             auto fencil = [&](auto const &v2e_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2e_conn = connectivity<v2e>(v2e_table);
-                auto domain = unstructured_domain(nvertices, nlevels, v2e_conn);
+                auto domain = unstructured_domain({nvertices, nlevels}, {}, v2e_conn);
                 auto backend = make_backend(backend::naive(), domain);
                 apply_stencil(backend.stencil_executor(), out, in);
             };
