@@ -9,9 +9,43 @@
  */
 #pragma once
 
-#include "../common/tuple_util.hpp"
-#include "gridtools/meta/logical.hpp"
 #include <type_traits>
+
+#include "../common/tuple_util.hpp"
+#include "../meta/logical.hpp"
+
+/**
+ *   Basic API for the neighbor table concept.
+ *
+ *   The Concept
+ *   ===========
+ *
+ *   A type `T` models the neighbor table concept if it has the following function defined and available via ADL:
+ *     `Neighbors neighbor_table_neighbors(T const&, int);`
+ *
+ *   The return type `Neighbors` should be a tuple-like of integral values.
+ *
+ *   Pure functional behavior without side-effects is expected from the provided function.
+ *
+ *   Compile-time API
+ *   ================
+ *
+ *   `neighbor_table::is_neighbor_table<T>`: predicate that checks if T models the neighbor table concept.
+ *
+ *   Run-time API
+ *   ============
+ *
+ *   Wrapper for the concept function:
+ *
+ *   `Neighbors neighbor_table::neighbors(NeighborTable const&, int);`
+ *
+ *   Default Implementation
+ *   ======================
+ *
+ *   For pointers to tuple-likes of integral values, a default implementation exists. That is,
+ *   `T const &neighbor_table_neighbors(T const* table, int index);`
+ *   is defined for any tuple-like T with all-integral values to return `table[index]`.
+ */
 
 namespace gridtools::fn::neighbor_table {
     namespace neighbor_table_impl_ {
