@@ -122,17 +122,23 @@ namespace {
         };
     };
 
-    constexpr inline auto apply_zavg = [](auto executor, auto &zavg, auto const &pp, auto const &s) {
-        executor().arg(zavg).arg(pp).arg(s).assign(0_c, zavg_stencil(), 1_c, 2_c);
+    constexpr inline auto apply_zavg = [](auto &&executor, auto &zavg, auto const &pp, auto const &s) {
+        executor().arg(zavg).arg(pp).arg(s).assign(0_c, zavg_stencil(), 1_c, 2_c).execute();
     };
     constexpr inline auto apply_nabla =
         [](auto executor, auto &nabla, auto const &zavg, auto const &sign, auto const &vol) {
-            executor().arg(nabla).arg(zavg).arg(sign).arg(vol).assign(0_c, nabla_stencil(), 1_c, 2_c, 3_c);
+            executor().arg(nabla).arg(zavg).arg(sign).arg(vol).assign(0_c, nabla_stencil(), 1_c, 2_c, 3_c).execute();
         };
     constexpr inline auto apply_nabla_fused =
         [](auto executor, auto &nabla, auto const &sign, auto const &vol, auto const &pp, auto const &s) {
-            executor().arg(nabla).arg(sign).arg(vol).arg(pp).arg(s).assign(
-                0_c, nabla_stencil_fused(), 1_c, 2_c, 3_c, 4_c);
+            executor()
+                .arg(nabla)
+                .arg(sign)
+                .arg(vol)
+                .arg(pp)
+                .arg(s)
+                .assign(0_c, nabla_stencil_fused(), 1_c, 2_c, 3_c, 4_c)
+                .execute();
         };
 
     constexpr inline auto fencil = [](auto backend,

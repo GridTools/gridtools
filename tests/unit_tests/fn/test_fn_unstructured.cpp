@@ -39,8 +39,8 @@ namespace gridtools::fn {
         struct v2e {};
 
         TEST(unstructured, v2v_sum) {
-            auto apply_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, stencil<v2v, 3>(), 1_c);
+            auto apply_stencil = [](auto &&executor, auto &out, auto const &in) {
+                executor().arg(out).arg(in).assign(0_c, stencil<v2v, 3>(), 1_c).execute();
             };
             auto fencil = [&](auto const &v2v_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2v_conn = connectivity<v2v>(v2v_table);
@@ -71,8 +71,8 @@ namespace gridtools::fn {
         }
 
         TEST(unstructured, v2e_sum) {
-            auto apply_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, stencil<v2e, 2>(), 1_c);
+            auto apply_stencil = [](auto &&executor, auto &out, auto const &in) {
+                executor().arg(out).arg(in).assign(0_c, stencil<v2e, 2>(), 1_c).execute();
             };
             auto fencil = [&](auto const &v2e_table, int nvertices, int nlevels, auto &out, auto const &in) {
                 auto v2e_conn = connectivity<v2e>(v2e_table);

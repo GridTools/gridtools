@@ -30,7 +30,7 @@ namespace {
     constexpr inline auto in = [](auto... indices) { return (... + indices); };
 
     constexpr inline auto apply_copy = [](auto &&executor, auto &out, auto const &in) {
-        executor().arg(out).arg(in).assign(0_c, copy_stencil(), 1_c);
+        executor().arg(out).arg(in).assign(0_c, copy_stencil(), 1_c).execute();
     };
 
     GT_REGRESSION_TEST(fn_cartesian_copy, test_environment<>, fn_backend_t) {

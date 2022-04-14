@@ -33,45 +33,32 @@ namespace gridtools::fn {
             MakeIterator m_make_iterator;
             Args m_args;
             Specs m_specs;
-            bool m_active = true;
-
-            executor(Sizes sizes, Offsets offsets, MakeIterator make_iterator, Args args = {}, Specs specs = {})
-                : m_sizes(std::move(sizes)), m_offsets(std::move(offsets)), m_make_iterator(std::move(make_iterator)),
-                  m_args(std::move(args)), m_specs(std::move(specs)) {}
-            executor(executor const &) = delete;
-            executor(executor &&) = delete;
-            ~executor() {
-                if (m_active)
-                    RunSpecs()(m_sizes, m_make_iterator, std::move(m_args), std::move(m_specs));
-            }
 
             template <class Arg>
             auto arg(Arg &&arg) && {
-                assert(m_active);
                 auto args = tuple_util::deep_copy(
                     tuple_util::push_back(std::move(m_args), sid::shift_sid_origin(std::forward<Arg>(arg), m_offsets)));
-                m_active = false;
-                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, decltype(args), Specs>(
+                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, decltype(args), Specs>{
                     std::move(m_sizes),
                     std::move(m_offsets),
                     std::move(m_make_iterator),
                     std::move(args),
-                    std::move(m_specs));
+                    std::move(m_specs)};
             }
 
             template <class... SpecArgs>
             auto assign(SpecArgs &&...args) && {
-                assert(m_active);
                 auto specs = tuple_util::deep_copy(
                     tuple_util::push_back(std::move(m_specs), MakeSpec()(std::forward<SpecArgs>(args)...)));
-                m_active = false;
-                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, Args, decltype(specs)>(
+                return executor<MakeSpec, RunSpecs, Sizes, Offsets, MakeIterator, Args, decltype(specs)>{
                     std::move(m_sizes),
                     std::move(m_offsets),
                     std::move(m_make_iterator),
                     std::move(m_args),
-                    std::move(specs));
+                    std::move(specs)};
             }
+
+            void execute() && { RunSpecs()(m_sizes, m_make_iterator, std::move(m_args), std::move(m_specs)); }
         };
 
         template <int ArgOffset>
@@ -96,8 +83,8 @@ namespace gridtools::fn {
         template <int ArgOffset = 0, class Backend, class Sizes, class Offsets, class MakeIterator>
         auto make_stencil_executor(
             Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
-            return executor<make_stencil_spec_f<ArgOffset>, run_stencil_specs_f<Backend>, Sizes, Offsets, MakeIterator>(
-                sizes, offsets, make_iterator);
+            return executor<make_stencil_spec_f<ArgOffset>, run_stencil_specs_f<Backend>, Sizes, Offsets, MakeIterator>{
+                sizes, offsets, make_iterator};
         }
 
         template <class Vertical, int ArgOffset>
@@ -114,11 +101,11 @@ namespace gridtools::fn {
         struct run_column_stages_specs_f {
             template <class Domain, class MakeIterator, class Args, class Specs>
             constexpr auto operator()(
-                Domain const &domain, MakeIterator const &make_iterator, Args &&args, Specs const &specs) const {
+                Domain const &domain, MakeIterator const &make_iterator, Args &&args, Specs specs) const {
                 using stages_t = meta::transform<meta::first,
                     meta::transform<std::remove_reference_t, meta::rename<meta::list, Specs>>>;
                 auto seeds = tuple_util::transform(
-                    [](auto &&t) { return tuple_util::get<1>(std::forward<decltype(t)>(t)); }, specs);
+                    [](auto &&t) { return tuple_util::get<1>(std::forward<decltype(t)>(t)); }, std::move(specs));
                 run_column_stages(Backend(),
                     stages_t(),
                     make_iterator,
@@ -137,7 +124,7 @@ namespace gridtools::fn {
                 run_column_stages_specs_f<Backend, Vertical>,
                 Sizes,
                 Offsets,
-                MakeIterator>(sizes, offsets, make_iterator);
+                MakeIterator>{sizes, offsets, make_iterator};
         }
     } // namespace executor_impl_
 

@@ -80,7 +80,7 @@ namespace {
     constexpr inline auto tridiagonal_solve =
         [](auto executor, auto const &a, auto const &b, auto const &c, auto const &d, auto &cpdp, auto &x) {
             using float_t = sid::element_type<decltype(a)>;
-            return executor()
+            executor()
                 .arg(a)
                 .arg(b)
                 .arg(c)
@@ -88,7 +88,8 @@ namespace {
                 .arg(cpdp)
                 .arg(x)
                 .assign(4_c, forward_scan(), tuple<float_t, float_t>(0, 0), 0_c, 1_c, 2_c, 3_c)
-                .assign(5_c, backward_scan(), float_t(0), 4_c);
+                .assign(5_c, backward_scan(), float_t(0), 4_c)
+                .execute();
         };
 
     GT_REGRESSION_TEST(fn_cartesian_tridiagonal_solve, vertical_test_environment<>, fn_backend_t) {

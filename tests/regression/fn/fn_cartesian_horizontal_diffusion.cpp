@@ -108,16 +108,23 @@ namespace {
             auto domain = cartesian_domain(sizes_t{i - 2, j - 2, k}, sizes_t{1, 1, 0});
             auto backend = make_backend(fn_backend_t(), domain);
 
-            backend.stencil_executor()().arg(lap).arg(in).assign(0_c, laplacian(), 1_c);
+            backend.stencil_executor()().arg(lap).arg(in).assign(0_c, laplacian(), 1_c).execute();
             backend.stencil_executor()()
                 .arg(flx)
                 .arg(fly)
                 .arg(in)
                 .arg(lap)
                 .assign(0_c, flux<dim::i>(), 2_c, 3_c)
-                .assign(1_c, flux<dim::j>(), 2_c, 3_c);
-            backend.stencil_executor()().arg(out).arg(in).arg(coeff).arg(flx).arg(fly).assign(
-                0_c, hdiff(), 1_c, 2_c, 3_c, 4_c);
+                .assign(1_c, flux<dim::j>(), 2_c, 3_c)
+                .execute();
+            backend.stencil_executor()()
+                .arg(out)
+                .arg(in)
+                .arg(coeff)
+                .arg(flx)
+                .arg(fly)
+                .assign(0_c, hdiff(), 1_c, 2_c, 3_c, 4_c)
+                .execute();
         };
         auto comp =
             [&, coeff = TypeParam::make_const_storage(repo.coeff), in = TypeParam::make_const_storage(repo.in)] {
@@ -136,7 +143,7 @@ namespace {
             auto domain = cartesian_domain(sizes_t{i - 4, j - 4, k}, sizes_t{2, 2, 0});
             auto backend = make_backend(fn_backend_t(), domain);
 
-            backend.stencil_executor()().arg(out).arg(in).arg(coeff).assign(0_c, hdiff_fused(), 1_c, 2_c);
+            backend.stencil_executor()().arg(out).arg(in).arg(coeff).assign(0_c, hdiff_fused(), 1_c, 2_c).execute();
         };
         auto comp =
             [&, coeff = TypeParam::make_const_storage(repo.coeff), in = TypeParam::make_const_storage(repo.in)] {

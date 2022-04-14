@@ -126,7 +126,7 @@ namespace {
         }
     };
 
-    constexpr inline auto vadv_solver = [](auto executor,
+    constexpr inline auto vadv_solver = [](auto &&executor,
                                             auto &cd,
                                             auto &utens_stage,
                                             auto const &utens,
@@ -135,7 +135,7 @@ namespace {
                                             auto const &wcon,
                                             auto const &dtr_stage) {
         using float_t = sid::element_type<decltype(utens_stage)>;
-        return executor()
+        executor()
             .arg(cd)
             .arg(utens_stage)
             .arg(utens)
@@ -144,7 +144,8 @@ namespace {
             .arg(wcon)
             .arg(dtr_stage)
             .assign(0_c, u_forward_scan(), tuple<float_t, float_t>(0, 0), 1_c, 2_c, 3_c, 4_c, 5_c, 6_c)
-            .assign(1_c, u_backward_scan(), tuple<float_t, float_t>(0, 0), 0_c, 4_c, 6_c);
+            .assign(1_c, u_backward_scan(), tuple<float_t, float_t>(0, 0), 0_c, 4_c, 6_c)
+            .execute();
     };
 
     GT_REGRESSION_TEST(fn_cartesian_vertical_advection, vertical_test_environment<3>, fn_backend_t) {

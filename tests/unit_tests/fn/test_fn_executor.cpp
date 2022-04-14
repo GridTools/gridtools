@@ -56,14 +56,13 @@ namespace gridtools::fn {
                 for (int j = 0; j < 3; ++j)
                     c[i][j] = 3 * i + j;
 
-            {
-                make_stencil_executor(backend_t(), domain, std::tuple<>(), make_iterator_mock())
-                    .arg(a)
-                    .arg(b)
-                    .arg(c)
-                    .assign(1_c, stencil(), 2_c)
-                    .assign(0_c, stencil(), 1_c);
-            }
+            make_stencil_executor(backend_t(), domain, std::tuple<>(), make_iterator_mock())
+                .arg(a)
+                .arg(b)
+                .arg(c)
+                .assign(1_c, stencil(), 2_c)
+                .assign(0_c, stencil(), 1_c)
+                .execute();
 
             for (int i = 0; i < 2; ++i)
                 for (int j = 0; j < 3; ++j) {
@@ -82,14 +81,13 @@ namespace gridtools::fn {
                 for (int j = 0; j < 3; ++j)
                     c[i][j] = 3 * i + j;
 
-            {
-                make_vertical_executor<int_t<1>>(backend_t(), domain, std::tuple<>(), make_iterator_mock())
-                    .arg(a)
-                    .arg(b)
-                    .arg(c)
-                    .assign(1_c, fwd_sum_scan(), 42, 2_c)
-                    .assign(0_c, bwd_sum_scan(), 8, 1_c);
-            }
+            make_vertical_executor<int_t<1>>(backend_t(), domain, std::tuple<>(), make_iterator_mock())
+                .arg(a)
+                .arg(b)
+                .arg(c)
+                .assign(1_c, fwd_sum_scan(), 42, 2_c)
+                .assign(0_c, bwd_sum_scan(), 8, 1_c)
+                .execute();
 
             for (int i = 0; i < 2; ++i) {
                 int res = 42;
