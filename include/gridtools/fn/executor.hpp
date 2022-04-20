@@ -36,11 +36,6 @@ namespace gridtools::fn {
             using arg_offset_t = std::integral_constant<int, ArgOffset>;
             using specs_t = Specs;
 
-            executor_data(executor_data const &) = delete;
-            executor_data &operator=(executor_data const &) = delete;
-            executor_data(executor_data &&) = default;
-            executor_data &operator=(executor_data &&) = default;
-
             template <class Arg>
             auto arg(Arg &&arg) && {
                 auto args = tuple_util::deep_copy(
