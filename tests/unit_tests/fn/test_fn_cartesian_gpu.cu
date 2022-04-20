@@ -47,7 +47,7 @@ namespace gridtools::fn {
                 meta::list<cartesian::dim::j, int_t<8>>,
                 meta::list<cartesian::dim::k, int_t<1>>>;
             auto apply_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, stencil(), 1_c);
+                executor().arg(out).arg(in).assign(0_c, stencil(), 1_c).execute();
             };
 
             auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
@@ -96,7 +96,8 @@ namespace gridtools::fn {
                     .arg(b)
                     .arg(c)
                     .assign(1_c, fwd_sum_scan(), 42, 2_c)
-                    .assign(0_c, bwd_sum_scan(), 8, 1_c);
+                    .assign(0_c, bwd_sum_scan(), 8, 1_c)
+                    .execute();
             };
 
             auto double_scan = [&](auto sizes, auto &a, auto &b, auto const &c) {
