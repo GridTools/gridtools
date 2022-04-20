@@ -51,7 +51,7 @@ namespace gridtools::fn {
             };
 
             auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
-                constexpr auto be = backend::gpu<block_sizes_t>();
+                auto be = backend::gpu<block_sizes_t>();
                 auto alloc = tmp_allocator(be);
                 auto tmp = allocate_global_tmp<int>(alloc, sizes);
                 auto domain = cartesian_domain(std::array<int, 3>{sizes[0] - 1, sizes[1], sizes[2]});

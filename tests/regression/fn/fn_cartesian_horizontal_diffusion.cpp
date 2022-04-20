@@ -96,7 +96,7 @@ namespace {
         auto out = TypeParam::make_storage();
         auto fencil = [&](int i, int j, int k, auto &out, auto const &in, auto const &coeff) {
             using sizes_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
-            constexpr auto be = fn_backend_t();
+            auto be = fn_backend_t();
             auto full_domain = cartesian_domain(sizes_t{i, j, k});
             auto full_domain_backend = make_backend(be, full_domain);
 

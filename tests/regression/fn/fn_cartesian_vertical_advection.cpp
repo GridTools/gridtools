@@ -162,7 +162,7 @@ namespace {
                           auto const &wcon,
                           auto const &dtr_stage) {
             using sizes_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
-            constexpr auto be = fn_backend_t();
+            auto be = fn_backend_t();
             auto domain = cartesian_domain(sizes_t(i - 6, j - 6, k), sizes_t(3, 3, 0));
             auto backend = make_backend(be, domain);
             auto alloc = tmp_allocator(be);
