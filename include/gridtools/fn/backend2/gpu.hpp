@@ -23,6 +23,14 @@
 
 namespace gridtools::fn::backend {
     namespace gpu_impl_ {
+        /*
+         * BlockSizes must be a meta map, mapping dimensions to integral constant block sizes.
+         *
+         * For example, meta::list<meta::list<dim::i, integral_constant<int, 32>>,
+         *                         meta::list<dim::j, integral_constant<int, 8>>,
+         *                         meta::list<dim::k, integral_constant<int, 1>>>;
+         * When using a cartesian grid.
+         */
         template <class BlockSizes>
         struct gpu {
             using block_sizes_t = BlockSizes;
