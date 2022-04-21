@@ -174,7 +174,7 @@ namespace gridtools {
                 struct compressed;
                 template <class...>
                 struct values;
-#if !defined(__NVCC__) && defined(__clang__) && __clang_major__ <= 13
+#if !defined(__NVCC__) && defined(__clang__) && __clang_major__ <= 14
                 template <class... Sids>
                 values(Sids const &...) -> values<Sids...>;
 #endif
