@@ -37,3 +37,17 @@ namespace gridtools {
     "GridTools Development Team."
 
 #define GT_INTERNAL_ERROR_MSG(x) GT_INTERNAL_ERROR "\nMessage\n\n" x
+
+#ifdef __NVCC__
+#define GT_NVCC_DIAG_STR(x) #x
+#ifdef __NVCC_DIAG_PRAGMA_SUPPORT__
+#define GT_NVCC_DIAG_PUSH_SUPPRESS(x) _Pragma("nv_diagnostic push") _Pragma(GT_NVCC_DIAG_STR(nv_diag_suppress x))
+#define GT_NVCC_DIAG_POP_SUPPRESS(x) _Pragma("nv_diagnostic pop")
+#else
+#define GT_NVCC_DIAG_PUSH_SUPPRESS(x) _Pragma(GT_NVCC_DIAG_STR(diag_suppress = x))
+#define GT_NVCC_DIAG_POP_SUPPRESS(x) _Pragma(GT_NVCC_DIAG_STR(diag_default = x))
+#endif
+#else
+#define GT_NVCC_DIAG_PUSH_SUPPRESS(x)
+#define GT_NVCC_DIAG_POP_SUPPRESS(x)
+#endif

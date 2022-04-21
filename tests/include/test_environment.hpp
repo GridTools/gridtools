@@ -26,12 +26,14 @@
 
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/timer/timer.hpp>
+#include <gridtools/fn/cartesian2.hpp>
 #include <gridtools/meta.hpp>
 #include <gridtools/stencil/frontend/axis.hpp>
 #include <gridtools/stencil/frontend/make_grid.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 
+#include "fn_mesh.hpp"
 #include "timer_select.hpp"
 #include "verifier.hpp"
 
@@ -78,7 +80,7 @@ namespace gridtools {
     namespace test_environment_impl_ {
 
         template <class T>
-        void backend_init(T, int &argc, char **argv) {}
+        void backend_init(T, int & /*argc*/, char ** /*argv*/) {}
 
         template <class T>
         void backend_finalize(T) {}
@@ -197,7 +199,7 @@ namespace gridtools {
                     return stencil::make_grid(halo_desc(d(0)), halo_desc(d(1)), Axis(d(2 + Is)...));
                 }
 
-                template <class Expected, class Actual, class EqualTo = default_equal_to<typename Actual::element_type>>
+                template <class Expected, class Actual, class EqualTo = default_equal_to>
                 static void verify(Expected const &expected, Actual const &actual, EqualTo equal_to = {}) {
                     if (!ParamsSource::needs_verification())
                         return;
@@ -267,6 +269,16 @@ namespace gridtools {
                     std::enable_if_t<std::is_convertible_v<U const &, T>, int> = 0>
                 static auto icosahedral_make_storage(Location loc, U const &arg) {
                     return icosahedral_builder<T>(loc).value(arg).build();
+                }
+
+                static auto fn_cartesian_sizes() {
+                    return hymap::keys<fn::cartesian::dim::i, fn::cartesian::dim::j, fn::cartesian::dim::k>::
+                        make_values(ParamsSource::d(0), ParamsSource::d(1), ParamsSource::d(2));
+                }
+
+                static auto fn_unstructured_mesh() {
+                    return structured_unstructured_mesh<storage_traits_t, float_t>(
+                        ParamsSource::d(0), ParamsSource::d(1), ParamsSource::d(2));
                 }
 
                 template <class Comp>

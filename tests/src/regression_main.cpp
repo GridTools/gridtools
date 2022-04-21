@@ -62,7 +62,7 @@ namespace {
 
     struct patterns {
         std::vector<std::string> positives;
-        std::vector<std::string> negatives;
+        std::vector<std::string> negatives = {};
     };
 
     std::vector<std::string> split_patterns(std::string src) {

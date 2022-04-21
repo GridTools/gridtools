@@ -29,7 +29,7 @@ namespace gridtools {
         template <class Fun>
         struct cached_f {
             Fun m_fun;
-            mutable std::map<std::array<int_t, 2>, column_t> m_cache;
+            mutable std::map<std::array<int_t, 2>, column_t> m_cache = {};
 
             column_t const *lookup(int_t i, int_t j) const {
                 column_t const *res = nullptr;

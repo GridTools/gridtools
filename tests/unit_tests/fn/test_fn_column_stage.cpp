@@ -7,7 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/fn/scan.hpp>
+#include <gridtools/fn/column_stage.hpp>
 
 #include <gtest/gtest.h>
 
@@ -44,7 +44,7 @@ namespace gridtools::fn {
 
         struct make_iterator_mock {
             auto GT_FUNCTION operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+                return [](auto tag, auto const &ptr, auto const & /*strides*/) { return at_key<decltype(tag)>(ptr); };
             }
         };
 
@@ -65,16 +65,16 @@ namespace gridtools::fn {
             auto strides = sid::get_strides(composite);
 
             {
-                column_stage<vdim_t, sum_fold, make_iterator_mock, 0, 1> cs;
-                auto res = cs(42, 5, ptr, strides);
+                column_stage<vdim_t, sum_fold, 0, 1> cs;
+                auto res = cs(42, 5, make_iterator_mock()(), ptr, strides);
                 EXPECT_EQ(res, 57);
                 for (std::size_t i = 0; i < 5; ++i)
                     EXPECT_EQ(a[i], 0);
             }
 
             {
-                column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1> cs;
-                auto res = cs(tuple(42, 1), 5, ptr, strides);
+                column_stage<vdim_t, sum_scan, 0, 1> cs;
+                auto res = cs(tuple(42, 1), 5, make_iterator_mock()(), ptr, strides);
                 EXPECT_EQ(get<0>(res), 57);
                 EXPECT_EQ(get<1>(res), 120);
                 for (std::size_t i = 0; i < 5; ++i)
@@ -82,16 +82,14 @@ namespace gridtools::fn {
             }
 
             {
-                column_stage<vdim_t, sum_fold_with_logues, make_iterator_mock, 0, 1> cs;
-                auto res = cs(42, 5, ptr, strides);
+                column_stage<vdim_t, sum_fold_with_logues, 0, 1> cs;
+                auto res = cs(42, 5, make_iterator_mock()(), ptr, strides);
                 EXPECT_EQ(res, 68);
             }
 
             {
-                merged_column_stage<column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>,
-                    column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>>
-                    cs;
-                auto res = cs(tuple(0, 1), 5, ptr, strides);
+                merged_column_stage<column_stage<vdim_t, sum_scan, 0, 1>, column_stage<vdim_t, sum_scan, 0, 1>> cs;
+                auto res = cs(tuple(0, 1), 5, make_iterator_mock()(), ptr, strides);
                 EXPECT_EQ(get<0>(res), 2 * 15);
                 EXPECT_EQ(get<1>(res), 120 * 120);
                 for (std::size_t i = 0; i < 5; ++i)

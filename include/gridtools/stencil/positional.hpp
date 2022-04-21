@@ -23,10 +23,10 @@ namespace gridtools {
         struct positional {
             int_t m_val;
 
-            GT_FUNCTION positional(int_t val = 0) : m_val{val} {}
+            GT_FUNCTION constexpr positional(int_t val = 0) : m_val{val} {}
 
-            GT_FUNCTION int operator*() const { return m_val; }
-            GT_FUNCTION positional const &operator()() const { return *this; }
+            GT_FUNCTION constexpr int operator*() const { return m_val; }
+            GT_FUNCTION constexpr positional const &operator()() const { return *this; }
         };
 
         template <class Dim>

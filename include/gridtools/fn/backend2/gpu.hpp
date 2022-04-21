@@ -23,6 +23,14 @@
 
 namespace gridtools::fn::backend {
     namespace gpu_impl_ {
+        /*
+         * BlockSizes must be a meta map, mapping dimensions to integral constant block sizes.
+         *
+         * For example, meta::list<meta::list<dim::i, integral_constant<int, 32>>,
+         *                         meta::list<dim::j, integral_constant<int, 8>>,
+         *                         meta::list<dim::k, integral_constant<int, 1>>>;
+         * When using a cartesian grid.
+         */
         template <class BlockSizes>
         struct gpu {
             using block_sizes_t = BlockSizes;
@@ -33,8 +41,9 @@ namespace gridtools::fn::backend {
 
         template <class BlockSizes, class Sizes>
         GT_FUNCTION_DEVICE auto global_thread_index() {
-            using ndims_t = meta::length<Sizes>;
-            using keys_t = meta::take_c<std::min(3, (int)ndims_t::value), get_keys<Sizes>>;
+            using all_keys_t = get_keys<Sizes>;
+            using ndims_t = meta::length<all_keys_t>;
+            using keys_t = meta::rename<hymap::keys, meta::take_c<std::min(3, (int)ndims_t::value), all_keys_t>>;
             if constexpr (ndims_t::value == 0) {
                 return hymap::keys<>::values<>();
             } else if constexpr (ndims_t::value == 1) {
@@ -56,7 +65,10 @@ namespace gridtools::fn::backend {
                     blockIdx.y * block_dim_y::value + threadIdx.y,
                     blockIdx.z * block_dim_z::value + threadIdx.z);
             }
+            // disable incorrect warning "missing return statement at end of non-void function"
+            GT_NVCC_DIAG_PUSH_SUPPRESS(940)
         }
+        GT_NVCC_DIAG_POP_SUPPRESS(940)
 
         template <class Key>
         struct at_generator_f {
@@ -79,6 +91,7 @@ namespace gridtools::fn::backend {
             class PtrHolder,
             class Strides,
             class Fun,
+            class NDims = tuple_util::size<Sizes>,
             class SizeKeys = get_keys<Sizes>>
         __global__ void kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
             auto thread_idx = global_thread_index<BlockSizes, Sizes>();
@@ -86,7 +99,7 @@ namespace gridtools::fn::backend {
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            if constexpr (meta::length<Sizes>::value <= 3) {
+            if constexpr (NDims::value <= 3) {
                 fun(ptr, strides);
             } else {
                 using loop_dims_t = meta::drop_front_c<3, SizeKeys>;
@@ -115,8 +128,19 @@ namespace gridtools::fn::backend {
             return {blocks, threads};
         }
 
-        template <class BlockSizes, class Sizes, class StencilStage, class Composite>
-        void apply_stencil_stage(gpu<BlockSizes>, Sizes const &sizes, StencilStage, Composite &&composite) {
+        template <class StencilStage, class MakeIterator>
+        struct stencil_fun_f {
+            MakeIterator m_make_iterator;
+
+            template <class Ptr, class Strides>
+            GT_FUNCTION_DEVICE void operator()(Ptr &ptr, Strides const &strides) const {
+                StencilStage()(m_make_iterator(), ptr, strides);
+            }
+        };
+
+        template <class BlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
+        void apply_stencil_stage(
+            gpu<BlockSizes>, Sizes const &sizes, StencilStage, MakeIterator make_iterator, Composite &&composite) {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
 
@@ -124,30 +148,47 @@ namespace gridtools::fn::backend {
             cuda_util::launch(blocks,
                 threads,
                 0,
-                kernel<BlockSizes, decltype(ptr_holder), decltype(strides), StencilStage>,
+                kernel<BlockSizes,
+                    Sizes,
+                    decltype(ptr_holder),
+                    decltype(strides),
+                    stencil_fun_f<StencilStage, MakeIterator>>,
                 sizes,
                 ptr_holder,
                 strides,
-                StencilStage());
+                stencil_fun_f<StencilStage, MakeIterator>{std::move(make_iterator)});
         }
 
-        template <class ColumnStage, class Seed>
+        template <class ColumnStage, class MakeIterator, class Seed>
         struct column_fun_f {
+            MakeIterator m_make_iterator;
             Seed m_seed;
-            std::size_t m_v_size;
+            int m_v_size;
 
             template <class Ptr, class Strides>
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides) const {
-                ColumnStage()(m_seed, m_v_size, std::move(ptr), strides);
+                ColumnStage()(m_seed, m_v_size, m_make_iterator(), std::move(ptr), strides);
             }
         };
 
-        template <class Vertical, class BlockSizes, class Sizes, class ColumnStage, class Composite, class Seed>
-        void apply_column_stage(gpu<BlockSizes>, Sizes const &sizes, ColumnStage, Composite &&composite, Seed seed) {
+        template <class BlockSizes,
+            class Sizes,
+            class ColumnStage,
+            class MakeIterator,
+            class Composite,
+            class Vertical,
+            class Seed>
+        void apply_column_stage(gpu<BlockSizes>,
+            Sizes const &sizes,
+            ColumnStage,
+            MakeIterator make_iterator,
+            Composite &&composite,
+            Vertical,
+            Seed seed) {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
             auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);
-            auto v_size = at_key<Vertical>(sizes);
+            int v_size = at_key<Vertical>(sizes);
 
             auto [blocks, threads] = blocks_and_threads<BlockSizes>(h_sizes);
             cuda_util::launch(blocks,
@@ -157,11 +198,11 @@ namespace gridtools::fn::backend {
                     decltype(h_sizes),
                     decltype(ptr_holder),
                     decltype(strides),
-                    column_fun_f<ColumnStage, Seed>>,
+                    column_fun_f<ColumnStage, MakeIterator, Seed>>,
                 h_sizes,
                 ptr_holder,
                 strides,
-                column_fun_f<ColumnStage, Seed>{std::move(seed), v_size});
+                column_fun_f<ColumnStage, MakeIterator, Seed>{std::move(make_iterator), std::move(seed), v_size});
         }
 
         template <class BlockSizes>
@@ -169,8 +210,8 @@ namespace gridtools::fn::backend {
             return std::make_tuple(be, sid::device::cached_allocator(&cuda_util::cuda_malloc<char[]>));
         }
 
-        template <class T, class BlockSizes, class Allocator, class Sizes>
-        auto allocate_global_tmp(std::tuple<gpu<BlockSizes>, Allocator> &alloc, Sizes const &sizes) {
+        template <class BlockSizes, class Allocator, class Sizes, class T>
+        auto allocate_global_tmp(std::tuple<gpu<BlockSizes>, Allocator> &alloc, Sizes const &sizes, data_type<T>) {
             return sid::make_contiguous<T, int_t, sid::unknown_kind>(std::get<1>(alloc), sizes);
         }
     } // namespace gpu_impl_

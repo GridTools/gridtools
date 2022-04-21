@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/scan.hpp>
+#include <gridtools/fn/column_stage.hpp>
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
@@ -33,7 +33,7 @@ namespace gridtools::fn::backend {
 
         struct make_iterator_mock {
             auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+                return [](auto tag, auto const &ptr, auto const &) { return at_key<decltype(tag)>(ptr); };
             }
         };
 
@@ -54,9 +54,9 @@ namespace gridtools::fn::backend {
 
             auto sizes = hymap::keys<int_t<0>, int_t<1>, int_t<2>>::values<int_t<5>, int_t<7>, int_t<3>>();
 
-            column_stage<int_t<1>, sum_scan, make_iterator_mock, 0, 1> cs;
+            column_stage<int_t<1>, sum_scan, 0, 1> cs;
 
-            apply_column_stage<int_t<1>>(naive(), sizes, cs, composite, tuple(42, 1));
+            apply_column_stage(naive(), sizes, cs, make_iterator_mock(), composite, int_t<1>(), tuple(42, 1));
 
             for (int i = 0; i < 5; ++i)
                 for (int k = 0; k < 3; ++k) {
@@ -71,7 +71,7 @@ namespace gridtools::fn::backend {
         TEST(backend_naive, global_tmp) {
             auto alloc = tmp_allocator(naive());
             auto sizes = hymap::keys<int_t<0>, int_t<1>, int_t<2>>::values<int_t<5>, int_t<7>, int_t<3>>();
-            auto tmp = allocate_global_tmp<int>(alloc, sizes);
+            auto tmp = allocate_global_tmp(alloc, sizes, data_type<int>());
             static_assert(sid::is_sid<decltype(tmp)>());
 
             auto ptr = sid::get_origin(tmp)();

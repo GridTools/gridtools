@@ -395,6 +395,8 @@ namespace gridtools {
                 return tuple_util::concat_ex<impl_::concat_result_maker_f>(std::move(maps)...);
             }
 
+            GT_TARGET GT_FORCE_INLINE constexpr keys<>::values<> concat() { return {}; }
+
             template <template <class...> class KeyCtor,
                 class Keys,
                 class Tup,

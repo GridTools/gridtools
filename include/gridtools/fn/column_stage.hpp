@@ -21,7 +21,7 @@
 #include "../sid/concept.hpp"
 
 namespace gridtools::fn {
-    namespace scan_impl_ {
+    namespace column_stage_impl_ {
         template <class F, class Projector = host_device::identity>
         struct scan_pass {
             F m_f;
@@ -41,10 +41,11 @@ namespace gridtools::fn {
         using fwd = base<false>;
         using bwd = base<true>;
 
-        template <class Vertical, class ScanOrFold, class MakeIterator, int Out, int... Ins>
+        template <class Vertical, class ScanOrFold, int Out, int... Ins>
         struct column_stage {
-            template <class Seed, class Ptr, class Strides>
-            GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
+            template <class Seed, class MakeIterator, class Ptr, class Strides>
+            GT_FUNCTION auto operator()(
+                Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 constexpr std::size_t prologue_size = std::tuple_size_v<decltype(ScanOrFold::prologue())>;
                 constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(ScanOrFold::epilogue())>;
                 assert(size >= prologue_size + epilogue_size);
@@ -52,22 +53,23 @@ namespace gridtools::fn {
                 auto const &v_stride = sid::get_stride<Vertical>(strides);
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };
                 auto next = [&](auto acc, auto pass) {
-                    using acc_t = decltype(acc);
                     if constexpr (is_scan_pass<decltype(pass)>()) {
                         // scan
-                        auto res = pass.m_f(static_cast<acc_t &&>(acc),
-                            MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res =
+                            pass.m_f(std::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
                         *host_device::at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
                         inc();
                         return res;
                     } else {
                         // fold
-                        auto res = pass(static_cast<acc_t &&>(acc),
-                            MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res = pass(std::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
                         inc();
                         return res;
                     }
+                    // disable incorrect warning "missing return statement at end of non-void function"
+                    GT_NVCC_DIAG_PUSH_SUPPRESS(940)
                 };
+                GT_NVCC_DIAG_POP_SUPPRESS(940)
                 if constexpr (ScanOrFold::value)
                     sid::shift(ptr, v_stride, size - 1);
                 auto acc = tuple_util::host_device::fold(next, std::move(seed), ScanOrFold::prologue());
@@ -80,19 +82,22 @@ namespace gridtools::fn {
 
         template <class... ColumnStages>
         struct merged_column_stage {
-            template <class Seed, class Ptr, class Strides>
-            GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
+            template <class Seed, class MakeIterator, class Ptr, class Strides>
+            GT_FUNCTION auto operator()(
+                Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 return tuple_util::host_device::fold(
-                    [&](auto acc, auto stage) { return stage(std::move(acc), size, ptr, strides); },
+                    [&](auto acc, auto stage) {
+                        return stage(std::move(acc), size, std::forward<MakeIterator>(make_iterator), ptr, strides);
+                    },
                     std::move(seed),
                     tuple(ColumnStages()...));
             }
         };
-    } // namespace scan_impl_
+    } // namespace column_stage_impl_
 
-    using scan_impl_::bwd;
-    using scan_impl_::column_stage;
-    using scan_impl_::fwd;
-    using scan_impl_::merged_column_stage;
-    using scan_impl_::scan_pass;
+    using column_stage_impl_::bwd;
+    using column_stage_impl_::column_stage;
+    using column_stage_impl_::fwd;
+    using column_stage_impl_::merged_column_stage;
+    using column_stage_impl_::scan_pass;
 } // namespace gridtools::fn
