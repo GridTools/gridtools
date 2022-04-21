@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/backend2/gpu.hpp>
+#include <gridtools/fn/backend/gpu.hpp>
 
 namespace gridtools::fn {
     namespace {
