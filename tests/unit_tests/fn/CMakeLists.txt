@@ -7,11 +7,6 @@ gridtools_add_unit_test(test_fn_run SOURCES test_fn_run.cpp)
 gridtools_add_unit_test(test_fn_column_stage SOURCES test_fn_column_stage.cpp)
 gridtools_add_unit_test(test_fn_stencil_stage SOURCES test_fn_stencil_stage.cpp LABELS fn)
 gridtools_add_unit_test(test_fn_unstructured SOURCES test_fn_unstructured.cpp LABELS fn)
-if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
-    gridtools_add_unit_test(test_fn_deref SOURCES test_fn_deref.cpp LABELS fn)
-    gridtools_add_unit_test(test_fn_offsets SOURCES test_fn_offsets.cpp LABELS fn)
-    gridtools_add_unit_test(test_fn_shift SOURCES test_fn_shift.cpp LABELS fn)
-endif()
 
 if(TARGET _gridtools_cuda)
     gridtools_add_unit_test(test_fn_backend_gpu_cuda
