@@ -70,7 +70,7 @@ namespace gridtools::fn {
             cudaMemcpy(in.get(), inh, 5 * 3 * 2 * sizeof(int), cudaMemcpyHostToDevice);
             auto as_synthetic = [](int *x) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
                     .set<property::strides>(tuple(6_c, 2_c, 1_c));
             };
 
@@ -118,7 +118,7 @@ namespace gridtools::fn {
             cudaMemcpy(c.get(), ch, 5 * 3 * 2 * sizeof(int), cudaMemcpyHostToDevice);
             auto as_synthetic = [](int *x) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
                     .set<property::strides>(tuple(6_c, 2_c, 1_c));
             };
 

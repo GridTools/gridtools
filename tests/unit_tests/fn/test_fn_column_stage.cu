@@ -52,10 +52,10 @@ namespace gridtools::fn {
             cudaMemcpy(b.get(), bh, 5 * sizeof(int), cudaMemcpyHostToDevice);
             auto composite = sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(
                 sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(a.get()))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(a.get()))
                     .set<property::strides>(tuple(1_c)),
                 sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(b.get()))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(b.get()))
                     .set<property::strides>(tuple(1_c)));
             auto ptr = sid::get_origin(composite)();
             auto strides = sid::get_strides(composite);

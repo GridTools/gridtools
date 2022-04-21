@@ -46,7 +46,7 @@ namespace gridtools::fn::backend {
 
             auto as_synthetic = [](int x[5][7][3]) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(&x[0][0][0]))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(&x[0][0][0]))
                     .set<property::strides>(tuple(21_c, 3_c, 1_c));
             };
 
