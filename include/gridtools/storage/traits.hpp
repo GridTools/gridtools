@@ -64,7 +64,7 @@ namespace gridtools {
                 class Lengths,
                 size_t Alignment = elem_alignment<Traits, T>,
                 std::enable_if_t<Alignment == 1, int> = 0>
-            std::false_type has_holes(Lengths const &lengths) {
+            std::false_type has_holes(Lengths const &) {
                 return {};
             }
 
