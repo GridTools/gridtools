@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/fn/cartesian.hpp>
-#include <gridtools/fn/unstructured2.hpp>
+#include <gridtools/fn/unstructured.hpp>
 
 #include <fn_select.hpp>
 #include <test_environment.hpp>
