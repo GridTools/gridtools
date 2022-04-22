@@ -52,7 +52,7 @@ namespace gridtools::fn::backend {
 
             auto as_synthetic = [](int *x) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
                     .set<property::strides>(tuple(21_c, 3_c, 1_c));
             };
 
@@ -89,7 +89,7 @@ namespace gridtools::fn::backend {
 
             auto as_synthetic = [](int *x) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
                     .set<property::strides>(tuple(1_c));
             };
 
@@ -127,7 +127,7 @@ namespace gridtools::fn::backend {
 
             auto as_synthetic = [](int *x) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
                     .set<property::strides>(tuple(126_c, 18_c, 6_c, 3_c, 1_c));
             };
 

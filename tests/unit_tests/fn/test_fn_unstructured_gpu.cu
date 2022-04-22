@@ -71,7 +71,7 @@ namespace gridtools::fn {
 
             auto as_synthetic = [](int *x) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
                     .set<property::strides>(
                         hymap::keys<unstructured::dim::horizontal, unstructured::dim::vertical>::make_values(5_c, 1_c));
             };
@@ -120,7 +120,7 @@ namespace gridtools::fn {
 
             auto as_synthetic = [](int *x) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
                     .set<property::strides>(
                         hymap::keys<unstructured::dim::horizontal, unstructured::dim::vertical>::make_values(5_c, 1_c));
             };

@@ -56,10 +56,10 @@ namespace gridtools::fn {
             column_t b = {1, 2, 3, 4, 5};
             auto composite = sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(
                 sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(&a[0]))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(&a[0]))
                     .set<property::strides>(tuple(1_c)),
                 sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(&b[0]))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(&b[0]))
                     .set<property::strides>(tuple(1_c)));
             auto ptr = sid::get_origin(composite)();
             auto strides = sid::get_strides(composite);

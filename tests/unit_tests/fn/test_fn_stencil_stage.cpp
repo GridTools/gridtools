@@ -39,7 +39,7 @@ namespace gridtools::fn {
 
             auto as_synthetic = [](int x[3]) {
                 return sid::synthetic()
-                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(&x[0]))
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(&x[0]))
                     .set<property::strides>(tuple(1_c));
             };
 
