@@ -30,7 +30,7 @@ namespace gridtools {
                 int const nyedges = nx * (ny - 1);
                 int i = vertex % nx;
                 int j = vertex / nx;
-                array<int, max_v2e_neighbors> neighbors;
+                array<int, max_v2e_neighbors_t::value> neighbors;
                 int n = 0;
                 if (i > 0)
                     neighbors[n++] = (i - 1) + (nx - 1) * j;
@@ -76,8 +76,8 @@ namespace gridtools {
         }
 
       public:
-        static constexpr int max_v2e_neighbors = 6;
-        static constexpr int max_e2v_neighbors = 2;
+        using max_v2e_neighbors_t = std::integral_constant<int, 6>;
+        using max_e2v_neighbors_t = std::integral_constant<int, 2>;
 
         constexpr structured_unstructured_mesh(int nx, int ny, int nz) : m_nx(nx), m_ny(ny), m_nz(nz) {}
 
@@ -108,11 +108,11 @@ namespace gridtools {
         }
 
         auto v2e_table() const {
-            return storage::builder<StorageTraits>.dimensions(nvertices()).template type<array<int, max_v2e_neighbors>>().initializer(v2e_initializer()).unknown_id().build();
+            return storage::builder<StorageTraits>.dimensions(nvertices()).template type<array<int, max_v2e_neighbors_t::value>>().initializer(v2e_initializer()).unknown_id().build();
         }
 
         auto e2v_table() const {
-            return storage::builder<StorageTraits>.dimensions(nedges()).template type<array<int, max_e2v_neighbors>>().initializer(e2v_initializer()).unknown_id().build();
+            return storage::builder<StorageTraits>.dimensions(nedges()).template type<array<int, max_e2v_neighbors_t::value>>().initializer(e2v_initializer()).unknown_id().build();
         }
     };
 
