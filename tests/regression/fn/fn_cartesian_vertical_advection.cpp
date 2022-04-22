@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/cartesian2.hpp>
+#include <gridtools/fn/cartesian.hpp>
 #include <gridtools/stencil/global_parameter.hpp>
 
 #include <fn_select.hpp>

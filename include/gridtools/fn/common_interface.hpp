@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "./backend2/common.hpp"
+#include "./backend/common.hpp"
 
 namespace gridtools::fn {
 

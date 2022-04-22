@@ -14,7 +14,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/backend2/naive.hpp>
+#include <gridtools/fn/backend/naive.hpp>
 #include <gridtools/fn/column_stage.hpp>
 #include <gridtools/fn/stencil_stage.hpp>
 #include <gridtools/sid/concept.hpp>

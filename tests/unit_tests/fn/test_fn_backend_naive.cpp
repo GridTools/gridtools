@@ -7,7 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/fn/backend2/naive.hpp>
+#include <gridtools/fn/backend/naive.hpp>
 
 #include <gtest/gtest.h>
 

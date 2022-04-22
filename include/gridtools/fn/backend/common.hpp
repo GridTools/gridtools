@@ -25,7 +25,7 @@ namespace gridtools::fn::backend {
                 [&](auto outer, auto dim) {
                     return [outer = std::move(outer),
                                inner = sid::make_loop<decltype(dim)>(host_device::at_key<decltype(dim)>(sizes))](
-                               auto &&... args) { return outer(inner(std::forward<decltype(args)>(args)...)); };
+                               auto &&...args) { return outer(inner(std::forward<decltype(args)>(args)...)); };
                 },
                 host_device::identity(),
                 meta::rename<tuple, Dims>());

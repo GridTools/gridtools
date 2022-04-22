@@ -8,11 +8,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <gridtools/common/array.hpp>
-#include <gridtools/fn/unstructured2.hpp>
+#include <gridtools/fn/unstructured.hpp>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/backend2/gpu.hpp>
+#include <gridtools/fn/backend/gpu.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
 namespace gridtools::fn {

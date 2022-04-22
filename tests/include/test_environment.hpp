@@ -26,7 +26,7 @@
 
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/timer/timer.hpp>
-#include <gridtools/fn/cartesian2.hpp>
+#include <gridtools/fn/cartesian.hpp>
 #include <gridtools/meta.hpp>
 #include <gridtools/stencil/frontend/axis.hpp>
 #include <gridtools/stencil/frontend/make_grid.hpp>

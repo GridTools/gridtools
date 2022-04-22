@@ -24,7 +24,7 @@
 #ifndef GT_TIMER_DUMMY
 #define GT_TIMER_DUMMY
 #endif
-#include <gridtools/fn/backend2/naive.hpp>
+#include <gridtools/fn/backend/naive.hpp>
 namespace {
     using fn_backend_t = gridtools::fn::backend::naive;
 }
@@ -38,7 +38,7 @@ namespace {
 #ifndef GT_TIMER_CUDA
 #define GT_TIMER_CUDA
 #endif
-#include <gridtools/fn/backend2/gpu.hpp>
+#include <gridtools/fn/backend/gpu.hpp>
 namespace {
     template <int... sizes>
     using block_sizes_t =
