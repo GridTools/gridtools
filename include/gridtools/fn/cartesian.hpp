@@ -72,28 +72,30 @@ namespace gridtools::fn {
 
         template <class Backend, class Domain, class TmpAllocator>
         struct backend {
+            Backend m_backend;
             Domain m_domain;
             TmpAllocator m_allocator;
 
             auto stencil_executor() const {
                 return [&] {
-                    return make_stencil_executor(Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator());
+                    return make_stencil_executor(m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator());
                 };
             }
 
             template <class Vertical = dim::k>
             auto vertical_executor(Vertical = {}) const {
+                std::cout << m_backend.stream << std::endl;
                 return [&] {
                     return make_vertical_executor<Vertical>(
-                        Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator());
+                        m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator());
                 };
             }
         };
 
         template <class Backend, class Sizes, class Offsets>
-        auto make_backend(Backend, cartesian_domain<Sizes, Offsets> const &d) {
+        auto make_backend(Backend b, cartesian_domain<Sizes, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
-            return backend<Backend, cartesian_domain<Sizes, Offsets>, decltype(allocator)>{d, std::move(allocator)};
+            return backend<Backend, cartesian_domain<Sizes, Offsets>, decltype(allocator)>{b, d, std::move(allocator)};
         }
     } // namespace cartesian_impl_
     using cartesian_impl_::cartesian_domain;

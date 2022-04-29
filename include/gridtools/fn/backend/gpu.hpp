@@ -34,6 +34,7 @@ namespace gridtools::fn::backend {
         template <class BlockSizes>
         struct gpu {
             using block_sizes_t = BlockSizes;
+            cudaStream_t stream = 0;
         };
 
         template <class BlockSizes, class Dims, int I>
@@ -140,7 +141,7 @@ namespace gridtools::fn::backend {
 
         template <class BlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
         void apply_stencil_stage(
-            gpu<BlockSizes>, Sizes const &sizes, StencilStage, MakeIterator make_iterator, Composite &&composite) {
+            gpu<BlockSizes> g, Sizes const &sizes, StencilStage, MakeIterator make_iterator, Composite &&composite) {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
 
@@ -148,6 +149,7 @@ namespace gridtools::fn::backend {
             cuda_util::launch(blocks,
                 threads,
                 0,
+                g.stream,
                 kernel<BlockSizes,
                     Sizes,
                     decltype(ptr_holder),
@@ -178,7 +180,7 @@ namespace gridtools::fn::backend {
             class Composite,
             class Vertical,
             class Seed>
-        void apply_column_stage(gpu<BlockSizes>,
+        void apply_column_stage(gpu<BlockSizes> g,
             Sizes const &sizes,
             ColumnStage,
             MakeIterator make_iterator,
@@ -194,6 +196,7 @@ namespace gridtools::fn::backend {
             cuda_util::launch(blocks,
                 threads,
                 0,
+                g.stream,
                 kernel<BlockSizes,
                     decltype(h_sizes),
                     decltype(ptr_holder),

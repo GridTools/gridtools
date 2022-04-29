@@ -17,6 +17,7 @@
 #include "./column_stage.hpp"
 #include "./run.hpp"
 #include "./stencil_stage.hpp"
+#include <iostream>
 
 namespace gridtools::fn {
     namespace executor_impl_ {
@@ -28,11 +29,12 @@ namespace gridtools::fn {
             class Args = std::tuple<>,
             class Specs = meta::list<>>
         struct executor_data {
+            Backend m_backend;
             Sizes m_sizes;
             Offsets m_offsets;
             MakeIterator m_make_iterator;
             Args m_args = {};
-            using backend_t = Backend;
+            // using backend_t = Backend;
             using arg_offset_t = std::integral_constant<int, ArgOffset>;
             using specs_t = Specs;
 
@@ -41,14 +43,22 @@ namespace gridtools::fn {
                 auto args = tuple_util::deep_copy(
                     tuple_util::push_back(std::move(m_args), sid::shift_sid_origin(std::forward<Arg>(arg), m_offsets)));
                 return executor_data<Backend, ArgOffset, Sizes, Offsets, MakeIterator, decltype(args), Specs>{
-                    std::move(m_sizes), std::move(m_offsets), std::move(m_make_iterator), std::move(args)};
+                    std::move(m_backend),
+                    std::move(m_sizes),
+                    std::move(m_offsets),
+                    std::move(m_make_iterator),
+                    std::move(args)};
             }
 
             template <class Spec>
             auto spec(Spec) && {
                 using specs_t = meta::push_back<Specs, Spec>;
                 return executor_data<Backend, ArgOffset, Sizes, Offsets, MakeIterator, Args, specs_t>{
-                    std::move(m_sizes), std::move(m_offsets), std::move(m_make_iterator), std::move(m_args)};
+                    std::move(m_backend),
+                    std::move(m_sizes),
+                    std::move(m_offsets),
+                    std::move(m_make_iterator),
+                    std::move(m_args)};
             }
         };
 
@@ -71,7 +81,7 @@ namespace gridtools::fn {
             }
 
             void execute() && {
-                run_stencil_stages(typename Data::backend_t(),
+                run_stencil_stages(std::move(m_data.m_backend),
                     typename Data::specs_t(),
                     std::move(m_data.m_make_iterator),
                     std::move(m_data.m_sizes),
@@ -101,7 +111,7 @@ namespace gridtools::fn {
             }
 
             void execute() && {
-                run_column_stages(typename Data::backend_t(),
+                run_column_stages(std::move(m_data.m_backend),
                     typename Data::specs_t(),
                     std::move(m_data.m_make_iterator),
                     std::move(m_data.m_sizes),
@@ -114,16 +124,19 @@ namespace gridtools::fn {
         // ArgOffset allows passing some args for backend usage while keeping them hidden from the user
         template <int ArgOffset = 0, class Backend, class Sizes, class Offsets, class MakeIterator>
         auto make_stencil_executor(
-            Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
-            executor_data<Backend, ArgOffset, Sizes, Offsets, MakeIterator> data{sizes, offsets, make_iterator};
+            Backend const &backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
+            executor_data<Backend, ArgOffset, Sizes, Offsets, MakeIterator> data{
+                backend, sizes, offsets, make_iterator};
             return stencil_executor<decltype(data)>{std::move(data)};
         }
 
         // ArgOffset allows passing some args for backend usage while keeping them hidden from the user
         template <class Vertical, int ArgOffset = 0, class Backend, class Sizes, class Offsets, class MakeIterator>
         auto make_vertical_executor(
-            Backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
-            executor_data<Backend, ArgOffset, Sizes, Offsets, MakeIterator> data{sizes, offsets, make_iterator};
+            Backend backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
+            executor_data<Backend, ArgOffset, Sizes, Offsets, MakeIterator> data{
+                backend, sizes, offsets, make_iterator};
+            std::cout << backend.stream << std::endl;
             return vertical_executor<Vertical, decltype(data)>{std::move(data)};
         }
     } // namespace executor_impl_

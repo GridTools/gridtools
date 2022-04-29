@@ -137,6 +137,7 @@ namespace gridtools::fn {
 
         template <class Backend, class Domain, class TmpAllocator>
         struct backend {
+            Backend m_backend;
             Domain m_domain;
             TmpAllocator m_allocator;
 
@@ -145,7 +146,7 @@ namespace gridtools::fn {
             auto stencil_executor() const {
                 return [&] {
                     return make_stencil_executor<1>(
-                        Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
+                        m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
                         .arg(index); // the horizontal index is passed as the first argument
                 };
             }
@@ -154,17 +155,17 @@ namespace gridtools::fn {
             auto vertical_executor(Vertical = {}) const {
                 return [&] {
                     return make_vertical_executor<Vertical, 1>(
-                        Backend(), m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
+                        m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
                         .arg(index); // the horizontal index is passed as the first argument
                 };
             }
         };
 
         template <class Backend, class Tables, class Sizes, class Offsets>
-        auto make_backend(Backend, domain_with_offsets<Tables, Sizes, Offsets> const &d) {
+        auto make_backend(Backend b, domain_with_offsets<Tables, Sizes, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
             return backend<Backend, domain_with_offsets<Tables, Sizes, Offsets>, decltype(allocator)>{
-                d, std::move(allocator)};
+                std::move(b), d, std::move(allocator)};
         }
     } // namespace unstructured_impl_
 
