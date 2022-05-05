@@ -43,7 +43,7 @@ namespace gridtools {
             *sid::get_origin(testee)();
         }
 
-#if !defined(__NVCC__)
+#if !defined(__NVCC__) && !defined(__NVCOMPILER)
         TEST(composite, deduction) {
 #if defined(__clang__) || defined(__GNUC__) && __GNUC__ > 8
             sid::composite::keys<>::values();

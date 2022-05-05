@@ -99,7 +99,13 @@ namespace gridtools {
                                 std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>,
                             "All accessors should be of the same location");
                         host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
-                            [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
+                            [&
+// silence an annoying warning with deep template error: `the implicit by-copy capture of "this" is deprecated`
+#if defined(__NVCOMPILER) && (__NVCOMPILER_MAJOR__ < 23 || __NVCOMPILER_MAJOR__ == 22 && __NVCOMPILER_MINOR__ <= 3)
+                                ,
+                                *this
+#endif
+                        ](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
                     }
                 };
 

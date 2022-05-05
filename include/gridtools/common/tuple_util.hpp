@@ -1582,8 +1582,10 @@ namespace gridtools {
              *   convert_to<gridtools::array, int>(some_tuple_like);
              */
             template <template <class...> class L
-#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5)
+#if (defined(__NVCOMPILER) &&                                                                   \
+     (__NVCOMPILER_MAJOR__ < 23 || __NVCOMPILER_MAJOR__ == 22 && __NVCOMPILER_MINOR__ <= 3)) || \
+    (defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) &&                                      \
+        (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5))
                 // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
                 ,
                 int = 0,
@@ -1595,8 +1597,9 @@ namespace gridtools {
             }
 
             template <template <class...> class L
-#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5)
+#if defined(__NVCOMPILER) ||                               \
+    (defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
+        (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5))
 
                 // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
                 ,
