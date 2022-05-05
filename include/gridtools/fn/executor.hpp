@@ -17,7 +17,6 @@
 #include "./column_stage.hpp"
 #include "./run.hpp"
 #include "./stencil_stage.hpp"
-#include <iostream>
 
 namespace gridtools::fn {
     namespace executor_impl_ {
@@ -34,7 +33,6 @@ namespace gridtools::fn {
             Offsets m_offsets;
             MakeIterator m_make_iterator;
             Args m_args = {};
-            // using backend_t = Backend;
             using arg_offset_t = std::integral_constant<int, ArgOffset>;
             using specs_t = Specs;
 
@@ -136,7 +134,6 @@ namespace gridtools::fn {
             Backend backend, Sizes const &sizes, Offsets const &offsets, MakeIterator const &make_iterator) {
             executor_data<Backend, ArgOffset, Sizes, Offsets, MakeIterator> data{
                 backend, sizes, offsets, make_iterator};
-            std::cout << backend.stream << std::endl;
             return vertical_executor<Vertical, decltype(data)>{std::move(data)};
         }
     } // namespace executor_impl_

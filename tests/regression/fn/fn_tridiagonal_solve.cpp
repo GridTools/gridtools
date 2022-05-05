@@ -96,10 +96,7 @@ namespace {
         using float_t = typename TypeParam::float_t;
 
         auto fencil = [&](auto sizes, auto const &a, auto const &b, auto const &c, auto const &d, auto &x) {
-            cudaStream_t s;
-            cudaStreamCreate(&s);
-            std::cout << s << std::endl;
-            auto be = fn_backend_t{s}; // TODO undo
+            auto be = fn_backend_t();
             auto domain = cartesian_domain(sizes);
             auto backend = make_backend(be, domain);
             auto alloc = tmp_allocator(be);
@@ -124,10 +121,7 @@ namespace {
 
         auto fencil =
             [&](int nvertices, int nlevels, auto const &a, auto const &b, auto const &c, auto const &d, auto &x) {
-                cudaStream_t s;
-                cudaStreamCreate(&s);
-                std::cout << s << std::endl;
-                auto be = fn_backend_t{s};
+                auto be = fn_backend_t();
                 auto domain = unstructured_domain({nvertices, nlevels}, {});
                 auto backend = make_backend(be, domain);
                 auto alloc = tmp_allocator(be);

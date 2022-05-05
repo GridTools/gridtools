@@ -74,34 +74,19 @@ namespace gridtools {
             return res;
         }
 
-// #ifdef GT_CUDACC
-//         template <class Kernel, class... Args>
-//         void launch(dim3 const &blocks, dim3 const &threads, size_t shared_memory_size, Kernel kernel, Args... args)
-//         {
-// #ifndef __HIPCC__
-//             GT_CUDA_CHECK(
-//                 cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_memory_size));
-// #endif
-//             kernel<<<blocks, threads, shared_memory_size>>>(std::move(args)...);
-//             GT_CUDA_CHECK(cudaGetLastError());
-// #ifndef NDEBUG
-//             GT_CUDA_CHECK(cudaDeviceSynchronize());
-// #endif
-//         }
-// #endif
 #ifdef GT_CUDACC
         template <class Kernel, class... Args>
         void launch(dim3 const &blocks,
             dim3 const &threads,
             size_t shared_memory_size,
-            cudaStream_t s,
+            cudaStream_t stream,
             Kernel kernel,
             Args... args) {
 #ifndef __HIPCC__
             GT_CUDA_CHECK(
                 cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_memory_size));
 #endif
-            kernel<<<blocks, threads, shared_memory_size, s>>>(std::move(args)...);
+            kernel<<<blocks, threads, shared_memory_size, stream>>>(std::move(args)...);
             GT_CUDA_CHECK(cudaGetLastError());
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
