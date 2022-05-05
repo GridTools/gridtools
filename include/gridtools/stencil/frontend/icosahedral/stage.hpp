@@ -103,7 +103,7 @@ namespace gridtools {
 // silence an annoying warning with deep template error: `the implicit by-copy capture of "this" is deprecated`
 #if defined(__NVCOMPILER) && (__NVCOMPILER_MAJOR__ < 23 || __NVCOMPILER_MAJOR__ == 22 && __NVCOMPILER_MINOR__ <= 3)
                                 ,
-                                *this
+                                this
 #endif
                         ](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
                     }
