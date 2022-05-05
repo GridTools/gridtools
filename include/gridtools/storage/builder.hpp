@@ -230,7 +230,7 @@ namespace gridtools {
 
               public:
                 template <size_t Size = tuple_util::size<Params>::value, std::enable_if_t<Size == 0, int> = 0>
-#if defined(__NVCOMPILER) && (__NVCOMPILER_MAJOR__ < 23 || __NVCOMPILER_MAJOR__ == 22 && __NVCOMPILER_MINOR__ <= 3)
+#if defined(__NVCOMPILER) && (__NVCOMPILER_MAJOR__ < 22 || __NVCOMPILER_MAJOR__ == 22 && __NVCOMPILER_MINOR__ <= 3)
                 constexpr builder_type() : m_params{Params{}} {
                 }
 #else
