@@ -22,7 +22,7 @@ namespace gridtools::fn {
 
     template <int I, class Tuple>
     GT_FUNCTION auto &&tuple_get(integral_constant<int, I>, Tuple &&t) {
-        return tuple_util::get<I>(std::forward<Tuple>(t));
+        return tuple_util::host_device::get<I>(std::forward<Tuple>(t));
     }
 
     template <class... Args>
