@@ -34,7 +34,8 @@ namespace gridtools {
         namespace cpu_ifirst_backend {
             template <class ThreadPool = thread_pool::omp>
             struct cpu_ifirst {
-                template <class Spec, class Grid, class DataStores>
+                // TODO fix before merge: enable only for NVC++
+                template <class Spec, class Grid, class DataStores, class ThreadPoolFwd = ThreadPool>
                 friend void gridtools_backend_entry_point(
                     cpu_ifirst, Spec, Grid const &grid, DataStores external_data_stores) {
                     using stages_t = be_api::make_split_view<Spec>;
@@ -48,7 +49,7 @@ namespace gridtools {
 
                     tmp_allocator alloc;
 
-                    execinfo info(ThreadPool(), grid);
+                    execinfo info(ThreadPoolFwd(), grid);
 
                     using tmp_plh_map_t = be_api::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
                     auto temporaries = be_api::make_data_stores(tmp_plh_map_t(),
@@ -59,7 +60,7 @@ namespace gridtools {
                             return make_tmp_storage<decltype(info.data()),
                                 decltype(info.extent()),
                                 fuse_all_t::value,
-                                ThreadPool>(alloc, block_size);
+                                ThreadPoolFwd>(alloc, block_size);
                         });
 
                     auto blocked_externals = tuple_util::transform(
@@ -84,12 +85,12 @@ namespace gridtools {
                                     return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
                                 },
                                 stage_t::plh_map()));
-                            return make_loop<ThreadPool, stage_t>(
+                            return make_loop<ThreadPoolFwd, stage_t>(
                                 fuse_all_t(), grid, std::move(composite), std::move(k_sizes));
                         },
                         meta::rename<tuple, stages_t>());
 
-                    run_loops<ThreadPool>(fuse_all_t(), grid, std::move(loops));
+                    run_loops<ThreadPoolFwd>(fuse_all_t(), grid, std::move(loops));
                 }
             };
         } // namespace cpu_ifirst_backend
