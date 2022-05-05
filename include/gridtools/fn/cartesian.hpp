@@ -84,7 +84,6 @@ namespace gridtools::fn {
 
             template <class Vertical = dim::k>
             auto vertical_executor(Vertical = {}) const {
-                std::cout << m_backend.stream << std::endl;
                 return [&] {
                     return make_vertical_executor<Vertical>(
                         m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator());
