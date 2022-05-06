@@ -45,7 +45,7 @@ namespace {
                     auto correction = -cs * (deref(shift(u_stage, k, 1)) - deref(u_stage));
                     auto d = deref(dtr_stage) * deref(u_pos) + deref(utens) + deref(utens_stage) + correction;
                     auto divided = float_t(1) / b;
-                    return tuple(c * divided, d * divided);
+                    return make_tuple(c * divided, d * divided);
                 },
                 host_device::identity()));
         }
@@ -74,7 +74,7 @@ namespace {
                     auto d = deref(dtr_stage) * deref(u_pos) + deref(utens) + deref(utens_stage) + correction;
                     auto [cp, dp] = acc;
                     auto divided = float_t(1) / (b - cp * a);
-                    return tuple(c * divided, (d - dp * a) * divided);
+                    return make_tuple(c * divided, (d - dp * a) * divided);
                 },
                 host_device::identity());
         }
@@ -99,7 +99,7 @@ namespace {
                     auto d = deref(dtr_stage) * deref(u_pos) + deref(utens) + deref(utens_stage) + correction;
                     auto [cp, dp] = acc;
                     auto divided = float_t(1) / (b - cp * a);
-                    return tuple(float_t(0), (d - dp * a) * divided);
+                    return make_tuple(float_t(0), (d - dp * a) * divided);
                 },
                 host_device::identity()));
         }
@@ -109,20 +109,20 @@ namespace {
         static GT_FUNCTION constexpr auto prologue() {
             return tuple(scan_pass(
                 [](auto /*acc*/, auto const &cd, auto const &u_pos, auto const &dtr_stage) {
-                    auto d = get<1>(deref(cd));
-                    return tuple(deref(dtr_stage) * (d - deref(u_pos)), d);
+                    auto d = tuple_get(1_c, deref(cd));
+                    return make_tuple(deref(dtr_stage) * (d - deref(u_pos)), d);
                 },
-                [](auto const &acc) { return get<0>(acc); }));
+                [](auto const &acc) { return tuple_get(0_c, acc); }));
         }
 
         static GT_FUNCTION constexpr auto body() {
             return scan_pass(
                 [](auto acc, auto const &cd, auto const &u_pos, auto const &dtr_stage) {
                     auto [c, d] = deref(cd);
-                    auto data = d - c * get<1>(acc);
+                    auto data = d - c * tuple_get(1_c, acc);
                     return tuple(deref(dtr_stage) * (data - deref(u_pos)), data);
                 },
-                [](auto const &acc) { return get<0>(acc); });
+                [](auto const &acc) { return tuple_get(0_c, acc); });
         }
     };
 
