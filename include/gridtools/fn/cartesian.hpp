@@ -92,7 +92,7 @@ namespace gridtools::fn {
         };
 
         template <class Backend, class Sizes, class Offsets>
-        auto make_backend(Backend b, cartesian_domain<Sizes, Offsets> const &d) {
+        auto make_backend(Backend const &b, cartesian_domain<Sizes, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
             return backend<Backend, cartesian_domain<Sizes, Offsets>, decltype(allocator)>{b, d, std::move(allocator)};
         }

@@ -26,7 +26,7 @@ namespace gridtools::fn {
 
         template <class Backend, class StageSpecs, class MakeIterator, class Domain, class Sids>
         void run_stencil_stages(
-            Backend backend, StageSpecs, MakeIterator const &make_iterator, Domain const &domain, Sids &&sids) {
+            Backend const &backend, StageSpecs, MakeIterator const &make_iterator, Domain const &domain, Sids &&sids) {
             auto composite = make_composite(std::forward<Sids>(sids));
             tuple_util::for_each(
                 [&](auto stage) { apply_stencil_stage(backend, domain, std::move(stage), make_iterator, composite); },
@@ -40,7 +40,7 @@ namespace gridtools::fn {
             class Vertical,
             class Sids,
             class Seeds>
-        void run_column_stages(Backend backend,
+        void run_column_stages(Backend const &backend,
             StageSpecs,
             MakeIterator const &make_iterator,
             Domain const &domain,

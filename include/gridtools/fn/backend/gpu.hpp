@@ -141,7 +141,7 @@ namespace gridtools::fn::backend {
 
         template <class BlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
         void apply_stencil_stage(
-            gpu<BlockSizes> g, Sizes const &sizes, StencilStage, MakeIterator make_iterator, Composite &&composite) {
+            gpu<BlockSizes>const &g, Sizes const &sizes, StencilStage, MakeIterator make_iterator, Composite &&composite) {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
 
@@ -180,7 +180,7 @@ namespace gridtools::fn::backend {
             class Composite,
             class Vertical,
             class Seed>
-        void apply_column_stage(gpu<BlockSizes> g,
+        void apply_column_stage(gpu<BlockSizes> const &g,
             Sizes const &sizes,
             ColumnStage,
             MakeIterator make_iterator,

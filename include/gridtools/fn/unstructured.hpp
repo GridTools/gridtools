@@ -162,7 +162,7 @@ namespace gridtools::fn {
         };
 
         template <class Backend, class Tables, class Sizes, class Offsets>
-        auto make_backend(Backend b, domain_with_offsets<Tables, Sizes, Offsets> const &d) {
+        auto make_backend(Backend const &b, domain_with_offsets<Tables, Sizes, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
             return backend<Backend, domain_with_offsets<Tables, Sizes, Offsets>, decltype(allocator)>{
                 std::move(b), d, std::move(allocator)};
