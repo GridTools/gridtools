@@ -14,7 +14,6 @@
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/enable_maker.hpp"
 #include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
@@ -165,7 +164,7 @@ namespace gridtools {
              *
              */
             template <class...>
-            struct keys : private enable_maker {
+            struct keys {
                 template <class...>
                 struct composite_ptr;
                 template <class...>
@@ -178,7 +177,11 @@ namespace gridtools {
                 template <class... Sids>
                 values(Sids const &...) -> values<Sids...>;
 #endif
-                static constexpr maker<values> make_values = {};
+                // NVCC 11 fails to do class template deduction in the case of nested templates
+                template <class... Args>
+                static constexpr GT_FUNCTION values<Args...> make_values(Args const &...args) {
+                    return {args...};
+                }
             };
 
             template <class... Keys>
