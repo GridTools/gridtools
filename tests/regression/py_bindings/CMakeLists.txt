@@ -26,7 +26,13 @@ if(NOT pybind11_POPULATED)
 endif()
 
 pybind11_add_module(py_implementation implementation.cpp)
+target_compile_options(py_implementation PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
 
 target_link_libraries(py_implementation PRIVATE gridtools)
 
 add_test(NAME py_bindings COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/driver.py)
+
+pybind11_add_module(python_neighbor_table_implementation python_neighbor_table_implementation.cpp)
+target_compile_options(python_neighbor_table_implementation PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+target_link_libraries(python_neighbor_table_implementation PRIVATE gridtools)
+add_test(NAME python_neighbor_table COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python_neighbor_table_driver.py)
