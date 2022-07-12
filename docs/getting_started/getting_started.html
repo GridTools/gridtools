@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting Started &mdash; GridTools 2.2.0 documentation</title>
+  <title>Getting Started &mdash; GridTools 2.3.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/cscs.css" type="text/css" />
@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -33,7 +34,7 @@
             <img src="../_static/logo.svg" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.2
+                2.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -101,7 +102,7 @@
            <div itemprop="articleBody">
              
   <section id="getting-started">
-<span id="id1"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline"></a></h1>
+<span id="id1"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
 <p>This chapter describes how to use <cite>GridTools</cite> to solve a (simple) PDE.
 We will use a fourth-order horizontal smoothing filter
 to explain the necessary steps to assemble a
@@ -128,7 +129,7 @@ first we calculate the Laplacian of <span class="math notranslate nohighlight">\
 <li><p>The final stencil: function calls, apply-method overloads and temporaries</p></li>
 </ul>
 <section id="coordinate-system">
-<h2>Coordinate System<a class="headerlink" href="#coordinate-system" title="Permalink to this headline"></a></h2>
+<h2>Coordinate System<a class="headerlink" href="#coordinate-system" title="Permalink to this heading"></a></h2>
 <p>For a finite difference discretization we restrict the field
 <span class="math notranslate nohighlight">\(\phi \in \mathbb{R}^3\)</span> to a discrete grid. We use the notation
 <span class="math notranslate nohighlight">\(i = x_i\)</span> and <span class="math notranslate nohighlight">\(j = y_j\)</span> for the horizontal dimension and <span class="math notranslate nohighlight">\(k = z_k\)</span> for
@@ -154,7 +155,7 @@ points in the boundary region.</p>
 </figure>
 </section>
 <section id="storages">
-<h2>Storages<a class="headerlink" href="#storages" title="Permalink to this headline"></a></h2>
+<h2>Storages<a class="headerlink" href="#storages" title="Permalink to this heading"></a></h2>
 <p>In this section we will set up the fields for our example: we need a
 storage for the <span class="math notranslate nohighlight">\(\phi\)</span>-field (<code class="docutils literal notranslate"><span class="pre">phi_in</span></code>) and a storage for the output
 (<code class="docutils literal notranslate"><span class="pre">phi_out</span></code>).</p>
@@ -165,7 +166,7 @@ following capabilities:</p>
 <li><p>synchronization between CPU memory and a device (e.g. a CUDA capable GPU)</p></li>
 </ul>
 <section id="storage-traits">
-<span id="getting-started-storage-traits"></span><h3>Storage Traits<a class="headerlink" href="#storage-traits" title="Permalink to this headline"></a></h3>
+<span id="getting-started-storage-traits"></span><h3>Storage Traits<a class="headerlink" href="#storage-traits" title="Permalink to this heading"></a></h3>
 <p>Since the storages depend on the architecture (e.g. CPU or GPU) our first step
 is to define the <em>storage traits</em> type which typically looks like</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;gridtools/storage/gpu.hpp&gt;</span><span class="cp"></span>
@@ -180,7 +181,7 @@ is to define the <em>storage traits</em> type which typically looks like</p>
 <p>for the CPU <a class="reference internal" href="../glossary/glossary.html#term-Storage-Traits"><span class="xref std std-term">Storage Traits</span></a>.</p>
 </section>
 <section id="building-storages">
-<h3>Building Storages<a class="headerlink" href="#building-storages" title="Permalink to this headline"></a></h3>
+<h3>Building Storages<a class="headerlink" href="#building-storages" title="Permalink to this heading"></a></h3>
 <p>For efficient memory accesses the index ordering might depend on the target architecture, therefore the
 memory layout will be implicitly decided by storage traits.</p>
 <p><cite>GridTools</cite> storage classes don’t have user facing constructors. The builder design pattern is used instead.
@@ -230,11 +231,11 @@ sizes. However, if only one set of dimensions is used, the <code class="docutils
 </section>
 </section>
 <section id="stencils">
-<h2>Stencils<a class="headerlink" href="#stencils" title="Permalink to this headline"></a></h2>
+<h2>Stencils<a class="headerlink" href="#stencils" title="Permalink to this heading"></a></h2>
 <p>A <em>stencil</em> is a kernel that updates array elements according to a fixed
 access pattern.</p>
 <section id="example-naive-2d-laplacian">
-<h3>Example: Naive 2D Laplacian<a class="headerlink" href="#example-naive-2d-laplacian" title="Permalink to this headline"></a></h3>
+<h3>Example: Naive 2D Laplacian<a class="headerlink" href="#example-naive-2d-laplacian" title="Permalink to this heading"></a></h3>
 <p>The simplest discretization of the 2D Laplacian is the finite difference
 five-point stencil as depicted in <a class="reference internal" href="#fig-getting-started-2dlap"><span class="std std-numref">Fig. 2</span></a>.</p>
 <figure class="align-default" id="id3">
@@ -276,25 +277,25 @@ on the boundary layer and have to exclude it from the loop.</p>
 </section>
 </section>
 <section id="first-gridtools-stencil">
-<h2>First GridTools Stencil<a class="headerlink" href="#first-gridtools-stencil" title="Permalink to this headline"></a></h2>
+<h2>First GridTools Stencil<a class="headerlink" href="#first-gridtools-stencil" title="Permalink to this heading"></a></h2>
 <p>In <cite>GridTools</cite> the loop logic and the storage order are implemented (and optimized) by the library while the update function, to
 be applied to each gridpoint, is implemented by the user. The loop logic (for a given architecture) is combined with the
 user-defined update function at compile-time by template meta-programming.</p>
 <section id="update-logic-gridtools-2d-laplacian">
-<h3>Update-logic: GridTools 2D Laplacian<a class="headerlink" href="#update-logic-gridtools-2d-laplacian" title="Permalink to this headline"></a></h3>
+<h3>Update-logic: GridTools 2D Laplacian<a class="headerlink" href="#update-logic-gridtools-2d-laplacian" title="Permalink to this heading"></a></h3>
 <p>The update-logic is implemented with state-less functors. A
 <cite>GridTools</cite> functor is a <code class="docutils literal notranslate"><span class="pre">struct</span></code> or <code class="docutils literal notranslate"><span class="pre">class</span></code> providing a <em>static</em> method
 called <code class="docutils literal notranslate"><span class="pre">apply</span></code>. The update-logic is implemented in these <a class="reference internal" href="../glossary/glossary.html#term-Apply-Method"><span class="xref std std-term">Apply-Methods</span></a>.
 As the functors are state-less (no member variables, static methods
 only) they can be passed by type, i.e. at compile-time, and therefore
 allow for compile-time optimizations.</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">lap_function</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">lap_function</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="k">extent</span><span class="o">&lt;</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="o">&gt;&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">lap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">param_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">make_param_list</span><span class="o">&lt;</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">lap</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
 <span class="w">    </span><span class="cp">GT_FUNCTION</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="n">eval</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">eval</span><span class="p">(</span><span class="n">lap</span><span class="p">())</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="mf">-4.</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">in</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">));</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
@@ -340,7 +341,7 @@ This is necessary to map the compile-time parameter, the <code class="docutils l
 the run-time data in the <code class="docutils literal notranslate"><span class="pre">data_store</span></code>.</p>
 </section>
 <section id="calling-the-stencil">
-<h3>Calling the Stencil<a class="headerlink" href="#calling-the-stencil" title="Permalink to this headline"></a></h3>
+<h3>Calling the Stencil<a class="headerlink" href="#calling-the-stencil" title="Permalink to this heading"></a></h3>
 <p>In the naive implementation, the call to the <code class="docutils literal notranslate"><span class="pre">laplacian</span></code> is as simple as</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">boundary_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
 <span class="n">laplacian</span><span class="p">(</span><span class="w"> </span><span class="n">lap</span><span class="p">,</span><span class="w"> </span><span class="n">phi</span><span class="p">,</span><span class="w"> </span><span class="n">boundary_size</span><span class="w"> </span><span class="p">);</span><span class="w"></span>
@@ -385,7 +386,7 @@ Hence, we can use the simple <code class="docutils literal notranslate"><span cl
 The number and the order of storage arguments should match the number of stencil accessors.</p>
 </section>
 <section id="full-gridtools-laplacian">
-<h3>Full GridTools Laplacian<a class="headerlink" href="#full-gridtools-laplacian" title="Permalink to this headline"></a></h3>
+<h3>Full GridTools Laplacian<a class="headerlink" href="#full-gridtools-laplacian" title="Permalink to this heading"></a></h3>
 <p>The full working example looks as follows:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="cm">/*</span>
 <span class="linenos"> 2</span><span class="cm"> * GridTools</span>
@@ -418,13 +419,13 @@ The number and the order of storage arguments should match the number of stencil
 <span class="linenos">29</span><span class="k">using</span><span class="w"> </span><span class="n">storage_traits_t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">storage</span><span class="o">::</span><span class="n">cpu_ifirst</span><span class="p">;</span><span class="w"></span>
 <span class="linenos">30</span><span class="cp">#endif</span>
 <span class="linenos">31</span>
-<span class="linenos">32</span><span class="k">struct</span> <span class="nc">lap_function</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="linenos">32</span><span class="k">struct</span><span class="w"> </span><span class="nc">lap_function</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="linenos">33</span><span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="k">extent</span><span class="o">&lt;</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="o">&gt;&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="linenos">34</span><span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">lap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="linenos">35</span>
 <span class="linenos">36</span><span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">param_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">make_param_list</span><span class="o">&lt;</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">lap</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="linenos">37</span>
-<span class="linenos">38</span><span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
+<span class="linenos">38</span><span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
 <span class="linenos">39</span><span class="w">    </span><span class="cp">GT_FUNCTION</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="n">eval</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="linenos">40</span><span class="w">        </span><span class="n">eval</span><span class="p">(</span><span class="n">lap</span><span class="p">())</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="mf">-4.</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">in</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">));</span><span class="w"></span>
 <span class="linenos">41</span><span class="w">    </span><span class="p">}</span><span class="w"></span>
@@ -458,7 +459,7 @@ we won’t discuss them now in detail.</p>
 Here we use the <cite>GridTools</cite> internal <code class="docutils literal notranslate"><span class="pre">GT_CUDA</span></code> macro to do this. The macro is used to set the correct <a class="reference internal" href="../glossary/glossary.html#term-Backend"><span class="xref std std-term">Backend</span></a>
 and <a class="reference internal" href="../glossary/glossary.html#term-Storage-Traits"><span class="xref std std-term">Storage Traits</span></a> for the CUDA or CPU architecture, respectively.</p>
 <p>The code example can be compiled using the following simple CMake script (requires an installation of <cite>GridTools</cite>, see <a class="reference internal" href="../introduction/introduction.html#installation"><span class="std std-ref">Installing and Validating GridTools</span></a>).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span> <span class="mf">3.14.5</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span> <span class="mf">3.18.1</span><span class="p">)</span>
 
 <span class="n">project</span><span class="p">(</span><span class="n">GridTools</span><span class="o">-</span><span class="n">laplacian</span> <span class="n">LANGUAGES</span> <span class="n">CXX</span><span class="p">)</span>
 
@@ -475,7 +476,7 @@ and <a class="reference internal" href="../glossary/glossary.html#term-Storage-T
 </section>
 </section>
 <section id="assembling-stencils-smoothing-filter">
-<h2>Assembling Stencils: Smoothing Filter<a class="headerlink" href="#assembling-stencils-smoothing-filter" title="Permalink to this headline"></a></h2>
+<h2>Assembling Stencils: Smoothing Filter<a class="headerlink" href="#assembling-stencils-smoothing-filter" title="Permalink to this heading"></a></h2>
 <p>In the preceding section we saw how a first simple <cite>GridTools</cite> stencil
 is defined and executed. In this section we will use this stencil to
 compute our example PDE. A naive implementation could look as in</p>
@@ -516,13 +517,13 @@ compute our example PDE. A naive implementation could look as in</p>
 section: how to define special regions in the <span class="math notranslate nohighlight">\(k\)</span>-direction; how to use
 <cite>GridTools</cite> temporaries and how to call functors from functors.</p>
 <section id="apply-method-overload">
-<h3><cite>apply</cite>-method overload<a class="headerlink" href="#apply-method-overload" title="Permalink to this headline"></a></h3>
+<h3><cite>apply</cite>-method overload<a class="headerlink" href="#apply-method-overload" title="Permalink to this heading"></a></h3>
 <p>Our first <cite>GridTools</cite> implementation will be very close to the naive
 implementation: we will call two times the Laplacian functor from the
 previous section and store the result in two extra fields. Then we will
 call a third functor to compute the final result. This functor shows how
 we can specialize the computation in the <span class="math notranslate nohighlight">\(k\)</span>-direction:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">smoothing_function_1</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">smoothing_function_1</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">phi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">laplap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
@@ -531,12 +532,12 @@ we can specialize the computation in the <span class="math notranslate nohighlig
 
 <span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
 <span class="w">    </span><span class="cp">GT_FUNCTION</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span><span class="w"> </span><span class="o">&amp;</span><span class="n">eval</span><span class="p">,</span><span class="w"> </span><span class="n">lower_domain</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="n">phi</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">laplap</span><span class="p">());</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
 <span class="w">    </span><span class="cp">GT_FUNCTION</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span><span class="w"> </span><span class="o">&amp;</span><span class="n">eval</span><span class="p">,</span><span class="w"> </span><span class="n">upper_domain</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="n">phi</span><span class="p">());</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
@@ -585,7 +586,7 @@ a call to the stencil with the given arguments.</p>
 <cite>GridTools</cite> temporaries.</p>
 </section>
 <section id="gt-temporaries">
-<h3><cite>GridTools</cite> Temporaries<a class="headerlink" href="#gt-temporaries" title="Permalink to this headline"></a></h3>
+<h3><cite>GridTools</cite> Temporaries<a class="headerlink" href="#gt-temporaries" title="Permalink to this heading"></a></h3>
 <p><cite>GridTools</cite> <em>temporary storages</em> are storages with the lifetime of the
 <code class="docutils literal notranslate"><span class="pre">computation</span></code>. This is exactly what we need for the <code class="docutils literal notranslate"><span class="pre">lap</span></code> and <code class="docutils literal notranslate"><span class="pre">laplap</span></code>
 fields.</p>
@@ -632,7 +633,7 @@ no problem for correctness on current hardware (might change in the future) but 
 </div>
 </section>
 <section id="functor-calls">
-<h3>Functor Calls<a class="headerlink" href="#functor-calls" title="Permalink to this headline"></a></h3>
+<h3>Functor Calls<a class="headerlink" href="#functor-calls" title="Permalink to this heading"></a></h3>
 <p>The next feature we want to use is the <em>stencil function call</em>. In the first example we computed the Laplacian
 and the Laplacian of the Laplacian explicitly and stored the intermediate values in the temporaries. Stencil function
 calls will allow us do the computation on the fly and will allow us to get rid of the temporaries.</p>
@@ -644,7 +645,7 @@ faster one.</p>
 </div>
 <p>In the following we will remove only one of the temporaries. Instead of calling the Laplacian twice from the
 <code class="docutils literal notranslate"><span class="pre">spec</span></code>, we will move one of the calls into the smoothing functor. The new smoothing functor looks as follows</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">smoothing_function_3</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">smoothing_function_3</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">phi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">lap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="k">extent</span><span class="o">&lt;</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="o">&gt;&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
@@ -653,12 +654,12 @@ faster one.</p>
 
 <span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
 <span class="w">    </span><span class="cp">GT_FUNCTION</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span><span class="w"> </span><span class="o">&amp;</span><span class="n">eval</span><span class="p">,</span><span class="w"> </span><span class="n">lower_domain</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="n">phi</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">call</span><span class="o">&lt;</span><span class="n">lap_function</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span><span class="w"> </span><span class="n">lap</span><span class="p">()));</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
 <span class="w">    </span><span class="cp">GT_FUNCTION</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span><span class="w"> </span><span class="o">&amp;</span><span class="n">eval</span><span class="p">,</span><span class="w"> </span><span class="n">upper_domain</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="n">phi</span><span class="p">());</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
