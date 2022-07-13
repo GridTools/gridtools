@@ -30,13 +30,19 @@ PYBIND11_MODULE(python_neighbor_table_implementation, m) {
     m.def(
         "get_neighbor_0",
         [](py::buffer buf, int index) {
-            return tuple_util::get<0>(get_neighbors(as_neighbor_table<int, 4>(buf), index));
+            return tuple_util::get<0>(get_neighbors(as_neighbor_table<int, 3>(buf), index));
         },
         "Return neighbors.");
     m.def(
         "get_neighbor_1",
         [](py::buffer buf, int index) {
-            return tuple_util::get<1>(get_neighbors(as_neighbor_table<int, 4>(buf), index));
+            return tuple_util::get<1>(get_neighbors(as_neighbor_table<int, 3>(buf), index));
+        },
+        "Return neighbors.");
+    m.def(
+        "get_neighbor_2",
+        [](py::buffer buf, int index) {
+            return tuple_util::get<2>(get_neighbors(as_neighbor_table<int, 3>(buf), index));
         },
         "Return neighbors.");
 }

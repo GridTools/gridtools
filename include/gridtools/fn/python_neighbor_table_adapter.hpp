@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <utility>
+
 #include <pybind11/pybind11.h>
 
 #include "../common/array.hpp"
@@ -16,24 +18,27 @@
 
 namespace gridtools::fn {
     namespace python_neighbor_table_adapter_impl_ {
+        template <class T, std::size_t... Is>
+        array<T, sizeof...(Is)> array_maker(T *ptr, std::index_sequence<Is...>) {
+            return {ptr[Is]...};
+        }
+
         template <class T, std::size_t MaxNeighbors>
         struct wrapper {
-            pybind11::buffer_info m_info;
+            T *ptr;
+            pybind11::ssize_t stride;
 
             friend array<T, MaxNeighbors> neighbor_table_neighbors(wrapper const &obj, int index) {
-                int *ptr = reinterpret_cast<T *>(obj.m_info.ptr);
-                ptr += index * obj.m_info.strides[0] / obj.m_info.itemsize;
-                // auto val = *ptr;
-                // ptr += obj.m_info.strides[1] / obj.m_info.itemsize;
-                printf("s0: %d\n", obj.m_info.strides[0]);
-                printf("s1: %d\n", obj.m_info.strides[1]);
-                return {ptr[0], ptr[1]};
+                int *ptr = reinterpret_cast<T *>(obj.ptr);
+                ptr += index * obj.stride;
+                return array_maker(ptr, std::make_index_sequence<MaxNeighbors>{});
             };
         };
         template <class T, std::size_t MaxNeighbors>
         wrapper<T, MaxNeighbors> as_neighbor_table(pybind11::buffer src) {
             auto info = src.request(false);
-            return {std::move(info)};
+            // TODO check stride 1 dim etc.
+            return {reinterpret_cast<T *>(info.ptr), (info.strides[0] / info.itemsize)};
         }
 
     } // namespace python_neighbor_table_adapter_impl_
