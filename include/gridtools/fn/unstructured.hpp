@@ -170,5 +170,6 @@ namespace gridtools::fn {
     } // namespace unstructured_impl_
 
     using unstructured_impl_::connectivity;
+    using unstructured_impl_::make_backend;
     using unstructured_impl_::unstructured_domain;
 } // namespace gridtools::fn
