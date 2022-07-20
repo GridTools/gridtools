@@ -19,10 +19,9 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
 #include <pybind11/pybind11.h>
-
-#include <boost/variant.hpp>
 
 #include "../../common/array.hpp"
 #include "../../common/integral_constant.hpp"
@@ -207,7 +206,7 @@ namespace gridtools {
         struct descr_node {
             std::string name;
             std::string basic_name;
-            boost::variant<typestr, descr> type;
+            std::variant<typestr, descr> type;
             std::vector<size_t> shape;
         };
 
@@ -251,7 +250,7 @@ namespace gridtools {
         inline size_t size(typestr const &src) { return src.size; }
 
         inline size_t size(descr_node const &src) {
-            size_t res = boost::apply_visitor([](auto const &src) { return size(src); }, src.type);
+            size_t res = std::visit([](auto const &src) { return size(src); }, src.type);
             for (auto &&d : src.shape)
                 res *= d;
             return res;
