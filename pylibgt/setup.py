@@ -30,6 +30,6 @@ if __name__ == "__main__":
         packages=find_packages(where="py_src"),
         version=parse_version(version_file.read_text()),
         cmake_install_dir="py_src/gridtools/data",
-        cmake_args=["-DGT_INSTALL_EXAMPLES:BOOL=OFF"],
+        cmake_args=["-DBUILD_TESTING=OFF", -DGT_INSTALL_EXAMPLES:BOOL=OFF"],
         cmake_source_dir="../",
     )
