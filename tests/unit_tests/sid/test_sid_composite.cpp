@@ -254,5 +254,19 @@ namespace gridtools {
             EXPECT_EQ(dst0[0][0], 24);
             EXPECT_EQ(dst1[0][0], 42);
         }
+
+        struct move_only_sid {
+            std::unique_ptr<double> ptr;
+
+            friend constexpr auto sid_get_origin(move_only_sid &s) { return sid::simple_ptr_holder{s.ptr.get()}; }
+            friend constexpr tuple<integral_constant<int, 1>> sid_get_strides(move_only_sid const &) { return {}; }
+        };
+
+        static_assert(is_sid<move_only_sid>{});
+
+        TEST(composite, move_only) {
+            move_only_sid src0{std::unique_ptr<double>(new double)};
+            sid::composite::keys<a>::make_values(std::move(src0));
+        }
     } // namespace
 } // namespace gridtools
