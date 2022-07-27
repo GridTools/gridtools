@@ -1,10 +1,10 @@
 add_executable(perftests)
 
 file(WRITE 
-     "${CMAKE_BINARY_DIR}/perftests_dummy.cpp"
+     "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp"
      "// This file is needed in some cases because CMake targets must have at least one .cpp source."
 )
-target_sources(perftests PRIVATE "${CMAKE_BINARY_DIR}/perftests_dummy.cpp")
+target_sources(perftests PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
 
 target_link_libraries(perftests regression_main)
 
