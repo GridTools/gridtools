@@ -258,7 +258,7 @@ namespace gridtools {
         struct move_only_sid {
             std::unique_ptr<double> ptr;
 
-            friend constexpr auto sid_get_origin(move_only_sid &s) { return sid::simple_ptr_holder{s.ptr.get()}; }
+            friend auto sid_get_origin(move_only_sid &s) { return sid::simple_ptr_holder{s.ptr.get()}; }
             friend constexpr tuple<integral_constant<int, 1>> sid_get_strides(move_only_sid const &) { return {}; }
         };
 
