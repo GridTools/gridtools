@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <cstddef>
 #include <gtest/gtest.h>
 
 #include <gridtools/fn/cartesian.hpp>
@@ -24,40 +25,53 @@ namespace {
     struct forward_scan : fwd {
         static GT_FUNCTION constexpr auto body() {
             return scan_pass(
-                [](auto acc, auto const &field) {
-                    return acc + deref(field);
+                []([[maybe_unused]] auto acc, auto const &field, auto const &vertical_offset) {
+                    const auto shifted = shift(field, unstructured::dim::vertical{}, deref(vertical_offset));
+                    return deref(field) - deref(shifted);
                 },
                 host_device::identity());
         }
     };
 
-    constexpr inline auto field_function = [](auto...) { return 1; };
-    constexpr inline auto expected = [](auto...) { return 1; };
-
-    constexpr inline auto tridiagonal_solve = [](auto executor, auto const &field, auto &x) {
-        using float_t = sid::element_type<decltype(field)>;
-        executor()
-            .arg(field)
-            .arg(x)
-            .assign(1_c, forward_scan(), float_t(0), 0_c)
-            .execute();
+    constexpr auto input_function = []([[maybe_unused]] auto horizontal_idx, auto vertical_idx) -> float {
+        const float x = float(vertical_idx);
+        const float xp = x + 0.5f;
+        const float y = 0.5f * xp * xp;
+        return y;
     };
+    constexpr auto vertical_offset_function = []([[maybe_unused]] auto horizontal_idx, auto vertical_idx) -> int {
+        return vertical_idx > 0 ? -1 : 0;
+    };
+    constexpr auto expected = []([[maybe_unused]] auto horizontal_idx, auto vertical_idx) { return vertical_idx; };
+
+    constexpr auto vertical_indirection =
+        [](auto executor, auto const &input, auto &output, auto const &vertical_offsets) {
+            using float_t = sid::element_type<decltype(input)>;
+            executor()
+                .arg(input)
+                .arg(vertical_offsets)
+                .arg(output)
+                .assign(2_c, forward_scan(), float_t(0), 0_c, 1_c)
+                .execute();
+        };
 
     GT_REGRESSION_TEST(fn_vertical_indirection, vertical_test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
 
-        auto fencil = [&](int nvertices, int nlevels, auto const &field, auto &x) {
+        auto fencil = [&](int nvertices, int nlevels, auto const &field, auto &output, auto &vertical_offsets) {
             auto be = fn_backend_t();
-            auto domain = unstructured_domain({nvertices, nlevels}, {});
+            auto domain = unstructured_domain({nvertices, nlevels}, tuple{0, 0});
             auto backend = make_backend(be, domain);
             auto alloc = tmp_allocator(be);
-            tridiagonal_solve(backend.vertical_executor(), field, x);
+            vertical_indirection(backend.vertical_executor(), field, output, vertical_offsets);
         };
 
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto output_storage = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
-        const auto field_storage = mesh.make_const_storage(field_function, mesh.nvertices(), mesh.nlevels());
-        fencil(mesh.nvertices(), mesh.nlevels(), field_storage, output_storage);
+        const auto input_storage = mesh.make_const_storage(input_function, mesh.nvertices(), mesh.nlevels());
+        const auto vertical_offset_storage =
+            mesh.template make_const_storage<int>(vertical_offset_function, mesh.nvertices(), mesh.nlevels());
+        fencil(mesh.nvertices(), mesh.nlevels(), input_storage, output_storage, vertical_offset_storage);
         TypeParam::verify(expected, output_storage);
     }
 } // namespace
