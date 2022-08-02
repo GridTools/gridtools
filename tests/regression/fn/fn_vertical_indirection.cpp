@@ -22,14 +22,12 @@ namespace {
     using namespace fn;
     using namespace literals;
 
-    struct forward_scan : fwd {
-        static GT_FUNCTION constexpr auto body() {
-            return scan_pass(
-                []([[maybe_unused]] auto acc, auto const &field, auto const &vertical_offset) {
-                    const auto shifted = shift(field, unstructured::dim::vertical{}, deref(vertical_offset));
-                    return deref(field) - deref(shifted);
-                },
-                host_device::identity());
+    struct forward_scan {
+        auto operator()() const {
+            return [](auto const &field, auto const &vertical_offset) {
+                const auto shifted = shift(field, unstructured::dim::vertical{}, deref(vertical_offset));
+                return deref(field) - deref(shifted);
+            };
         }
     };
 
@@ -51,11 +49,11 @@ namespace {
                 .arg(input)
                 .arg(vertical_offsets)
                 .arg(output)
-                .assign(2_c, forward_scan(), float_t(0), 0_c, 1_c)
+                .assign(2_c, forward_scan(), 0_c, 1_c)
                 .execute();
         };
 
-    GT_REGRESSION_TEST(fn_vertical_indirection, vertical_test_environment<>, fn_backend_t) {
+    GT_REGRESSION_TEST(fn_vertical_indirection, test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
 
         auto fencil = [&](int nvertices, int nlevels, auto const &field, auto &output, auto &vertical_offsets) {
@@ -63,7 +61,7 @@ namespace {
             auto domain = unstructured_domain({nvertices, nlevels}, tuple{0, 0});
             auto backend = make_backend(be, domain);
             auto alloc = tmp_allocator(be);
-            vertical_indirection(backend.vertical_executor(), field, output, vertical_offsets);
+            vertical_indirection(backend.stencil_executor(), field, output, vertical_offsets);
         };
 
         auto mesh = TypeParam::fn_unstructured_mesh();
