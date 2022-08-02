@@ -21,10 +21,6 @@ from skbuild import setup
 
 if __name__ == "__main__":
     version_file = pathlib.Path(__file__).absolute().parent.parent / "version.txt"
-    print(pathlib.Path(__file__).absolute())
-    print(version_file.absolute())
-    print(version_file)
-    print(version_file.exists())
     setup(
         package_dir={"": "py_src"},
         packages=find_packages(where="py_src"),
