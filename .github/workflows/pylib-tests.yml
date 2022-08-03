@@ -21,4 +21,4 @@ jobs:
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install nox
     - name: run tests
-      run: nox
+      run: nox --noxfile pylibgt/noxfile.py
