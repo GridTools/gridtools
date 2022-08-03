@@ -64,11 +64,11 @@ namespace gridtools {
     namespace gcl {
         template <typename HaloExch, typename proc_layout_abs>
         class hndlr_generic<HaloExch, proc_layout_abs, cpu> : public descriptor_base<HaloExch> {
-            static const int DIMS = 3;
-            array<char *, static_pow3(DIMS)> send_buffer; // One entry will not be used...
-            array<char *, static_pow3(DIMS)> recv_buffer;
-            array<int, static_pow3(DIMS)> send_buffer_size; // One entry will not be used...
-            array<int, static_pow3(DIMS)> recv_buffer_size;
+            using DIMS_t = std::integral_constant<int, 3>;
+            array<char *, static_pow3(DIMS_t::value)> send_buffer; // One entry will not be used...
+            array<char *, static_pow3(DIMS_t::value)> recv_buffer;
+            array<int, static_pow3(DIMS_t::value)> send_buffer_size; // One entry will not be used...
+            array<int, static_pow3(DIMS_t::value)> recv_buffer_size;
 
           public:
             typedef descriptor_base<HaloExch> base_type;
@@ -85,7 +85,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS> translate;
+            typedef translate_t<DIMS_t::value> translate;
 
             hndlr_generic(grid_type const &g)
                 : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
@@ -119,7 +119,7 @@ namespace gridtools {
                 int typesize = sizeof(DataType)) {
 
                 typedef typename field_on_the_fly<DataType, f_layoutmap, traits>::inner_layoutmap t_layoutmap;
-                array<int, DIMS> eta;
+                array<int, DIMS_t::value> eta;
                 for (int i = -1; i <= 1; ++i) {
                     for (int j = -1; j <= 1; ++j) {
                         for (int k = -1; k <= 1; ++k) {
@@ -174,7 +174,7 @@ namespace gridtools {
                halos.
              */
             template <typename DataType, typename t_layoutmap>
-            void setup(array<size_t, static_pow3(DIMS)> const &buffer_size_list) {
+            void setup(array<size_t, static_pow3(DIMS_t::value)> const &buffer_size_list) {
                 for (int i = -1; i <= 1; ++i) {
                     for (int j = -1; j <= 1; ++j) {
                         for (int k = -1; k <= 1; ++k) {
@@ -210,24 +210,24 @@ namespace gridtools {
             }
 
             template <typename... FIELDS>
-            void pack(const FIELDS &... _fields) const {
+            void pack(const FIELDS &..._fields) const {
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             char *it = reinterpret_cast<char *>(&(send_buffer[translate()(ii, jj, kk)][0]));
-                            pack_dims<DIMS, 0>()(*this, ii, jj, kk, it, _fields...);
+                            pack_dims<DIMS_t::value, 0>()(*this, ii, jj, kk, it, _fields...);
                         }
                     }
                 }
             }
 
             template <typename... FIELDS>
-            void unpack(const FIELDS &... _fields) const {
+            void unpack(const FIELDS &..._fields) const {
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             char *it = reinterpret_cast<char *>(&(recv_buffer[translate()(ii, jj, kk)][0]));
-                            unpack_dims<DIMS, 0>()(*this, ii, jj, kk, it, _fields...);
+                            unpack_dims<DIMS_t::value, 0>()(*this, ii, jj, kk, it, _fields...);
                         }
                     }
                 }
@@ -247,7 +247,7 @@ namespace gridtools {
                             typename field_on_the_fly<T1, T2, T3>::value_type *it =
                                 reinterpret_cast<typename field_on_the_fly<T1, T2, T3>::value_type *>(
                                     &(send_buffer[translate()(ii, jj, kk)][0]));
-                            pack_vector_dims<DIMS, 0>()(*this, ii, jj, kk, it, fields);
+                            pack_vector_dims<DIMS_t::value, 0>()(*this, ii, jj, kk, it, fields);
                         }
                     }
                 }
@@ -267,7 +267,7 @@ namespace gridtools {
                             typename field_on_the_fly<T1, T2, T3>::value_type *it =
                                 reinterpret_cast<typename field_on_the_fly<T1, T2, T3>::value_type *>(
                                     &(recv_buffer[translate()(ii, jj, kk)][0]));
-                            unpack_vector_dims<DIMS, 0>()(*this, ii, jj, kk, it, fields);
+                            unpack_vector_dims<DIMS_t::value, 0>()(*this, ii, jj, kk, it, fields);
                         }
                     }
                 }
@@ -285,7 +285,7 @@ namespace gridtools {
 
                 template <typename T, typename iterator, typename FIRST, typename... FIELDS>
                 void operator()(
-                    const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
+                    const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &..._fields)
                     const {
                     using proc_layout = layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>;
                     const int ii_P = nth<proc_layout, 0>(ii, jj, kk);
@@ -309,7 +309,7 @@ namespace gridtools {
 
                 template <typename T, typename iterator, typename FIRST, typename... FIELDS>
                 void operator()(
-                    const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
+                    const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &..._fields)
                     const {
                     using proc_layout = layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>;
                     const int ii_P = nth<proc_layout, 0>(ii, jj, kk);
@@ -370,18 +370,18 @@ namespace gridtools {
         class hndlr_generic<HaloExch, proc_layout_abs, gpu> : public descriptor_base<HaloExch> {
             typedef gpu arch_type;
 
-            static const int DIMS = 3;
-            array<char *, static_pow3(DIMS)> send_buffer; // One entry will not be used...
-            array<char *, static_pow3(DIMS)> recv_buffer;
-            array<int, static_pow3(DIMS)> send_buffer_size; // One entry will not be used...
-            array<int, static_pow3(DIMS)> recv_buffer_size;
+            using DIMS_t = std::integral_constant<int, 3>;
+            array<char *, static_pow3(DIMS_t::value)> send_buffer; // One entry will not be used...
+            array<char *, static_pow3(DIMS_t::value)> recv_buffer;
+            array<int, static_pow3(DIMS_t::value)> send_buffer_size; // One entry will not be used...
+            array<int, static_pow3(DIMS_t::value)> recv_buffer_size;
             char **d_send_buffer;
             char **d_recv_buffer;
 
             int *prefix_send_size;
             int *prefix_recv_size;
-            array<int, static_pow3(DIMS)> send_size;
-            array<int, static_pow3(DIMS)> recv_size;
+            array<int, static_pow3(DIMS_t::value)> send_size;
+            array<int, static_pow3(DIMS_t::value)> recv_size;
 
             int *d_send_size;
             int *d_recv_size;
@@ -401,7 +401,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS> translate;
+            typedef translate_t<DIMS_t::value> translate;
 
             hndlr_generic(grid_type const &g)
                 : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
@@ -502,15 +502,19 @@ namespace gridtools {
                                 }
                             }
 
-                GT_CUDA_CHECK(cudaMalloc(&d_send_buffer, static_pow3(DIMS) * sizeof(DataType *)));
+                GT_CUDA_CHECK(cudaMalloc(&d_send_buffer, static_pow3(DIMS_t::value) * sizeof(DataType *)));
 
-                GT_CUDA_CHECK(cudaMemcpy(
-                    d_send_buffer, &send_buffer[0], static_pow3(DIMS) * sizeof(DataType *), cudaMemcpyHostToDevice));
+                GT_CUDA_CHECK(cudaMemcpy(d_send_buffer,
+                    &send_buffer[0],
+                    static_pow3(DIMS_t::value) * sizeof(DataType *),
+                    cudaMemcpyHostToDevice));
 
-                GT_CUDA_CHECK(cudaMalloc(&d_recv_buffer, static_pow3(DIMS) * sizeof(DataType *)));
+                GT_CUDA_CHECK(cudaMalloc(&d_recv_buffer, static_pow3(DIMS_t::value) * sizeof(DataType *)));
 
-                GT_CUDA_CHECK(cudaMemcpy(
-                    d_recv_buffer, &recv_buffer[0], static_pow3(DIMS) * sizeof(DataType *), cudaMemcpyHostToDevice));
+                GT_CUDA_CHECK(cudaMemcpy(d_recv_buffer,
+                    &recv_buffer[0],
+                    static_pow3(DIMS_t::value) * sizeof(DataType *),
+                    cudaMemcpyHostToDevice));
             }
 
             /**
