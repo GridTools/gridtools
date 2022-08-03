@@ -18,5 +18,5 @@ import pathlib
 _file = pathlib.Path(__file__)
 
 
-def get_cmake_path() -> pathlib.Path:
+def get_cmake_dir() -> pathlib.Path:
     return _file.parent / "data" / "lib" / "cmake" / "GridTools"

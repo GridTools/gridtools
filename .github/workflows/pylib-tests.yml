@@ -1,0 +1,24 @@
+name: Pip install test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  piptest:
+    runs-on: ubuntu-latest
+    container: ghcr.io/gridtools/gridtools-base:${{ matrix.compiler }}
+    strategy:
+        matrix:
+            compiler: [gcc-10]
+            build_type: [release]
+    steps:
+    - uses: actions/checkout@v2
+    - name: install nox
+      run: |
+        python3 -m pip install --upgrade pip setuptools
+        python3 -m pip install nox
+    - name: run tests
+      run: nox
