@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: install nox
       run: |
-        python3 -m pip install --upgrade pip setuptools
-        python3 -m pip install nox
+        python -m pip install --upgrade pip setuptools
+        python -m pip install nox
     - name: run tests
       run: nox --noxfile pylibgt/noxfile.py
