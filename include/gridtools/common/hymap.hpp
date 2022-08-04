@@ -256,6 +256,7 @@ namespace gridtools {
         template <>
         struct keys<>::values<> {
             friend values tuple_getter(values const &) { return {}; }
+            friend keys hymap_get_keys(values const &) { return {}; }
         };
 
         template <class HyMap>
