@@ -209,7 +209,6 @@ namespace gridtools {
         TEST(concat, empty) {
             auto m1 = hymap::keys<>::make_values();
             auto m2 = hymap::keys<a>::make_values(42);
-
             auto testee = hymap::concat(m1, m2);
 
             EXPECT_EQ(42, at_key<a>(testee));
