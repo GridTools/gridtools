@@ -30,8 +30,8 @@ namespace {
     };
 
     constexpr auto parabolic = [](auto /* vertex */, auto k) -> float {
-        const float x_shifted = float(k) + 0.5f;
-        return 0.5f * x_shifted * x_shifted;
+        const float k_shifted = float(k) + 0.5f;
+        return 0.5f * k_shifted * k_shifted;
     };
     constexpr auto offsets = [](auto /* vertex */, auto k) -> int { return k > 0 ? -1 : 0; };
     constexpr auto linear = [](auto /* vertex */, auto k) { return k; };
