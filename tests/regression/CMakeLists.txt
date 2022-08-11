@@ -6,7 +6,7 @@ file(WRITE
 )
 target_sources(perftests PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
 target_link_libraries(perftests gridtools _gridtools_cuda)
-gridtools_setup_target(perftests CUDA_ARCH ${GT_CUDA_ARCH})
+gridtools_set_gpu_arch_on_target(perftests "${GT_CUDA_ARCH}")
 
 target_link_libraries(perftests regression_main)
 
