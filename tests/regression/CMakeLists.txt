@@ -5,7 +5,9 @@ file(WRITE
      "// This file is needed in some cases because CMake targets must have at least one .cpp source."
 )
 target_sources(perftests PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
-target_link_libraries(perftests gridtools _gridtools_cuda)
+if (TARGET _gridtools_cuda)
+    target_link_libraries(perftests gridtools _gridtools_cuda)
+endif()
 gridtools_set_gpu_arch_on_target(perftests "${GT_CUDA_ARCH}")
 
 target_link_libraries(perftests regression_main)
