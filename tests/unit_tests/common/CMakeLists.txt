@@ -49,4 +49,8 @@ if(TARGET _gridtools_cuda)
             SOURCES test_tuple.cu
             LIBRARIES _gridtools_cuda
             LABELS cuda)
+    gridtools_add_unit_test(test_cuda_empty_domain
+            SOURCES test_cuda_empty_domain.cu
+            LIBRARIES _gridtools_cuda
+            LABELS cuda)
 endif()
