@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/fn/column_stage.hpp>
+#include <gridtools/fn/unstructured.hpp>
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
@@ -207,5 +208,64 @@ namespace gridtools::fn::backend {
             bool success = on_device::exec(global_tmp_check_fun(), ptr_holder, strides);
             EXPECT_TRUE(success);
         }
+
+        struct empty_stencil {
+            GT_FUNCTION constexpr auto operator()() const {
+                return []() { return 0.0f; };
+            }
+        };
+
+        TEST(backend_gpu, empty_domain_stencil) {
+            constexpr size_t nvertices = 0;
+            constexpr size_t nlevels = 0;
+
+            using block_sizes_t = meta::list<meta::list<unstructured::dim::horizontal, int_t<32>>,
+                meta::list<unstructured::dim::vertical, int_t<1>>>;
+
+            auto out = cuda_util::cuda_malloc<int>(nvertices * nlevels);
+            auto as_synthetic = [](int *x) {
+                return sid::synthetic()
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
+                    .set<property::strides>(
+                        hymap::keys<unstructured::dim::horizontal, unstructured::dim::vertical>::make_values(5_c, 1_c));
+            };
+            auto out_s = as_synthetic(out.get());
+
+            auto domain = unstructured_domain(tuple{nvertices, nlevels}, tuple{0, 0});
+            auto backend = make_backend(backend::gpu<block_sizes_t>(), domain);
+            backend.stencil_executor()().arg(out_s).assign(0_c, empty_stencil{}).execute();
+        }
+
+        struct empty_column : fwd {
+            static GT_FUNCTION constexpr auto prologue() {
+                return tuple(scan_pass([](auto acc) { return acc; }, host_device::identity()));
+            }
+
+            static GT_FUNCTION constexpr auto body() {
+                return scan_pass([](auto acc) { return acc; }, host_device::identity());
+            }
+        };
+
+        TEST(backend_gpu, empty_domain_column) {
+            constexpr size_t nvertices = 0;
+            constexpr size_t nlevels = 0;
+
+            using block_sizes_t = meta::list<meta::list<unstructured::dim::horizontal, int_t<32>>,
+                meta::list<unstructured::dim::vertical, int_t<1>>>;
+
+            auto out = cuda_util::cuda_malloc<int>(nvertices * nlevels);
+            auto as_synthetic = [](int *x) {
+                return sid::synthetic()
+                    .set<property::origin>(sid::host_device::simple_ptr_holder(x))
+                    .set<property::strides>(
+                        hymap::keys<unstructured::dim::horizontal, unstructured::dim::vertical>::make_values(5_c, 1_c));
+            };
+            auto out_s = as_synthetic(out.get());
+
+            auto domain = unstructured_domain(tuple{nvertices, nlevels}, tuple{0, 0});
+            auto backend = make_backend(backend::gpu<block_sizes_t>(), domain);
+            backend.vertical_executor()().arg(out_s).assign(0_c, empty_column{}, 0.0f).execute();
+        }
+
     } // namespace
 } // namespace gridtools::fn::backend

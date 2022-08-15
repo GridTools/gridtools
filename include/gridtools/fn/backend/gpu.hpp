@@ -149,19 +149,22 @@ namespace gridtools::fn::backend {
             auto strides = sid::get_strides(std::forward<Composite>(composite));
 
             auto [blocks, threads] = blocks_and_threads<BlockSizes>(sizes);
-            cuda_util::launch(blocks,
-                threads,
-                0,
-                g.stream,
-                kernel<BlockSizes,
-                    Sizes,
-                    decltype(ptr_holder),
-                    decltype(strides),
-                    stencil_fun_f<StencilStage, MakeIterator>>,
-                sizes,
-                ptr_holder,
-                strides,
-                stencil_fun_f<StencilStage, MakeIterator>{std::move(make_iterator)});
+            if (blocks.x > 0 && blocks.y > 0 && blocks.z > 0) {
+                assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
+                cuda_util::launch(blocks,
+                    threads,
+                    0,
+                    g.stream,
+                    kernel<BlockSizes,
+                        Sizes,
+                        decltype(ptr_holder),
+                        decltype(strides),
+                        stencil_fun_f<StencilStage, MakeIterator>>,
+                    sizes,
+                    ptr_holder,
+                    strides,
+                    stencil_fun_f<StencilStage, MakeIterator>{std::move(make_iterator)});
+            }
         }
 
         template <class ColumnStage, class MakeIterator, class Seed>
@@ -196,19 +199,22 @@ namespace gridtools::fn::backend {
             int v_size = at_key<Vertical>(sizes);
 
             auto [blocks, threads] = blocks_and_threads<BlockSizes>(h_sizes);
-            cuda_util::launch(blocks,
-                threads,
-                0,
-                g.stream,
-                kernel<BlockSizes,
-                    decltype(h_sizes),
-                    decltype(ptr_holder),
-                    decltype(strides),
-                    column_fun_f<ColumnStage, MakeIterator, Seed>>,
-                h_sizes,
-                ptr_holder,
-                strides,
-                column_fun_f<ColumnStage, MakeIterator, Seed>{std::move(make_iterator), std::move(seed), v_size});
+            if (blocks.x > 0 && blocks.y > 0 && blocks.z > 0) {
+                assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
+                cuda_util::launch(blocks,
+                    threads,
+                    0,
+                    g.stream,
+                    kernel<BlockSizes,
+                        decltype(h_sizes),
+                        decltype(ptr_holder),
+                        decltype(strides),
+                        column_fun_f<ColumnStage, MakeIterator, Seed>>,
+                    h_sizes,
+                    ptr_holder,
+                    strides,
+                    column_fun_f<ColumnStage, MakeIterator, Seed>{std::move(make_iterator), std::move(seed), v_size});
+            }
         }
 
         template <class BlockSizes>

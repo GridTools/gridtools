@@ -87,10 +87,7 @@ namespace gridtools {
             GT_CUDA_CHECK(
                 cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_memory_size));
 #endif
-            if (blocks.x > 0 && blocks.y > 0 && blocks.z > 0) {
-                assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
-                kernel<<<blocks, threads, shared_memory_size, stream>>>(std::move(args)...);
-            }
+            kernel<<<blocks, threads, shared_memory_size, stream>>>(std::move(args)...);
             GT_CUDA_CHECK(cudaGetLastError());
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
