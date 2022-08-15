@@ -141,7 +141,7 @@ namespace gridtools::fn::backend {
 
         template <class Sizes>
         bool is_domain_empty(const Sizes &sizes) {
-            return tuple_util::host::apply([](auto... sizes) { return ((sizes > 0) && ...); }, sizes);
+            return tuple_util::host::apply([](auto... sizes) { return ((sizes == 0) || ...); }, sizes);
         }
 
         template <class BlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
