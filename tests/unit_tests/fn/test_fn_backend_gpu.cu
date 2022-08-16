@@ -12,7 +12,6 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/fn/column_stage.hpp>
-#include <gridtools/fn/unstructured.hpp>
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
