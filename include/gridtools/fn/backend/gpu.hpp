@@ -150,26 +150,29 @@ namespace gridtools::fn::backend {
             StencilStage,
             MakeIterator make_iterator,
             Composite &&composite) {
-            if (!is_domain_empty(sizes)) {
-                auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
-                auto strides = sid::get_strides(std::forward<Composite>(composite));
 
-                auto [blocks, threads] = blocks_and_threads<BlockSizes>(sizes);
-                assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
-                cuda_util::launch(blocks,
-                    threads,
-                    0,
-                    g.stream,
-                    kernel<BlockSizes,
-                        Sizes,
-                        decltype(ptr_holder),
-                        decltype(strides),
-                        stencil_fun_f<StencilStage, MakeIterator>>,
-                    sizes,
-                    ptr_holder,
-                    strides,
-                    stencil_fun_f<StencilStage, MakeIterator>{std::move(make_iterator)});
+            if (is_domain_empty(sizes)) {
+                return;
             }
+
+            auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
+            auto strides = sid::get_strides(std::forward<Composite>(composite));
+
+            auto [blocks, threads] = blocks_and_threads<BlockSizes>(sizes);
+            assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
+            cuda_util::launch(blocks,
+                threads,
+                0,
+                g.stream,
+                kernel<BlockSizes,
+                    Sizes,
+                    decltype(ptr_holder),
+                    decltype(strides),
+                    stencil_fun_f<StencilStage, MakeIterator>>,
+                sizes,
+                ptr_holder,
+                strides,
+                stencil_fun_f<StencilStage, MakeIterator>{std::move(make_iterator)});
         }
 
         template <class ColumnStage, class MakeIterator, class Seed>
@@ -198,28 +201,31 @@ namespace gridtools::fn::backend {
             Composite &&composite,
             Vertical,
             Seed seed) {
-            if (!is_domain_empty(sizes)) {
-                auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
-                auto strides = sid::get_strides(std::forward<Composite>(composite));
-                auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);
-                int v_size = at_key<Vertical>(sizes);
 
-                auto [blocks, threads] = blocks_and_threads<BlockSizes>(h_sizes);
-                assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
-                cuda_util::launch(blocks,
-                    threads,
-                    0,
-                    g.stream,
-                    kernel<BlockSizes,
-                        decltype(h_sizes),
-                        decltype(ptr_holder),
-                        decltype(strides),
-                        column_fun_f<ColumnStage, MakeIterator, Seed>>,
-                    h_sizes,
-                    ptr_holder,
-                    strides,
-                    column_fun_f<ColumnStage, MakeIterator, Seed>{std::move(make_iterator), std::move(seed), v_size});
+            if (is_domain_empty(sizes)) {
+                return;
             }
+
+            auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
+            auto strides = sid::get_strides(std::forward<Composite>(composite));
+            auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);
+            int v_size = at_key<Vertical>(sizes);
+
+            auto [blocks, threads] = blocks_and_threads<BlockSizes>(h_sizes);
+            assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
+            cuda_util::launch(blocks,
+                threads,
+                0,
+                g.stream,
+                kernel<BlockSizes,
+                    decltype(h_sizes),
+                    decltype(ptr_holder),
+                    decltype(strides),
+                    column_fun_f<ColumnStage, MakeIterator, Seed>>,
+                h_sizes,
+                ptr_holder,
+                strides,
+                column_fun_f<ColumnStage, MakeIterator, Seed>{std::move(make_iterator), std::move(seed), v_size});
         }
 
         template <class BlockSizes>
