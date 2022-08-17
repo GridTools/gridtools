@@ -139,16 +139,27 @@ namespace gridtools::fn::backend {
             }
         };
 
+        template <class Sizes>
+        bool is_domain_empty(const Sizes &sizes) {
+            return tuple_util::host::apply([](auto... sizes) { return ((sizes == 0) || ...); }, sizes);
+        }
+
         template <class BlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
         void apply_stencil_stage(gpu<BlockSizes> const &g,
             Sizes const &sizes,
             StencilStage,
             MakeIterator make_iterator,
             Composite &&composite) {
+
+            if (is_domain_empty(sizes)) {
+                return;
+            }
+
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
 
             auto [blocks, threads] = blocks_and_threads<BlockSizes>(sizes);
+            assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
             cuda_util::launch(blocks,
                 threads,
                 0,
@@ -190,12 +201,18 @@ namespace gridtools::fn::backend {
             Composite &&composite,
             Vertical,
             Seed seed) {
+
+            if (is_domain_empty(sizes)) {
+                return;
+            }
+
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
             auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);
             int v_size = at_key<Vertical>(sizes);
 
             auto [blocks, threads] = blocks_and_threads<BlockSizes>(h_sizes);
+            assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
             cuda_util::launch(blocks,
                 threads,
                 0,
