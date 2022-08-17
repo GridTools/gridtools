@@ -7,6 +7,7 @@ gridtools_add_unit_test(test_fn_run SOURCES test_fn_run.cpp)
 gridtools_add_unit_test(test_fn_column_stage SOURCES test_fn_column_stage.cpp)
 gridtools_add_unit_test(test_fn_stencil_stage SOURCES test_fn_stencil_stage.cpp LABELS fn)
 gridtools_add_unit_test(test_fn_unstructured SOURCES test_fn_unstructured.cpp LABELS fn)
+gridtools_add_unit_test(test_fn_sid_neighbor_table SOURCES test_fn_sid_neighbor_table.cpp LABELS fn)
 
 if(TARGET _gridtools_cuda)
     gridtools_add_unit_test(test_fn_backend_gpu_cuda
