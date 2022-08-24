@@ -9,22 +9,23 @@
  */
 #pragma once
 
-#include <cstdint>
-#include <gridtools/common/array.hpp>
-#include <gridtools/fn/unstructured.hpp>
-#include <gridtools/sid/concept.hpp>
+#include <cstddef>
 #include <type_traits>
+
+#include "../common/array.hpp"
+#include "../fn/unstructured.hpp"
+#include "../sid/concept.hpp"
 
 namespace gridtools::fn::sid_neighbor_table {
     namespace sid_neighbor_table_impl_ {
-        template <class IndexDimension, class NeighborDimension, int32_t MaxNumNeighbors, class Sid>
+        template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
         struct sid_neighbor_table {
             Sid sid;
         };
 
-        template <class IndexDimension, class NeighborDimension, int32_t MaxNumNeighbors, class Sid>
+        template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
         auto neighbor_table_neighbors(
-            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, Sid> const &table, size_t index) {
+            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, Sid> const &table, std::size_t index) {
             using element_type = sid::element_type<Sid>;
 
             const auto ptr = sid_get_origin(table.sid);
@@ -34,7 +35,7 @@ namespace gridtools::fn::sid_neighbor_table {
             const auto neighbour_stride = at_key<NeighborDimension>(strides);
 
             gridtools::array<element_type, MaxNumNeighbors> neighbors;
-            for (int32_t elementIdx = 0; elementIdx < MaxNumNeighbors; ++elementIdx) {
+            for (std::size_t elementIdx = 0; elementIdx < MaxNumNeighbors; ++elementIdx) {
                 const auto element_ptr = ptr + index * index_stride + elementIdx * neighbour_stride;
                 neighbors[elementIdx] = *element_ptr();
             }
