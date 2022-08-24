@@ -10,15 +10,15 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+#include <gridtools/fn/sid_neighbor_table.hpp>
 #include <gridtools/fn/unstructured.hpp>
 #include <gridtools/sid/allocator.hpp>
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
-
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <gridtools/fn/sid_neighbor_table.hpp>
 
 using namespace gridtools;
 using namespace fn;
@@ -28,8 +28,8 @@ using edge_dim_t = unstructured::dim::horizontal;
 using edge_to_cell_dim_t = struct {};
 
 TEST(sid_neighbor_table, correctness) {
-    constexpr size_t numElements = 3;
-    constexpr size_t numNeighbors = 2;
+    constexpr std::size_t numElements = 3;
+    constexpr std::size_t numNeighbors = 2;
     std::array<int32_t, numElements *numNeighbors> data = {0, 1, 10, 11, 20, 21};
     using dim_hymap_t = hymap::keys<edge_dim_t, edge_to_cell_dim_t>;
     auto contents = sid::synthetic()
