@@ -25,19 +25,19 @@ namespace gridtools::fn::sid_neighbor_table {
 
         template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
         auto neighbor_table_neighbors(
-            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, Sid> const &table, std::size_t index) {
+            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, Sid> const &table,
+            std::size_t index) {
             using element_type = sid::element_type<Sid>;
 
-            const auto ptr = sid_get_origin(table.sid);
+            auto ptr = sid_get_origin(table.sid)();
             const auto strides = sid_get_strides(table.sid);
 
-            const auto index_stride = at_key<IndexDimension>(strides);
-            const auto neighbour_stride = at_key<NeighborDimension>(strides);
-
             gridtools::array<element_type, MaxNumNeighbors> neighbors;
+
+            sid::shift(ptr, sid::get_stride<IndexDimension>(strides), index);
             for (std::size_t elementIdx = 0; elementIdx < MaxNumNeighbors; ++elementIdx) {
-                const auto element_ptr = ptr + index * index_stride + elementIdx * neighbour_stride;
-                neighbors[elementIdx] = *element_ptr();
+                neighbors[elementIdx] = *ptr;
+                sid::shift(ptr, sid::get_stride<NeighborDimension>(strides), 1);
             }
             return neighbors;
         }
