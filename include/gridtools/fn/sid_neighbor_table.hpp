@@ -18,26 +18,34 @@
 
 namespace gridtools::fn::sid_neighbor_table {
     namespace sid_neighbor_table_impl_ {
-        template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
+        template <class IndexDimension,
+            class NeighborDimension,
+            std::size_t MaxNumNeighbors,
+            class PtrHolder,
+            class Strides>
         struct sid_neighbor_table {
-            Sid sid;
+            PtrHolder origin;
+            Strides strides;
         };
 
-        template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
+        template <class IndexDimension,
+            class NeighborDimension,
+            std::size_t MaxNumNeighbors,
+            class PtrHolder,
+            class Strides>
         auto neighbor_table_neighbors(
-            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, Sid> const &table,
+            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
             std::size_t index) {
-            using element_type = sid::element_type<Sid>;
 
-            auto ptr = sid::get_origin(table.sid)();
-            const auto strides = sid::get_strides(table.sid);
+            auto ptr = table.origin();
+            using element_type = std::remove_reference_t<decltype(*ptr)>;
 
             gridtools::array<element_type, MaxNumNeighbors> neighbors;
 
-            sid::shift(ptr, sid::get_stride<IndexDimension>(strides), index);
+            sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
             for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
                 neighbors[element_idx] = *ptr;
-                sid::shift(ptr, sid::get_stride<NeighborDimension>(strides), 1);
+                sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1);
             }
             return neighbors;
         }
@@ -49,7 +57,14 @@ namespace gridtools::fn::sid_neighbor_table {
             static_assert(!std::is_same_v<IndexDimension, NeighborDimension>,
                 "The index dimension and the neighbor dimension must be different.");
 
-            return sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, Sid>{std::forward<Sid>(sid)};
+            const auto origin = sid::get_origin(sid);
+            const auto strides = sid::get_strides(sid);
+
+            return sid_neighbor_table<IndexDimension,
+                NeighborDimension,
+                MaxNumNeighbors,
+                sid::ptr_holder_type<Sid>,
+                sid::strides_type<Sid>>{origin, strides};
         }
     } // namespace sid_neighbor_table_impl_
 
