@@ -8,13 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <gridtools/fn/sid_neighbor_table.hpp>
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/sid_neighbor_table.hpp>
 #include <gridtools/fn/unstructured.hpp>
 #include <gridtools/sid/allocator.hpp>
 #include <gridtools/sid/composite.hpp>
