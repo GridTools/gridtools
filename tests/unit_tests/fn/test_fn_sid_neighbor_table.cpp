@@ -30,10 +30,10 @@ namespace gridtools::fn {
         using edge_to_cell_dim_t = integral_constant<int_t, 1>;
 
         TEST(sid_neighbor_table, correctness) {
-            constexpr std::size_t numElements = 3;
-            constexpr std::size_t numNeighbors = 2;
-            std::int32_t contents[numElements][numNeighbors] = {{0, 1}, {10, 11}, {20, 21}};
-            const auto table = as_neighbor_table<edge_dim_t, edge_to_cell_dim_t, numNeighbors>(contents);
+            constexpr std::size_t num_elements = 3;
+            constexpr std::size_t num_neighbors = 2;
+            std::int32_t contents[num_elements][num_neighbors] = {{0, 1}, {10, 11}, {20, 21}};
+            const auto table = as_neighbor_table<edge_dim_t, edge_to_cell_dim_t, num_neighbors>(contents);
 
             auto [n00, n01] = neighbor_table_neighbors(table, 0);
             auto [n10, n11] = neighbor_table_neighbors(table, 1);
