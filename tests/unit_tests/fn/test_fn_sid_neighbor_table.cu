@@ -26,22 +26,26 @@ namespace gridtools::fn {
         using edge_dim_t = integral_constant<int_t, 0>;
         using edge_to_cell_dim_t = integral_constant<int_t, 1>;
 
-        template <class Table>
-        __device__ auto neighbor_table_neighbors_device(const Table &table, size_t index) -> array<std::int32_t, 2> {
-            return neighbor_table_neighbors(table, index);
-        }
         constexpr std::size_t num_elements = 3;
         constexpr std::size_t num_neighbors = 2;
         __device__ std::int32_t contents[num_elements][num_neighbors] = {{0, 1}, {10, 11}, {20, 21}};
 
+        template <class Table>
+        __device__ auto neighbor_table_neighbors_device(const Table &table, std::size_t index)
+            -> array<std::int32_t, 2> {
+            return neighbor_table_neighbors(table, index);
+        }
+
         TEST(sid_neighbor_table, correctness_cuda) {
             const auto table = as_neighbor_table<edge_dim_t, edge_to_cell_dim_t, num_neighbors>(contents);
+            using table_t = std::decay_t<decltype(table)>;
 
-            const auto instantiation = &neighbor_table_neighbors_device<std::decay_t<decltype(table)>>;
-
-            auto [n00, n01] = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(instantiation), table, 0);
-            auto [n10, n11] = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(instantiation), table, 1);
-            auto [n20, n21] = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(instantiation), table, 2);
+            auto [n00, n01] = on_device::exec(
+                GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&neighbor_table_neighbors_device<table_t>), table, 0);
+            auto [n10, n11] = on_device::exec(
+                GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&neighbor_table_neighbors_device<table_t>), table, 1);
+            auto [n20, n21] = on_device::exec(
+                GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&neighbor_table_neighbors_device<table_t>), table, 2);
             EXPECT_EQ(n00, 0);
             EXPECT_EQ(n01, 1);
             EXPECT_EQ(n10, 10);
