@@ -26,29 +26,24 @@ namespace gridtools::fn::sid_neighbor_table {
         struct sid_neighbor_table {
             PtrHolder origin;
             Strides strides;
-        };
 
-        template <class IndexDimension,
-            class NeighborDimension,
-            std::size_t MaxNumNeighbors,
-            class PtrHolder,
-            class Strides>
-        auto neighbor_table_neighbors(
-            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
-            std::size_t index) {
+            friend auto neighbor_table_neighbors(
+                sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
+                std::size_t index) {
 
-            auto ptr = table.origin();
-            using element_type = std::remove_reference_t<decltype(*ptr)>;
+                auto ptr = table.origin();
+                using element_type = std::remove_reference_t<decltype(*ptr)>;
 
-            gridtools::array<element_type, MaxNumNeighbors> neighbors;
+                gridtools::array<element_type, MaxNumNeighbors> neighbors;
 
-            sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
-            for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
-                neighbors[element_idx] = *ptr;
-                sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1);
+                sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
+                for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
+                    neighbors[element_idx] = *ptr;
+                    sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1);
+                }
+                return neighbors;
             }
-            return neighbors;
-        }
+        };
 
         template <class IndexDimension, class NeighborDimension, int32_t MaxNumNeighbors, class Sid>
         auto as_neighbor_table(Sid &&sid) {
