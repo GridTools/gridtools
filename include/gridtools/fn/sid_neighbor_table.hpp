@@ -27,7 +27,7 @@ namespace gridtools::fn::sid_neighbor_table {
             PtrHolder origin;
             Strides strides;
 
-            friend auto neighbor_table_neighbors(
+            GT_FUNCTION friend auto neighbor_table_neighbors(
                 sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
                 std::size_t index) {
 

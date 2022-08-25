@@ -30,4 +30,8 @@ if(TARGET _gridtools_cuda)
         SOURCES test_extents.cu
         LIBRARIES _gridtools_cuda
         LABELS cuda fn)
+    gridtools_add_unit_test(test_fn_sid_neighbor_table_cuda
+        SOURCES test_fn_sid_neighbor_table.cu
+        LIBRARIES _gridtools_cuda
+        LABELS cuda fn)
 endif()
