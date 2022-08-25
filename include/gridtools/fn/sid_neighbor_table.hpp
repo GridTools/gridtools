@@ -46,7 +46,12 @@ namespace gridtools::fn::sid_neighbor_table {
         };
 
         template <class IndexDimension, class NeighborDimension, int32_t MaxNumNeighbors, class Sid>
-        auto as_neighbor_table(Sid &&sid) {
+        auto as_neighbor_table(Sid &&sid) -> sid_neighbor_table<IndexDimension,
+            NeighborDimension,
+            MaxNumNeighbors,
+            sid::ptr_holder_type<Sid>,
+            sid::strides_type<Sid>> {
+
             static_assert(gridtools::tuple_util::size<decltype(sid::get_strides(std::declval<Sid>()))>::value == 2,
                 "Neighbor tables must have exactly two dimensions: the index dimension and the neighbor dimension");
             static_assert(!std::is_same_v<IndexDimension, NeighborDimension>,
@@ -55,11 +60,7 @@ namespace gridtools::fn::sid_neighbor_table {
             const auto origin = sid::get_origin(sid);
             const auto strides = sid::get_strides(sid);
 
-            return sid_neighbor_table<IndexDimension,
-                NeighborDimension,
-                MaxNumNeighbors,
-                sid::ptr_holder_type<Sid>,
-                sid::strides_type<Sid>>{origin, strides};
+            return {origin, strides};
         }
     } // namespace sid_neighbor_table_impl_
 
