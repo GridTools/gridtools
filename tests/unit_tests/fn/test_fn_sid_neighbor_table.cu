@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <cuda_test_helper.hpp>
+#include <gridtools/sid/synthetic.hpp>
 
 namespace gridtools::fn {
     namespace {
@@ -26,10 +27,6 @@ namespace gridtools::fn {
         using edge_dim_t = integral_constant<int_t, 0>;
         using edge_to_cell_dim_t = integral_constant<int_t, 1>;
 
-        constexpr std::size_t num_elements = 3;
-        constexpr std::size_t num_neighbors = 2;
-        __device__ std::int32_t contents[num_elements][num_neighbors] = {{0, 1}, {10, 11}, {20, 21}};
-
         template <class Table>
         __device__ auto neighbor_table_neighbors_device(const Table &table, std::size_t index)
             -> array<std::int32_t, 2> {
@@ -37,6 +34,17 @@ namespace gridtools::fn {
         }
 
         TEST(sid_neighbor_table, correctness_cuda) {
+            constexpr std::size_t num_elements = 3;
+            constexpr std::size_t num_neighbors = 2;
+
+            const std::int32_t data[num_elements][num_neighbors] = {{0, 1}, {10, 11}, {20, 21}};
+            const auto device_data = cuda_util::cuda_malloc<std::int32_t>(num_elements * num_neighbors);
+            GT_CUDA_CHECK(cudaMemcpy(device_data.get(), &data, sizeof data, cudaMemcpyHostToDevice));
+            using dim_hymap_t = hymap::keys<edge_dim_t, edge_to_cell_dim_t>;
+            auto contents = sid::synthetic()
+                                .set<sid::property::origin>(sid::host_device::simple_ptr_holder(device_data.get()))
+                                .set<sid::property::strides>(dim_hymap_t::make_values(num_neighbors, 1));
+
             const auto table = as_neighbor_table<edge_dim_t, edge_to_cell_dim_t, num_neighbors>(contents);
             using table_t = std::decay_t<decltype(table)>;
 
