@@ -16,11 +16,6 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/unstructured.hpp>
-#include <gridtools/sid/allocator.hpp>
-#include <gridtools/sid/composite.hpp>
-#include <gridtools/sid/synthetic.hpp>
-
 namespace gridtools::fn {
     namespace {
 
