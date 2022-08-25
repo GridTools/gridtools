@@ -30,7 +30,7 @@ namespace gridtools::fn {
         template <class Table>
         __device__ auto neighbor_table_neighbors_device(const Table &table, std::size_t index)
             -> array<std::int32_t, 2> {
-            return neighbor_table_neighbors(table, index);
+            return neighbor_table::neighbors(table, index);
         }
 
         TEST(sid_neighbor_table, correctness_cuda) {
