@@ -27,10 +27,7 @@ namespace gridtools::fn::sid_neighbor_table {
             PtrHolder origin;
             Strides strides;
 
-            GT_FUNCTION friend auto neighbor_table_neighbors(
-                sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
-                std::size_t index) {
-
+            GT_FUNCTION friend auto neighbor_table_neighbors(sid_neighbor_table const &table, std::size_t index) {
                 auto ptr = table.origin();
                 using element_type = std::remove_reference_t<decltype(*ptr)>;
 
