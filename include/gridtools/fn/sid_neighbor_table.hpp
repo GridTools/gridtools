@@ -26,21 +26,29 @@ namespace gridtools::fn::sid_neighbor_table {
         struct sid_neighbor_table {
             PtrHolder origin;
             Strides strides;
-
-            GT_FUNCTION friend auto neighbor_table_neighbors(sid_neighbor_table const &table, int index) {
-                auto ptr = table.origin();
-                using element_type = std::remove_reference_t<decltype(*ptr)>;
-
-                gridtools::array<element_type, MaxNumNeighbors> neighbors;
-
-                sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
-                for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
-                    neighbors[element_idx] = *ptr;
-                    sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1);
-                }
-                return neighbors;
-            }
         };
+
+        template <class IndexDimension,
+            class NeighborDimension,
+            std::size_t MaxNumNeighbors,
+            class PtrHolder,
+            class Strides>
+        GT_FUNCTION auto neighbor_table_neighbors(
+            sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
+            int index) {
+
+            auto ptr = table.origin();
+            using element_type = std::remove_reference_t<decltype(*ptr)>;
+
+            gridtools::array<element_type, MaxNumNeighbors> neighbors;
+
+            sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
+            for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
+                neighbors[element_idx] = *ptr;
+                sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1);
+            }
+            return neighbors;
+        }
 
         template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
         auto as_neighbor_table(Sid &&sid) -> sid_neighbor_table<IndexDimension,
