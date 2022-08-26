@@ -42,7 +42,7 @@ namespace gridtools::fn::sid_neighbor_table {
             }
         };
 
-        template <class IndexDimension, class NeighborDimension, int32_t MaxNumNeighbors, class Sid>
+        template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
         auto as_neighbor_table(Sid &&sid) -> sid_neighbor_table<IndexDimension,
             NeighborDimension,
             MaxNumNeighbors,

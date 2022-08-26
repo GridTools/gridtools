@@ -29,7 +29,7 @@ namespace gridtools::fn {
 
         template <class Table>
         __device__ auto neighbor_table_neighbors_device(Table const &table, int index)
-            -> array<std::int32_t, 2> {
+            -> array<int, 2> {
             return neighbor_table::neighbors(table, index);
         }
 
@@ -37,8 +37,8 @@ namespace gridtools::fn {
             constexpr std::size_t num_elements = 3;
             constexpr std::size_t num_neighbors = 2;
 
-            const std::int32_t data[num_elements][num_neighbors] = {{0, 1}, {10, 11}, {20, 21}};
-            const auto device_data = cuda_util::cuda_malloc<std::int32_t>(num_elements * num_neighbors);
+            const int data[num_elements][num_neighbors] = {{0, 1}, {10, 11}, {20, 21}};
+            const auto device_data = cuda_util::cuda_malloc<int>(num_elements * num_neighbors);
             GT_CUDA_CHECK(cudaMemcpy(device_data.get(), &data, sizeof data, cudaMemcpyHostToDevice));
             using dim_hymap_t = hymap::keys<edge_dim_t, edge_to_cell_dim_t>;
             auto contents = sid::synthetic()
