@@ -37,6 +37,8 @@ namespace gridtools::fn::sid_neighbor_table {
             sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
             int index) {
 
+            using namespace gridtools::literals;
+
             auto ptr = table.origin();
             using element_type = std::remove_reference_t<decltype(*ptr)>;
 
@@ -45,7 +47,7 @@ namespace gridtools::fn::sid_neighbor_table {
             sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
             for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
                 neighbors[element_idx] = *ptr;
-                sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1);
+                sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1_c);
             }
             return neighbors;
         }
