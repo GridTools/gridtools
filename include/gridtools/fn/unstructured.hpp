@@ -168,4 +168,7 @@ namespace gridtools::fn {
 
     using unstructured_impl_::connectivity;
     using unstructured_impl_::unstructured_domain;
+    using unstructured_impl_::shift;
+    using unstructured_impl_::deref;
+    using unstructured_impl_::can_deref;
 } // namespace gridtools::fn
