@@ -26,5 +26,5 @@ jobs:
         python -m pip install --upgrade pip setuptools
         python -m pip install nox
     - name: run tests
-      working-directory: ./pylibgt
+      working-directory: ./.python_package
       run: nox
