@@ -101,10 +101,13 @@ namespace gridtools::fn {
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
         GT_FUNCTION constexpr auto shift(
             iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
-            if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>()) {
-                return shift(horizontal_shift(it, Dim(), offset), offsets...);
+            if constexpr (sizeof...(offsets) == 0) {
+                return it;
+            }
+            else if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>()) {
+                return unstructured_impl_::shift(horizontal_shift(it, Dim(), offset), offsets...);
             } else {
-                return shift(non_horizontal_shift(it, Dim(), offset), offsets...);
+                return unstructured_impl_::shift(non_horizontal_shift(it, Dim(), offset), offsets...);
             }
         }
         template <class Tag, class Ptr, class Strides, class Domain>
