@@ -1,4 +1,4 @@
-name: Pip install test
+name: Python Package Tests
 
 on:
   push:
