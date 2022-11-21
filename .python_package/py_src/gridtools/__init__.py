@@ -17,4 +17,4 @@ def get_cmake_dir() -> pathlib.Path:
 
 
 def get_include_dir() -> pathlib.Path:
-    return _file.parent / "data" / "include" / "gridtools"
+    return _file.parent / "data" / "include"
