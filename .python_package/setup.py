@@ -18,7 +18,6 @@ if __name__ == "__main__":
         package_dir={"": "py_src"},
         packages=find_packages(where="py_src"),
         version=str(parse_version(version_file.read_text())),
-        include_package_data=True,
         package_data={"gridtools": ["*.hpp", "*.h", "*.cmake"]},
         cmake_install_dir="py_src/gridtools/data",
         cmake_args=["-DBUILD_TESTING=OFF", "-DGT_INSTALL_EXAMPLES:BOOL=OFF"],

@@ -1,2 +1,0 @@
-include py_src/gridtools/__init__.py
-recursive-include py_src/gridtools/data *
