@@ -27,4 +27,4 @@ jobs:
         python -m pip install nox
     - name: run tests
       working-directory: ./.python_package
-      run: nox
+      run: nox -s test_src_dist build_wheel test_wheel_with_python-${{ matrix.python-version }}
