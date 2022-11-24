@@ -59,6 +59,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: gridtools-cpp-wheel
+        path: .python_package/.nox/.cache/dist
     - name: test wheel
       working-directory: ./.python_package
       run: nox -s test_wheel_with_python-${{ matrix.python-version }}
