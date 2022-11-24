@@ -38,6 +38,7 @@ jobs:
         path: .nox/.cache/dist/gridtools_cpp-*.whl
 
   test-wheel:
+    needs: build-wheel
     runs-on: ubuntu-latest
     container: ghcr.io/gridtools/gridtools-base:${{ matrix.compiler }}
     strategy:
