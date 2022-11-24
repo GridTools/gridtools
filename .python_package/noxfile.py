@@ -28,7 +28,7 @@ def prepare(session: nox.Session):
             "-DBUILD_TESTING=OFF",
             "-DGT_INSTALL_EXAMPLES:BOOL=OFF",
             f"-DCMAKE_INSTALL_PREFIX={install_path}",
-            str(source_path)
+            str(source_path),
         )
         session.run("make", "install")
         session.log("installed gridttols sources")
@@ -42,7 +42,7 @@ def prepare(session: nox.Session):
 
 
 def get_wheel(session: nox.Session) -> pathlib.Path:
-    return list(session.cache_dir.joinpath("dist").glob("gridtools-*.whl"))[0]
+    return list(session.cache_dir.joinpath("dist").glob("gridtools_cpp-*.whl"))[0]
 
 
 @nox.session
@@ -54,13 +54,16 @@ def build_wheel(session: nox.Session):
     with session.chdir(session.cache_dir):
         session.run(
             "python",
-            "-m", "build",
+            "-m",
+            "build",
             "--no-isolation",
             "--wheel",
-            "-o", str(dist_path),
+            "-o",
+            str(dist_path),
             str(workdir),
         )
-        session.log(f"built wheel in {dist_path}")
+    session.log(f"built wheel in {dist_path}")
+    session.log("\n".join(str(path) for path in dist_path.iterdir()))
 
 
 @nox.session
