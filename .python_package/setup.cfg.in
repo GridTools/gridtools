@@ -2,21 +2,23 @@
 name = gridtools-cpp
 author = ETH Zurich
 author_email = gridtools@cscs.ch
-license_files = LICENSE
+license_files = LICENSE # this file is automatically copied from the top level
 long_description = file: README.md
 long_description_content_type = text/markdown; charset=UTF-8
 url = https://gridtools.github.io
 project_urls = 
 	Source Code = https://github.com/GridTools/gridtools
 platforms = any
-version = 2.2.1a2
-	
+version = # leave empty, automatically generated
 classifiers = 
 	Development Status :: 5 - Production/Stable
-	License :: OSI Approved :: BSD License
 	Intended Audience :: Science/Research
+	License :: OSI Approved :: BSD License
 	Operating System :: OS Independent
 	Programming Language :: Python :: 3 :: Only
+	Topic :: Scientific/Engineering :: Atmospheric Science
+	Topic :: Scientific/Engineering :: Mathematics
+	Topic :: Scientific/Engineering :: Physics
 
 [options]
 packages = find_namespace:

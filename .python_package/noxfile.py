@@ -15,8 +15,9 @@ import nox
 nox.options.sessions = ["test_src", "test_wheel"]
 
 
+@nox.session
 def prepare(session: nox.Session):
-    session.install("cmake>=2.18.1")
+    session.install("cmake>=3.18.1")
     session.install("ninja")
     build_path = session.cache_dir.joinpath("build").absolute()
     build_path.mkdir(exist_ok=True)
@@ -34,11 +35,10 @@ def prepare(session: nox.Session):
         session.run("cmake", "--install", ".")
         session.log("installed gridttols sources")
     version_path = source_path / "version.txt"
-    setup_path = pathlib.Path(".") / "setup.cfg"
     config = configparser.ConfigParser()
-    config.read(str(setup_path))
-    config["metadata"]["version"] = version_path.read_text()
-    with setup_path.open("w") as setup_fp:
+    config.read("setup.cfg.in")
+    config["metadata"]["version"] = version_path.read_text().strip()
+    with open("setup.cfg", mode="w") as setup_fp:
         config.write(setup_fp)
     session.log("updated version metadata")
     shutil.copy(source_path / "LICENSE", ".")
