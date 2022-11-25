@@ -12,7 +12,7 @@ import shutil
 
 import nox
 
-nox.options.sessions = ["test_src_dist", "test_wheel"]
+nox.options.sessions = ["test_src", "test_wheel"]
 
 
 def prepare(session: nox.Session):
@@ -20,7 +20,7 @@ def prepare(session: nox.Session):
     session.install("ninja")
     build_path = session.cache_dir.joinpath("build").absolute()
     build_path.mkdir(exist_ok=True)
-    install_path = pathlib.Path(".").absolute() / "py_src" / "gridtools" / "data"
+    install_path = pathlib.Path(".").absolute() / "src" / "gridtools" / "data"
     source_path = pathlib.Path("..").absolute()
     with session.chdir(build_path):
         session.run(
@@ -39,6 +39,9 @@ def prepare(session: nox.Session):
     config["metadata"]["version"] = version_path.read_text()
     with setup_path.open("w") as setup_fp:
         config.write(setup_fp)
+    session.log("updated version metadata")
+    shutil.copy(source_path / "LICENSE", ".")
+    session.log("copied license file")
 
 
 def get_wheel(session: nox.Session) -> pathlib.Path:
@@ -67,7 +70,7 @@ def build_wheel(session: nox.Session):
 
 
 @nox.session
-def test_src_dist(session: nox.Session):
+def test_src(session: nox.Session):
     prepare(session)
     session.install(".")
     session.install("pytest")
@@ -107,11 +110,11 @@ def build(session: nox.Session):
 @nox.session
 def clean(session: nox.Session):
     top_dir = pathlib.Path(".")
-    data_dir = top_dir / "py_src" / "gridtools" / "data"
+    data_dir = top_dir / "src" / "gridtools" / "data"
     session.log(f"rm -r {data_dir}")
     shutil.rmtree(data_dir, True)
-    session.log("rm -r py_src/*.egg-info")
-    for egg_tree in top_dir.joinpath("py_src").glob("*.egg-info"):
+    session.log("rm -r src/*.egg-info")
+    for egg_tree in top_dir.joinpath("src").glob("*.egg-info"):
         shutil.rmtree(egg_tree, True)
     session.log("rm -r dist")
     shutil.rmtree(top_dir / "dist", True)
