@@ -28,9 +28,10 @@ def prepare(session: nox.Session):
             "-DBUILD_TESTING=OFF",
             "-DGT_INSTALL_EXAMPLES:BOOL=OFF",
             f"-DCMAKE_INSTALL_PREFIX={install_path}",
+            "-GNinja",
             str(source_path),
         )
-        session.run("make", "install")
+        session.run("cmake", "--install", ".")
         session.log("installed gridttols sources")
     version_path = source_path / "version.txt"
     setup_path = pathlib.Path(".") / "setup.cfg"
