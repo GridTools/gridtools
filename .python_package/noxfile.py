@@ -12,6 +12,10 @@ import shutil
 
 import nox
 
+
+_RELATIVE_DATA_DIR = pathlib.Path("src/gridtools_cpp/data")
+
+
 nox.options.sessions = ["test_src", "test_wheel"]
 
 
@@ -21,7 +25,7 @@ def prepare(session: nox.Session):
     session.install("ninja")
     build_path = session.cache_dir.joinpath("build").absolute()
     build_path.mkdir(exist_ok=True)
-    install_path = pathlib.Path(".").absolute() / "src" / "gridtools" / "data"
+    install_path = pathlib.Path(".").absolute() / _RELATIVE_DATA_DIR
     source_path = pathlib.Path("..").absolute()
     with session.chdir(build_path):
         session.run(
@@ -53,7 +57,7 @@ def get_wheel(session: nox.Session) -> pathlib.Path:
 def build_wheel(session: nox.Session):
     prepare(session)
     dist_path = session.cache_dir.joinpath("dist").absolute()
-    workdir = pathlib.Path(".").absolute()
+    nox_workdir = pathlib.Path(".").absolute()
     session.install("build[virtualenv]")
     with session.chdir(session.cache_dir):
         session.run(
@@ -64,7 +68,7 @@ def build_wheel(session: nox.Session):
             "--wheel",
             "-o",
             str(dist_path),
-            str(workdir),
+            str(nox_workdir),
         )
     session.log(f"built wheel in {dist_path}")
     session.log("\n".join(str(path) for path in dist_path.iterdir()))
@@ -110,14 +114,13 @@ def build(session: nox.Session):
 
 @nox.session
 def clean(session: nox.Session):
-    top_dir = pathlib.Path(".")
-    data_dir = top_dir / "src" / "gridtools" / "data"
+    data_dir = _RELATIVE_DATA_DIR
     session.log(f"rm -r {data_dir}")
     shutil.rmtree(data_dir, True)
     session.log("rm -r src/*.egg-info")
-    for egg_tree in top_dir.joinpath("src").glob("*.egg-info"):
+    for egg_tree in pathlib.Path("src").glob("*.egg-info"):
         shutil.rmtree(egg_tree, True)
     session.log("rm -r dist")
-    shutil.rmtree(top_dir / "dist", True)
+    shutil.rmtree("dist", True)
     session.log("rm -r build")
-    shutil.rmtree(top_dir / "build", True)
+    shutil.rmtree("build", True)
