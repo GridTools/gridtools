@@ -100,7 +100,6 @@
 
 #include "../meta.hpp"
 #include "defs.hpp"
-#include "enable_maker.hpp"
 #include "host_device.hpp"
 #include "integral_constant.hpp"
 #include "tuple.hpp"
@@ -195,7 +194,7 @@ namespace gridtools {
 
     namespace hymap {
         template <class...>
-        struct keys : private enable_maker {
+        struct keys {
             template <class...>
             struct values;
 
@@ -204,7 +203,11 @@ namespace gridtools {
             values(Vs const &...) -> values<Vs...>;
 #endif
 
-            static constexpr maker<values> make_values = {};
+            // NVCC 11 fails to do class template deduction in the case of nested templates
+            template <class... Args>
+            static constexpr GT_FUNCTION values<Args...> make_values(Args const &...args) {
+                return {args...};
+            }
         };
 
         template <class... Keys>
@@ -253,6 +256,7 @@ namespace gridtools {
         template <>
         struct keys<>::values<> {
             friend values tuple_getter(values const &) { return {}; }
+            friend keys hymap_get_keys(values const &) { return {}; }
         };
 
         template <class HyMap>

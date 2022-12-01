@@ -24,7 +24,7 @@
 #if (defined(__NVCOMPILER) &&                                                                   \
      (__NVCOMPILER_MAJOR__ < 22 || __NVCOMPILER_MAJOR__ == 22 && __NVCOMPILER_MINOR__ <= 3)) || \
     (defined(__CUDACC_VER_MAJOR__) &&                                                           \
-        (__CUDACC_VER_MAJOR__ < 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5)))
+        (__CUDACC_VER_MAJOR__ < 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 6)))
 
 namespace gridtools {
     namespace meta {

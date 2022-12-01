@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Introduction &mdash; GridTools 2.2.0 documentation</title>
+  <title>Introduction &mdash; GridTools 2.3.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/cscs.css" type="text/css" />
@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -32,7 +33,7 @@
             <img src="../_static/logo.svg" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.2
+                2.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -91,9 +92,9 @@
            <div itemprop="articleBody">
              
   <section id="introduction">
-<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h1>
+<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h1>
 <section id="what-is-gridtools">
-<h2>What Is GridTools<a class="headerlink" href="#what-is-gridtools" title="Permalink to this headline"></a></h2>
+<h2>What Is GridTools<a class="headerlink" href="#what-is-gridtools" title="Permalink to this heading"></a></h2>
 <p>The <cite>GridTools</cite> (GT) framework is a set of libraries and utilities to develop performance portable applications in which
 stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are
 commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction
@@ -109,13 +110,13 @@ to aid code development and a communication layer.</p>
 architectures without any code change needed. Stencils can be built up by small composeable units called stages, using
 <cite>GridTools</cite> domain-specific language. Such a functor can be as simple as being just a copy stencil, copying data from one field
 to another:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">copy_functor</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">copy_functor</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">param_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">make_param_list</span><span class="o">&lt;</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Evaluation</span><span class="o">&gt;</span><span class="w"></span>
 <span class="w">    </span><span class="cp">GT_FUNCTION</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span><span class="w"> </span><span class="n">eval</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">());</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
@@ -126,7 +127,7 @@ to another:</p>
 abstract descriptions of a stencils, the DSL allows <cite>GridTools</cite> can apply architecture-specific optimizations to the stencil
 computations in order to be optimal on the target hardware.</p>
 <section id="dependencies">
-<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline"></a></h3>
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading"></a></h3>
 <p><cite>GridTools</cite> requires a header-only installation of <a class="reference external" href="https://www.boost.org/">Boost</a>, a recent version of <a class="reference external" href="https://www.cmake.org/">CMake</a> and a modern compiler.
 The exact version requirements can be found on <a class="reference external" href="https://github.com/GridTools/gridtools">GitHub</a>.</p>
 <p>Addtionally <cite>GridTools</cite> requires the following optional dependencies.
@@ -135,11 +136,11 @@ For the CPU backends <em>OpenMP</em> is required.</p>
 </section>
 </section>
 <section id="using-gridtools">
-<h2>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline"></a></h2>
+<h2>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this heading"></a></h2>
 <p><cite>GridTools</cite> uses CMake as its build system.  CMake offers two ways of using a CMake-managed project: from an installation
 or using FetchContent to pull in a dependency on the fly. <cite>GridTools</cite> supports both ways.</p>
 <section id="installing-and-validating-gridtools">
-<span id="installation"></span><h3>Installing and Validating GridTools<a class="headerlink" href="#installing-and-validating-gridtools" title="Permalink to this headline"></a></h3>
+<span id="installation"></span><h3>Installing and Validating GridTools<a class="headerlink" href="#installing-and-validating-gridtools" title="Permalink to this heading"></a></h3>
 <p>To install <cite>GridTools</cite> (in <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>)
 and run the tests, use the following commands.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone http://github.com/GridTools/gridtools.git
@@ -174,11 +175,11 @@ Clang), <code class="docutils literal notranslate"><span class="pre">NVCC-CUDA</
 </div></blockquote>
 </section>
 <section id="using-a-gridtools-installation">
-<h3>Using a GridTools Installation<a class="headerlink" href="#using-a-gridtools-installation" title="Permalink to this headline"></a></h3>
+<h3>Using a GridTools Installation<a class="headerlink" href="#using-a-gridtools-installation" title="Permalink to this heading"></a></h3>
 <p>Using <cite>GridTools</cite> follows standard CMake practices. If <cite>GridTools</cite> was installed to <cite>&lt;prefix&gt;</cite>,
 provide <code class="docutils literal notranslate"><span class="pre">-DCMAKE_PREFIX_PATH=&lt;prefix&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">-DGridTools_ROOT=&lt;prefix&gt;</span></code> to indicate where <cite>GridTools</cite> can be found.
 The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file should then contain the following line:</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">VERSION</span> <span class="s">...</span> <span class="s">REQUIRED</span><span class="p">)</span>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span><span class="w"> </span><span class="s">VERSION</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -193,17 +194,17 @@ to change the mode.</p>
 </div>
 </section>
 <section id="using-gridtools-with-cmakes-fetchcontent">
-<span id="fetch-content"></span><h3>Using GridTools with CMake’s FetchContent<a class="headerlink" href="#using-gridtools-with-cmakes-fetchcontent" title="Permalink to this headline"></a></h3>
+<span id="fetch-content"></span><h3>Using GridTools with CMake’s FetchContent<a class="headerlink" href="#using-gridtools-with-cmakes-fetchcontent" title="Permalink to this heading"></a></h3>
 <p>Alternatively to a <cite>GridTools</cite> installation you can use <cite>GridTools</cite> with <em>FetchContent</em>. To use FetchContent add the following
 lines to your CMake project</p>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">include</span><span class="p">(</span><span class="s">FetchContent</span><span class="p">)</span>
 <span class="nb">FetchContent_Declare</span><span class="p">(</span><span class="s">GridTools</span>
-    <span class="s">URL</span> <span class="s">https://github.com/GridTools/gridtools/archive/&lt;release_tag&gt;.tar.gz</span>
+<span class="w">    </span><span class="s">URL</span><span class="w"> </span><span class="s">https://github.com/GridTools/gridtools/archive/&lt;release_tag&gt;.tar.gz</span>
 <span class="p">)</span>
 <span class="nb">FetchContent_GetProperties</span><span class="p">(</span><span class="s">GridTools</span><span class="p">)</span>
-<span class="nb">if</span><span class="p">(</span><span class="s">NOT</span> <span class="s">GridTools_POPULATED</span><span class="p">)</span>
-    <span class="nb">FetchContent_Populate</span><span class="p">(</span><span class="s">GridTools</span><span class="p">)</span>
-    <span class="nb">add_subdirectory</span><span class="p">(</span><span class="o">${</span><span class="nv">gridtools_SOURCE_DIR</span><span class="o">}</span> <span class="o">${</span><span class="nv">gridtools_BINARY_DIR</span><span class="o">}</span><span class="p">)</span>
+<span class="nb">if</span><span class="p">(</span><span class="s">NOT</span><span class="w"> </span><span class="s">GridTools_POPULATED</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">FetchContent_Populate</span><span class="p">(</span><span class="s">GridTools</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">add_subdirectory</span><span class="p">(</span><span class="o">${</span><span class="nv">gridtools_SOURCE_DIR</span><span class="o">}</span><span class="w"> </span><span class="o">${</span><span class="nv">gridtools_BINARY_DIR</span><span class="o">}</span><span class="p">)</span>
 <span class="nb">endif</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -218,7 +219,7 @@ If tests are enabled, their behavior can be changed as described in <a class="re
 </div></blockquote>
 </section>
 <section id="id2">
-<h3>Using GridTools<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
+<h3>Using GridTools<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
 <p>After <cite>GridTools</cite> was made available by either <code class="docutils literal notranslate"><span class="pre">find_package</span></code> or <code class="docutils literal notranslate"><span class="pre">FetchContent</span></code> the following targets for the
 different <cite>GridTools</cite> modules are available</p>
 <blockquote>
@@ -269,19 +270,19 @@ The function helps abstracting differences in how CUDA code is compiled
 (e.g. <em>Clang</em> uses a different flag than <em>NVCC</em> for the CUDA architecture). Additionally, using this function
 allows to compile the same <em>.cpp</em> file for both CUDA and host, without having to wrap the implementation in a
 <em>.cu</em> file.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">my_library</span> <span class="s">source.cpp</span><span class="p">)</span>
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_library</span> <span class="s">PUBLIC</span> <span class="s">GridTools::stencil_cuda</span><span class="p">)</span>
-<span class="nb">gridtools_setup_target</span><span class="p">(</span><span class="s">my_library</span> <span class="s">CUDA_ARCH</span> <span class="s">sm_60</span><span class="p">)</span>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">my_library</span><span class="w"> </span><span class="s">source.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_library</span><span class="w"> </span><span class="s">PUBLIC</span><span class="w"> </span><span class="s">GridTools::stencil_cuda</span><span class="p">)</span>
+<span class="nb">gridtools_setup_target</span><span class="p">(</span><span class="s">my_library</span><span class="w"> </span><span class="s">CUDA_ARCH</span><span class="w"> </span><span class="s">sm_60</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="amd-gpu-support">
-<h3>AMD GPU Support<a class="headerlink" href="#amd-gpu-support" title="Permalink to this headline"></a></h3>
+<h3>AMD GPU Support<a class="headerlink" href="#amd-gpu-support" title="Permalink to this heading"></a></h3>
 <p>Further, <cite>GridTools</cite> can also be compiled for AMD GPUs using AMD’s HIP. To compile <cite>GridTools</cite> you need the Clang-based HIP compiler which is available with ROCm 3.5 and later.</p>
 </section>
 </section>
 <section id="contributing">
-<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline"></a></h2>
+<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading"></a></h2>
 <p>Contributions to the <cite>GridTools</cite> set of libraries are welcome. However, our policy is that we will be the official maintainers
 and providers of the <cite>GridTools</cite> code. We believe that this will provide our users with a clear reference point for
 support and guarantees on timely interactions. For this reason, we require that external contributions to <cite>GridTools</cite>

@@ -33,7 +33,7 @@ namespace {
                     meta::rename<tuple, meta::make_indices_c<2>>());
                 tmp /= 2;
                 auto ss = deref(s);
-                return tuple(tmp * get<0>(ss), tmp * get<1>(ss));
+                return make_tuple(tmp * tuple_get(0_c, ss), tmp * tuple_get(1_c, ss));
             };
         }
     };
@@ -48,13 +48,13 @@ namespace {
                     [&](auto i) {
                         auto shifted_zavg = shift(zavg, v2e(), i);
                         if (can_deref(shifted_zavg)) {
-                            get<0>(tmp) += get<0>(deref(shifted_zavg)) * get<i.value>(signs);
-                            get<1>(tmp) += get<1>(deref(shifted_zavg)) * get<i.value>(signs);
+                            tuple_get(0_c, tmp) += tuple_get(0_c, deref(shifted_zavg)) * get<i.value>(signs);
+                            tuple_get(1_c, tmp) += tuple_get(1_c, deref(shifted_zavg)) * get<i.value>(signs);
                         }
                     },
                     meta::rename<tuple, meta::make_indices_c<6>>());
                 auto v = deref(vol);
-                return tuple(get<0>(tmp) / v, get<1>(tmp) / v);
+                return make_tuple(tuple_get(0_c, tmp) / v, tuple_get(1_c, tmp) / v);
             };
         }
     };
@@ -79,15 +79,15 @@ namespace {
                                 meta::rename<tuple, meta::make_indices_c<2>>());
                             tmp2 /= 2;
                             auto ss = deref(shifted_s);
-                            auto zavg = tuple(tmp2 * get<0>(ss), tmp2 * get<1>(ss));
+                            auto zavg = tuple(tmp2 * tuple_get(0_c, ss), tmp2 * tuple_get(1_c, ss));
 
-                            get<0>(tmp) += get<0>(zavg) * get<i.value>(signs);
-                            get<1>(tmp) += get<1>(zavg) * get<i.value>(signs);
+                            tuple_get(0_c, tmp) += tuple_get(0_c, zavg) * get<i.value>(signs);
+                            tuple_get(1_c, tmp) += tuple_get(1_c, zavg) * get<i.value>(signs);
                         }
                     },
                     meta::rename<tuple, meta::make_indices_c<6>>());
                 auto v = deref(vol);
-                return tuple(get<0>(tmp) / v, get<1>(tmp) / v);
+                return make_tuple(tuple_get(0_c, tmp) / v, tuple_get(1_c, tmp) / v);
             };
         }
     };
