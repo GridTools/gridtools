@@ -179,8 +179,8 @@ namespace gridtools {
 #endif
                 // NVCC 11 fails to do class template deduction in the case of nested templates
                 template <class... Args>
-                static constexpr GT_FUNCTION values<Args...> make_values(Args const &...args) {
-                    return {args...};
+                static constexpr GT_FUNCTION values<Args...> make_values(Args &&...args) {
+                    return {std::forward<Args>(args)...};
                 }
             };
 

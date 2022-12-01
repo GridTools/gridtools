@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
 
@@ -31,6 +32,13 @@ namespace gridtools {
         static_assert(is_hymap<hymap::keys<>::values<>>::value);
         static_assert(is_hymap<hymap::keys<a>::values<int>>::value);
         static_assert(is_hymap<hymap::keys<a, b>::values<int, double>>::value);
+
+        static_assert(std::is_same_v<get_keys<std::array<int, 2>>,
+            meta::list<integral_constant<int, 0>, integral_constant<int, 1>>>);
+        static_assert(std::is_same_v<get_keys<tuple<int, double>>,
+            meta::list<integral_constant<int, 0>, integral_constant<int, 1>>>);
+        static_assert(std::is_same_v<get_keys<hymap::keys<>::values<>>, hymap::keys<>>);
+        static_assert(std::is_same_v<get_keys<hymap::keys<a>::values<int>>, hymap::keys<a>>);
 
         TEST(tuple_like, smoke) {
             using testee_t = hymap::keys<a, b, c>::values<int, double, void *>;
@@ -188,7 +196,25 @@ namespace gridtools {
             EXPECT_EQ(16, at_key<c>(testee));
         }
 
-        TEST(assingment, smoke) {
+        TEST(concat, smoke) {
+            auto m1 = hymap::keys<a, b>::make_values(1, 2);
+            auto m2 = hymap::keys<c>::make_values(3.5);
+            auto testee = hymap::concat(m1, m2);
+
+            EXPECT_EQ(1, at_key<a>(testee));
+            EXPECT_EQ(2, at_key<b>(testee));
+            EXPECT_EQ(3.5, at_key<c>(testee));
+        }
+
+        TEST(concat, empty) {
+            auto m1 = hymap::keys<>::make_values();
+            auto m2 = hymap::keys<a>::make_values(42);
+            auto testee = hymap::concat(m1, m2);
+
+            EXPECT_EQ(42, at_key<a>(testee));
+        }
+
+        TEST(assignment, smoke) {
             hymap::keys<a, b>::values<double, double> testee;
             auto src = hymap::keys<b, a, c>::make_values(88, 3.5, 16);
             testee = src;

@@ -84,7 +84,7 @@ namespace gridtools::fn {
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
         GT_FUNCTION constexpr auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset) {
             auto const &table = host_device::at_key<Conn>(it.m_domain.m_tables);
-            auto new_index = get<Offset::value>(neighbor_table::neighbors(table, it.m_index));
+            auto new_index = it.m_index == -1 ? -1 : get<Offset::value>(neighbor_table::neighbors(table, it.m_index));
             auto shifted = it;
             shifted.m_index = new_index;
             return shifted;
@@ -98,21 +98,19 @@ namespace gridtools::fn {
             return shifted;
         }
 
-        template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
-        GT_FUNCTION constexpr auto shift(
-            iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
-            if (it.m_index == -1)
-                return it;
-
-            if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>()) {
-                return shift(horizontal_shift(it, Dim(), offset), offsets...);
-            } else {
-                return shift(non_horizontal_shift(it, Dim(), offset), offsets...);
-            }
-        }
         template <class Tag, class Ptr, class Strides, class Domain>
         GT_FUNCTION constexpr auto shift(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return it;
+        }
+        
+        template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
+        GT_FUNCTION constexpr auto shift(
+            iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
+            if constexpr (has_key<decltype(it.m_domain.m_tables), Dim>()) {
+                return unstructured_impl_::shift(horizontal_shift(it, Dim(), offset), offsets...);
+            } else {
+                return unstructured_impl_::shift(non_horizontal_shift(it, Dim(), offset), offsets...);
+            }
         }
 
         template <class Domain>
@@ -171,4 +169,7 @@ namespace gridtools::fn {
 
     using unstructured_impl_::connectivity;
     using unstructured_impl_::unstructured_domain;
+    using unstructured_impl_::shift;
+    using unstructured_impl_::deref;
+    using unstructured_impl_::can_deref;
 } // namespace gridtools::fn

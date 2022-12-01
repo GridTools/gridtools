@@ -11,7 +11,7 @@
 #pragma once
 
 /**
- *  C++14 metaprogramming library.
+ *  C++17 metaprogramming library.
  *
  *  Basic Concepts
  *  ==============

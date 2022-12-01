@@ -114,13 +114,13 @@ namespace gridtools {
 
         template <typename DataType>
         class empty_field_base {
-            static constexpr int DIMS = 3;
+            using DIMS_t = std::integral_constant<int, 3>;
 
-            typedef array<halo_descriptor, DIMS> HALO_t;
+            typedef array<halo_descriptor, DIMS_t::value> HALO_t;
 
           public:
-            array<halo_descriptor, DIMS> halos;
-            typedef array<std::pair<MPI_Datatype, bool>, static_pow3(DIMS)> MPDT_t;
+            array<halo_descriptor, DIMS_t::value> halos;
+            typedef array<std::pair<MPI_Datatype, bool>, static_pow3(DIMS_t::value)> MPDT_t;
             MPDT_t MPDT_OUTSIDE;
             MPDT_t MPDT_INSIDE;
 
@@ -142,8 +142,8 @@ namespace gridtools {
             void add_halo(int D, halo_descriptor const &halo) { halos[D] = halo; }
 
             void setup() {
-                array<int, DIMS> tuple;
-                _impl::neigh_loop<DIMS>()(
+                array<int, DIMS_t::value> tuple;
+                _impl::neigh_loop<DIMS_t::value>()(
                     [&](auto const &tuple) {
                         int idx = _impl::neigh_idx(tuple);
                         MPDT_OUTSIDE[idx] = _impl::make_datatype_outin<DataType>::outside(halos, tuple);
@@ -152,11 +152,11 @@ namespace gridtools {
                     tuple);
             }
 
-            std::pair<MPI_Datatype, bool> mpdt_inside(array<int, DIMS> const &eta) const {
+            std::pair<MPI_Datatype, bool> mpdt_inside(array<int, DIMS_t::value> const &eta) const {
                 return MPDT_INSIDE[_impl::neigh_idx(eta)];
             }
 
-            std::pair<MPI_Datatype, bool> mpdt_outside(array<int, DIMS> const &eta) const {
+            std::pair<MPI_Datatype, bool> mpdt_outside(array<int, DIMS_t::value> const &eta) const {
                 return MPDT_OUTSIDE[_impl::neigh_idx(eta)];
             }
 
@@ -167,9 +167,9 @@ namespace gridtools {
 
                 \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
             */
-            int send_buffer_size(array<int, DIMS> const &eta) const {
+            int send_buffer_size(array<int, DIMS_t::value> const &eta) const {
                 int S = 1;
-                for (int i = 0; i < DIMS; ++i) {
+                for (int i = 0; i < DIMS_t::value; ++i) {
                     S *= halos[i].s_length(eta[i]);
                 }
                 return S;
@@ -182,9 +182,9 @@ namespace gridtools {
 
                 \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
             */
-            int recv_buffer_size(array<int, DIMS> const &eta) const {
+            int recv_buffer_size(array<int, DIMS_t::value> const &eta) const {
                 int S = 1;
-                for (int i = 0; i < DIMS; ++i) {
+                for (int i = 0; i < DIMS_t::value; ++i) {
                     S *= halos[i].r_length(eta[i]);
                 }
                 return S;
