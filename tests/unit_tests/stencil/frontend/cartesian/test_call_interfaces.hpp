@@ -57,7 +57,7 @@ namespace gridtools {
                 using env_t = test_environment<1, axis<1>>::apply<naive, double, inlined_params<13, 9, 7>>;
 
                 template <class Fun, class... Storages>
-                void run_computation(Storages &&... storages) const {
+                void run_computation(Storages &&...storages) const {
                     run_single_stage(Fun(), naive(), env_t::make_grid(), std::forward<Storages>(storages)...);
                 }
 

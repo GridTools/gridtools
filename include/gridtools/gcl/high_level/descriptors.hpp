@@ -107,7 +107,7 @@ namespace gridtools {
                may have different datatypes).
             */
             template <typename iterator, typename FIRST, typename... FIELDS>
-            void pack_all(array<int, DIMS> const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
+            void pack_all(array<int, DIMS> const &eta, iterator &it, FIRST const &field, const FIELDS &...args) const {
                 pack(eta, field, it);
                 pack_all(eta, it, args...);
             }
@@ -131,7 +131,7 @@ namespace gridtools {
             */
             template <typename iterator, typename FIRST, typename... FIELDS>
             void unpack_all(
-                array<int, DIMS> const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
+                array<int, DIMS> const &eta, iterator &it, FIRST const &field, const FIELDS &...args) const {
                 unpack(eta, field, it);
                 unpack_all(eta, it, args...);
             }
@@ -445,7 +445,7 @@ namespace gridtools {
                \param[in] _fields data fields to be packed
             */
             template <typename... FIELDS>
-            void pack(const FIELDS &... _fields) {
+            void pack(const FIELDS &..._fields) {
                 pack_dims<DIMS, 0>()(*this, _fields...);
             }
 
@@ -455,7 +455,7 @@ namespace gridtools {
                \param[in] _fields data fields where to unpack data
             */
             template <typename... FIELDS>
-            void unpack(const FIELDS &... _fields) const {
+            void unpack(const FIELDS &..._fields) const {
                 unpack_dims<DIMS, 0>()(*this, _fields...);
             }
 
@@ -495,7 +495,7 @@ namespace gridtools {
             template <int dummy>
             struct pack_dims<3, dummy> {
                 template <typename T, typename... FIELDS>
-                void operator()(T &hm, const FIELDS &... _fields) const {
+                void operator()(T &hm, const FIELDS &..._fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                     for (int ii = -1; ii <= 1; ++ii) {
                         for (int jj = -1; jj <= 1; ++jj) {
@@ -532,7 +532,7 @@ namespace gridtools {
             template <int dummy>
             struct unpack_dims<3, dummy> {
                 template <typename T, typename... FIELDS>
-                void operator()(const T &hm, const FIELDS &... _fields) const {
+                void operator()(const T &hm, const FIELDS &..._fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                     for (int ii = -1; ii <= 1; ++ii) {
                         for (int jj = -1; jj <= 1; ++jj) {

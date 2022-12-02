@@ -98,7 +98,7 @@ namespace gridtools::fn {
         }
     } // namespace cartesian_impl_
     using cartesian_impl_::cartesian_domain;
+    using cartesian_impl_::deref;
     using cartesian_impl_::make_backend;
     using cartesian_impl_::shift;
-    using cartesian_impl_::deref;
 } // namespace gridtools::fn

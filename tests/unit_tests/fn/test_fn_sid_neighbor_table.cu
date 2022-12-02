@@ -28,8 +28,7 @@ namespace gridtools::fn {
         using edge_to_cell_dim_t = integral_constant<int_t, 1>;
 
         template <class Table>
-        __device__ auto neighbor_table_neighbors_device(Table const &table, int index)
-            -> array<int, 2> {
+        __device__ auto neighbor_table_neighbors_device(Table const &table, int index) -> array<int, 2> {
             return neighbor_table::neighbors(table, index);
         }
 
