@@ -1583,7 +1583,7 @@ namespace gridtools {
              */
             template <template <class...> class L
 #if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 6)
+    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 8)
                 // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
                 ,
                 int = 0,
@@ -1596,7 +1596,7 @@ namespace gridtools {
 
             template <template <class...> class L
 #if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 6)
+    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 8)
 
                 // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
                 ,
