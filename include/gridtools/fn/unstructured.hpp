@@ -102,7 +102,7 @@ namespace gridtools::fn {
         GT_FUNCTION constexpr auto shift(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return it;
         }
-        
+
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset, class... Offsets>
         GT_FUNCTION constexpr auto shift(
             iterator<Tag, Ptr, Strides, Domain> const &it, Dim, Offset offset, Offsets... offsets) {
@@ -167,9 +167,9 @@ namespace gridtools::fn {
         }
     } // namespace unstructured_impl_
 
-    using unstructured_impl_::connectivity;
-    using unstructured_impl_::unstructured_domain;
-    using unstructured_impl_::shift;
-    using unstructured_impl_::deref;
     using unstructured_impl_::can_deref;
+    using unstructured_impl_::connectivity;
+    using unstructured_impl_::deref;
+    using unstructured_impl_::shift;
+    using unstructured_impl_::unstructured_domain;
 } // namespace gridtools::fn

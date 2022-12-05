@@ -48,7 +48,8 @@ namespace gridtools {
             };
 
             template <size_t N,
-                template <class...> class L,
+                template <class...>
+                class L,
                 class T0,
                 class T1,
                 class T2,

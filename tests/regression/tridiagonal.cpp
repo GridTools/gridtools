@@ -90,7 +90,9 @@ namespace {
             TypeParam::make_storage(-1),
             TypeParam::make_storage(3),
             TypeParam::make_storage(1),
-            TypeParam::make_storage([](int, int, int k) { return k == 0 ? 4 : k == 5 ? 2 : 3; }),
+            TypeParam::make_storage([](int, int, int k) { return k == 0   ? 4
+                                                                 : k == 5 ? 2
+                                                                          : 3; }),
             out);
         TypeParam::verify(1, out);
     }

@@ -40,7 +40,7 @@ namespace gridtools {
                 this macro expands to n definitions of the function loop, taking a number of arguments ranging from 0 to
                n (DataField0, Datafield1, DataField2, ...)*/
             template <typename Direction, typename... DataField>
-            void loop(DataField &... data_field) const {
+            void loop(DataField &...data_field) const {
                 const int_t i_low = halo_descriptors[0].loop_low_bound_outside(Direction::i);
                 const int_t i_high = halo_descriptors[0].loop_high_bound_outside(Direction::i);
                 const int_t j_low = halo_descriptors[1].loop_low_bound_outside(Direction::j);
@@ -70,7 +70,7 @@ namespace gridtools {
 
             */
             template <typename... DataFieldViews>
-            void apply(DataFieldViews const &... data_field_views) const {
+            void apply(DataFieldViews const &...data_field_views) const {
 
                 if (predicate(direction<minus_, minus_, minus_>()))
                     this->loop<direction<minus_, minus_, minus_>>(data_field_views...);
