@@ -50,8 +50,8 @@ namespace gridtools {
 
             TEST(make_strides_from_sizes, hymap) {
                 auto testee = make_strides_from_sizes(hymap::keys<a, b, c>::make_values(20, 30, 40));
-                static_assert(
-                    std::is_same_v<decltype(testee), hymap::keys<a, b, c>::values<integral_constant<int, 1>, int, int>>);
+                static_assert(std::is_same_v<decltype(testee),
+                    hymap::keys<a, b, c>::values<integral_constant<int, 1>, int, int>>);
 
                 EXPECT_EQ(1, at_key<a>(testee));
                 EXPECT_EQ(20, at_key<b>(testee));

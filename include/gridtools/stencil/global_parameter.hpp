@@ -22,7 +22,8 @@ namespace gridtools {
 
             template <class T>
             struct global_parameter {
-                static_assert(std::is_trivially_copy_constructible_v<T>, "global parameter should be trivially copyable");
+                static_assert(
+                    std::is_trivially_copy_constructible_v<T>, "global parameter should be trivially copyable");
 
                 T m_value;
 

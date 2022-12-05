@@ -1,0 +1,44 @@
+[metadata]
+name = gridtools-cpp
+author = ETH Zurich
+author_email = gridtools@cscs.ch
+license_files = LICENSE # this file is automatically copied from the top level
+long_description = file: README.md
+long_description_content_type = text/markdown; charset=UTF-8
+url = https://gridtools.github.io
+project_urls = 
+	Source Code = https://github.com/GridTools/gridtools
+platforms = any
+version = # leave empty, automatically generated
+classifiers = 
+	Development Status :: 5 - Production/Stable
+	Intended Audience :: Science/Research
+	License :: OSI Approved :: BSD License
+	Operating System :: OS Independent
+	Programming Language :: Python :: 3 :: Only
+	Topic :: Scientific/Engineering :: Atmospheric Science
+	Topic :: Scientific/Engineering :: Mathematics
+	Topic :: Scientific/Engineering :: Physics
+
+[options]
+packages = find_namespace:
+package_dir = 
+	= src
+python_requires = >=3.8
+
+[options.package_data]
+* = 
+	*.hpp
+	*.h
+	*.cmake
+
+[options.packages.find]
+where = src
+exclude = tests
+
+[tools:isort]
+line_length = 100
+
+[flake8]
+max-line-length = 100
+
