@@ -55,7 +55,7 @@ namespace gridtools {
             }
 
             template <class... Fields>
-            size_t get_expandable_size(Fields const &... fields) {
+            size_t get_expandable_size(Fields const &...fields) {
                 size_t res = get_expandable_size_impl(get_field_size(fields)...);
                 return res == size_t(-1) ? 1 : res;
             }
@@ -137,12 +137,12 @@ namespace gridtools {
             }
 
             template <size_t Factor, size_t... Is, class... Fields>
-            auto make_data_store_map(size_t offset, Fields const &... fields) {
+            auto make_data_store_map(size_t offset, Fields const &...fields) {
                 return hymap::concat(make_data_store_map2<Factor, arg<Is>>(offset, fields)...);
             }
 
             template <size_t Factor, class Spec, size_t... Is, class Backend, class Grid, class... Fields>
-            void expanded_run(Backend be, Grid const &grid, size_t offset, const Fields &... fields) {
+            void expanded_run(Backend be, Grid const &grid, size_t offset, const Fields &...fields) {
                 core::call_entry_point_f<expand_spec<std::integral_constant<size_t, Factor>, Spec>>()(
                     std::forward<Backend>(be), grid, make_data_store_map<Factor, Is...>(offset, fields...));
             }
@@ -175,7 +175,7 @@ namespace gridtools {
             }
 
             template <size_t Factor, class Comp, class Backend, class Grid, class... Fields>
-            void expandable_run(Comp comp, Backend &&be, Grid const &grid, Fields &&... fields) {
+            void expandable_run(Comp comp, Backend &&be, Grid const &grid, Fields &&...fields) {
                 run_impl<Factor>(comp,
                     std::forward<Backend>(be),
                     grid,

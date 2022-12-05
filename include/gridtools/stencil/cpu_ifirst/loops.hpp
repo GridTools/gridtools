@@ -103,7 +103,8 @@ namespace gridtools {
                     int_t i_blocks = info.i_blocks();
                     int_t j_blocks = info.j_blocks();
                     int_t k_size = grid.k_size();
-                    thread_pool::parallel_for_loop(ThreadPool(),
+                    thread_pool::parallel_for_loop(
+                        ThreadPool(),
                         [&](auto i, auto k, auto j) {
                             tuple_util::for_each([block = info.block(i, j, k)](auto &&loop) { loop(block); }, loops);
                         },
@@ -151,7 +152,8 @@ namespace gridtools {
                 template <class ThreadPool, class Grid, class Loops>
                 void run_loops(std::false_type, Grid const &grid, Loops loops) {
                     execinfo info(ThreadPool(), grid);
-                    thread_pool::parallel_for_loop(ThreadPool(),
+                    thread_pool::parallel_for_loop(
+                        ThreadPool(),
                         [&](auto i, auto j) {
                             tuple_util::for_each([block = info.block(i, j)](auto &&loop) { loop(block); }, loops);
                         },

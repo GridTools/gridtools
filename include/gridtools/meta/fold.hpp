@@ -52,7 +52,8 @@ namespace gridtools {
             };
             template <template <class...> class F,
                 class S,
-                template <class...> class L,
+                template <class...>
+                class L,
                 class T1,
                 class T2,
                 class T3,
@@ -82,7 +83,8 @@ namespace gridtools {
             };
             template <template <class...> class F,
                 class S,
-                template <class...> class L,
+                template <class...>
+                class L,
                 class T1,
                 class T2,
                 class T3,
@@ -109,7 +111,8 @@ namespace gridtools {
 
             template <template <class...> class F,
                 class S,
-                template <class...> class L,
+                template <class...>
+                class L,
                 class T1,
                 class T2,
                 class T3,
@@ -117,13 +120,14 @@ namespace gridtools {
                 class T5,
                 class... Ts>
             struct foldl<F, S, L<T1, T2, T3, T4, T5, Ts...>>
-                : fold_impl_::state<decltype(
-                      (std::declval<fold_impl_::folder<F, F<F<F<F<F<S, T1>, T2>, T3>, T4>, T5>> &&>() + ... +
-                          (fold_impl_::id<Ts> *)0))> {};
+                : fold_impl_::state<decltype((
+                      std::declval<fold_impl_::folder<F, F<F<F<F<F<S, T1>, T2>, T3>, T4>, T5>> &&>() + ... +
+                      (fold_impl_::id<Ts> *)0))> {};
 
             template <template <class...> class F,
                 class S,
-                template <class...> class L,
+                template <class...>
+                class L,
                 class T1,
                 class T2,
                 class T3,
@@ -132,8 +136,8 @@ namespace gridtools {
                 class... Ts>
             struct foldr<F, S, L<T1, T2, T3, T4, T5, Ts...>> {
                 using type =
-                    F<F<F<F<F<typename fold_impl_::state<decltype(
-                                  ((fold_impl_::id<Ts> *)0 + ... + std::declval<fold_impl_::folder<F, S> &&>()))>::type,
+                    F<F<F<F<F<typename fold_impl_::state<decltype((
+                                  (fold_impl_::id<Ts> *)0 + ... + std::declval<fold_impl_::folder<F, S> &&>()))>::type,
                                 T5>,
                               T4>,
                             T3>,

@@ -103,7 +103,7 @@ namespace gridtools {
         }
 
         template <class T = FloatType, class... Args>
-        auto make_const_storage(Args &&... args) const {
+        auto make_const_storage(Args &&...args) const {
             return make_storage<T const>(std::forward<Args>(args)...);
         }
 

@@ -70,7 +70,8 @@ namespace gridtools {
             }
 
             template <template <class...> class L,
-                template <class...> class LL,
+                template <class...>
+                class LL,
                 class Plh,
                 class... Caches,
                 class IsTmp,
@@ -116,7 +117,8 @@ namespace gridtools {
             }
 
             template <template <class...> class L,
-                template <class...> class LL,
+                template <class...>
+                class LL,
                 class... FunCalls,
                 class Interval,
                 class... PlhInfos,

@@ -66,7 +66,7 @@ namespace gridtools {
                 : bc_apply(hd, boundary_f, predicate) {}
 
             template <typename... DataFields>
-            void apply(DataFields &... data_fields) const {
+            void apply(DataFields &...data_fields) const {
                 bc_apply.apply(data_fields->target_view()...);
             }
         };

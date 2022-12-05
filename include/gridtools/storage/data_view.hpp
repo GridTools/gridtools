@@ -30,7 +30,7 @@ namespace gridtools {
             decltype(auto) native_strides() const { return m_info->native_strides(); }
 
             template <class... Args>
-            auto operator()(Args &&... args) const -> decltype(m_ptr[m_info->index(std::forward<Args>(args)...)]) {
+            auto operator()(Args &&...args) const -> decltype(m_ptr[m_info->index(std::forward<Args>(args)...)]) {
                 return m_ptr[m_info->index(std::forward<Args>(args)...)];
             }
 
