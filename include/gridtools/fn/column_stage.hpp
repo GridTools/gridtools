@@ -48,7 +48,9 @@ namespace gridtools::fn {
                 Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 constexpr std::size_t prologue_size = std::tuple_size_v<decltype(ScanOrFold::prologue())>;
                 constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(ScanOrFold::epilogue())>;
+                GT_NVCC_DIAG_PUSH_SUPPRESS(186) // pointless comparison of unsigned with 0
                 assert(size >= prologue_size + epilogue_size);
+                GT_NVCC_DIAG_POP_SUPPRESS(186)
                 using step_t = integral_constant<int, ScanOrFold::value ? -1 : 1>;
                 auto const &v_stride = sid::get_stride<Vertical>(strides);
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };
