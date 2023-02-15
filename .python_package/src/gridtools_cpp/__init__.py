@@ -9,12 +9,12 @@
 import pathlib
 
 
-_file = pathlib.Path(__file__)
+_FILE = pathlib.Path(__file__)
 
 
 def get_cmake_dir() -> pathlib.Path:
-    return _file.parent / "data" / "lib" / "cmake" / "GridTools"
+    return _FILE.parent / "data" / "lib" / "cmake" / "GridTools"
 
 
 def get_include_dir() -> pathlib.Path:
-    return _file.parent / "data" / "include"
+    return _FILE.parent / "data" / "include"
