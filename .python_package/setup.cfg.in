@@ -31,6 +31,7 @@ python_requires = >=3.8
 	*.hpp
 	*.h
 	*.cmake
+	py.typed
 
 [options.packages.find]
 where = src
