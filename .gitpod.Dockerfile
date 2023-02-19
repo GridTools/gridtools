@@ -4,7 +4,7 @@ FROM gitpod/workspace-full
 USER root
 
 RUN apt-get update \
-    && apt-get install -y libboost-all-dev ninja-build \
+    && apt-get install -y libboost-all-dev ninja-build gfortran \
     && apt-get clean && rm -rf /var/cache/apt/* && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*
 
 ARG CMAKE_VERSION=3.22.1
