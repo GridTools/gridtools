@@ -11,6 +11,7 @@
       "displayName": "GCC",
       "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
       "binaryDir": "${sourceDir}/build/${presetName}",
+      "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
         "CMAKE_C_COMPILER": "/usr/bin/gcc",
