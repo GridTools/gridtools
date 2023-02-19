@@ -13,7 +13,7 @@ tasks:
       ln $(pwd)/.gitpod/.vscode/launch.json $(pwd)/.vscode
       ln $(pwd)/.gitpod/CMakeUserPresets.json $(pwd)
       mkdir build
-      cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE --presets -H/workspace/gridtools \
+      cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE --preset default -H/workspace/gridtools \
       -DCMAKE_BUILD_TYPE:STRING=Debug
       ln -s /workspace/gridtools/build/compile_commands.json .
       cmake --build /workspace/gridtools/build/ --parallel 8
