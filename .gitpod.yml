@@ -15,8 +15,7 @@ tasks:
       mkdir build
       cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE --preset default -H/workspace/gridtools \
       -DCMAKE_BUILD_TYPE:STRING=Debug
-      ln -s /workspace/gridtools/build/compile_commands.json .
-      cmake --build /workspace/gridtools/build/ --parallel 8
+      cmake --build --preset default --parallel 8
 
 github:
   prebuilds:
