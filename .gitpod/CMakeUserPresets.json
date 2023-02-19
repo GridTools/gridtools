@@ -9,7 +9,7 @@
     {
       "name": "default",
       "displayName": "GCC",
-      "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
+      "description": "",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
@@ -18,6 +18,14 @@
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
         "CMAKE_BUILD_TYPE": "Debug"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "description": "GCC",
+      "displayName": "",
+      "configurePreset": "default"
     }
   ]
 }
