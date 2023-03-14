@@ -47,7 +47,7 @@ namespace gridtools::fn {
         };
 
         TEST(stencil_executor, smoke) {
-            using backend_t = backend::naive;
+            using backend_t = backend::naive<>;
             auto domain = hymap::keys<int_t<0>, int_t<1>>::make_values(2_c, 3_c);
 
             auto alloc = tmp_allocator(backend_t());
@@ -73,7 +73,7 @@ namespace gridtools::fn {
         }
 
         TEST(vertical_executor, smoke) {
-            using backend_t = backend::naive;
+            using backend_t = backend::naive<>;
             auto domain = hymap::keys<int_t<0>, int_t<1>>::make_values(2_c, 3_c);
 
             int a[2][3] = {}, b[2][3] = {}, c[2][3];

@@ -10,14 +10,11 @@
 
 #pragma once
 
-#if defined(_OPENMP) || defined(GT_HIP_OPENMP_WORKAROUND)
-#include <omp.h>
-#endif
+#include "../common/omp.hpp"
 
 namespace gridtools {
     namespace thread_pool {
         struct omp {
-#if defined(_OPENMP) || defined(GT_HIP_OPENMP_WORKAROUND)
             friend auto thread_pool_get_thread_num(omp) { return omp_get_thread_num(); }
             friend auto thread_pool_get_max_threads(omp) { return omp_get_max_threads(); }
 
@@ -44,7 +41,6 @@ namespace gridtools {
                         for (I i = 0; i < i_lim; ++i)
                             f(i, j, k);
             }
-#endif
         };
     } // namespace thread_pool
 } // namespace gridtools
