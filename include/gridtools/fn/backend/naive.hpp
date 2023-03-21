@@ -90,7 +90,7 @@ namespace gridtools::fn::backend {
 
         template <class ThreadPool>
         inline auto tmp_allocator(naive_with_threadpool<ThreadPool> be) {
-            return std::tuple(be, sid::allocator(&std::make_unique<char[]>));
+            return std::make_tuple(be, sid::allocator(&std::make_unique<char[]>));
         }
 
         template <class ThreadPool, class Allocator, class Sizes, class T>
