@@ -19,6 +19,7 @@
 #include "../../sid/unknown_kind.hpp"
 #include "../../thread_pool/concept.hpp"
 #include "../../thread_pool/dummy.hpp"
+#include "../../thread_pool/omp.hpp"
 #include "./common.hpp"
 
 namespace gridtools::fn::backend {
@@ -26,7 +27,13 @@ namespace gridtools::fn::backend {
         template <class ThreadPool>
         struct naive_with_threadpool {};
 
-        using naive = naive_with_threadpool<thread_pool::dummy>;
+        using naive = naive_with_threadpool<
+#if defined(_OPENMP) || defined(GT_HIP_OPENMP_WORKAROUND)
+            thread_pool::omp
+#else
+            thread_pool::dummy
+#endif
+            >;
 
         template <class ThreadPool, class Sizes, class Dims = meta::rename<hymap::keys, get_keys<Sizes>>>
         auto make_parallel_loops(ThreadPool, Sizes const &sizes) {
