@@ -26,7 +26,7 @@
 #endif
 #include <gridtools/fn/backend/naive.hpp>
 namespace {
-    using fn_backend_t = gridtools::fn::backend::naive<>;
+    using fn_backend_t = gridtools::fn::backend::naive;
 }
 #elif defined(GT_FN_GPU)
 #ifndef GT_STENCIL_GPU
@@ -58,13 +58,13 @@ namespace {
 namespace gridtools::fn::backend {
     namespace naive_impl_ {
         template <class ThreadPool>
-        struct naive;
+        struct naive_with_threadpool;
         template <class ThreadPool>
-        storage::cpu_kfirst backend_storage_traits(naive<ThreadPool>);
+        storage::cpu_kfirst backend_storage_traits(naive_with_threadpool<ThreadPool>);
         template <class ThreadPool>
-        timer_dummy backend_timer_impl(naive<ThreadPool>);
+        timer_dummy backend_timer_impl(naive_with_threadpool<ThreadPool>);
         template <class ThreadPool>
-        inline char const *backend_name(naive<ThreadPool> const &) {
+        inline char const *backend_name(naive_with_threadpool<ThreadPool> const &) {
             return "naive";
         }
     } // namespace naive_impl_

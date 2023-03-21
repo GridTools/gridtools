@@ -23,8 +23,10 @@
 
 namespace gridtools::fn::backend {
     namespace naive_impl_ {
-        template <class ThreadPool = thread_pool::omp>
-        struct naive {};
+        template <class ThreadPool>
+        struct naive_with_threadpool {};
+
+        using naive = naive_with_threadpool<thread_pool::omp>;
 
         template <class ThreadPool, class Sizes, class Dims = meta::rename<hymap::keys, get_keys<Sizes>>>
         auto make_parallel_loops(ThreadPool, Sizes const &sizes) {
@@ -44,8 +46,11 @@ namespace gridtools::fn::backend {
         }
 
         template <class ThreadPool, class Sizes, class StencilStage, class MakeIterator, class Composite>
-        void apply_stencil_stage(
-            naive<ThreadPool>, Sizes const &sizes, StencilStage, MakeIterator &&make_iterator, Composite &&composite) {
+        void apply_stencil_stage(naive_with_threadpool<ThreadPool>,
+            Sizes const &sizes,
+            StencilStage,
+            MakeIterator &&make_iterator,
+            Composite &&composite) {
             auto ptr = sid::get_origin(std::forward<Composite>(composite))();
             auto strides = sid::get_strides(std::forward<Composite>(composite));
             make_parallel_loops(ThreadPool(), sizes)([make_iterator = make_iterator()](auto ptr, auto const &strides) {
@@ -60,7 +65,7 @@ namespace gridtools::fn::backend {
             class Composite,
             class Vertical,
             class Seed>
-        void apply_column_stage(naive<ThreadPool>,
+        void apply_column_stage(naive_with_threadpool<ThreadPool>,
             Sizes const &sizes,
             ColumnStage,
             MakeIterator &&make_iterator,
@@ -77,17 +82,19 @@ namespace gridtools::fn::backend {
         }
 
         template <class ThreadPool>
-        inline auto tmp_allocator(naive<ThreadPool> be) {
+        inline auto tmp_allocator(naive_with_threadpool<ThreadPool> be) {
             return std::tuple(be, sid::allocator(&std::make_unique<char[]>));
         }
 
         template <class ThreadPool, class Allocator, class Sizes, class T>
-        auto allocate_global_tmp(std::tuple<naive<ThreadPool>, Allocator> &alloc, Sizes const &sizes, data_type<T>) {
+        auto allocate_global_tmp(
+            std::tuple<naive_with_threadpool<ThreadPool>, Allocator> &alloc, Sizes const &sizes, data_type<T>) {
             return sid::make_contiguous<T, int_t, sid::unknown_kind>(std::get<1>(alloc), sizes);
         }
     } // namespace naive_impl_
 
     using naive_impl_::naive;
+    using naive_impl_::naive_with_threadpool;
 
     using naive_impl_::apply_column_stage;
     using naive_impl_::apply_stencil_stage;

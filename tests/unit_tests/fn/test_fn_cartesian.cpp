@@ -44,7 +44,7 @@ namespace gridtools::fn {
             };
 
             auto fencil = [&](auto const &sizes, auto &out, auto const &in) {
-                auto be = backend::naive<>();
+                auto be = backend::naive();
                 auto alloc = tmp_allocator(be);
                 auto tmp = allocate_global_tmp<int>(alloc, sizes);
                 auto domain = cartesian_domain(std::array<int, 3>{sizes[0] - 1, sizes[1], sizes[2]});
@@ -80,7 +80,7 @@ namespace gridtools::fn {
 
             auto double_scan = [&](auto sizes, auto &a, auto &b, auto const &c) {
                 auto domain = cartesian_domain(sizes);
-                auto backend = make_backend(backend::naive<>(), domain);
+                auto backend = make_backend(backend::naive(), domain);
                 apply_double_scan(backend.vertical_executor(), a, b, c);
             };
 
