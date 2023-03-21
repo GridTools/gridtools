@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#if defined(_OPENMP) || defined(GT_HIP_OPENMP_WORKAROUND)
+#ifdef _OPENMP
 #include <omp.h>
 #else
 extern "C" {
