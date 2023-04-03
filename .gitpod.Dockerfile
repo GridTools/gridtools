@@ -3,11 +3,18 @@ FROM gitpod/workspace-full
 
 USER root
 
-RUN apt-get update \
-    && apt-get install -y libboost-all-dev ninja-build gfortran \
+ENV CLANG_VERSION 16
+
+RUN echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${CLANG_VERSION} main" >> /etc/apt/sources.list \
+    && echo "deb-src http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${CLANG_VERSION} main" >> /etc/apt/sources.list \
+    && wget -q -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
+    && apt-get update \
+    && apt-get install -y libboost-all-dev ninja-build gfortran clang-${CLANG_VERSION} libomp-${CLANG_VERSION}-dev \
     && apt-get clean && rm -rf /var/cache/apt/* && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*
 
-ARG CMAKE_VERSION=3.22.1
+ENV CXX=clang++-${CLANG_VERSION} CC=clang-${CLANG_VERSION}
+
+ARG CMAKE_VERSION=3.26.2
 RUN cd /tmp && \
     VNUM=$(echo ${CMAKE_VERSION} | awk -F \. {'print $1*1000+$2'}) && \
     LNAME=$([ ${VNUM} -gt 3019 ] && echo "linux" || echo "Linux") && \
