@@ -12,8 +12,8 @@ tasks:
       ln $(pwd)/.gitpod/.vscode/settings.json $(pwd)/.vscode
       ln $(pwd)/.gitpod/.vscode/launch.json $(pwd)/.vscode
       ln $(pwd)/.gitpod/CMakeUserPresets.json $(pwd)
-      cmake --preset default
-      cmake --build --preset default --parallel $(nproc)
+      cmake --preset Clang
+      cmake --build --preset Clang --parallel $(nproc)
 
 github:
   prebuilds:
