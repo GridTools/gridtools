@@ -7,7 +7,7 @@ RUN apt-get update \
     && apt-get install -y libboost-all-dev ninja-build gfortran \
     && apt-get clean && rm -rf /var/cache/apt/* && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*
 
-ARG CMAKE_VERSION=3.22.1
+ARG CMAKE_VERSION=3.26.2
 RUN cd /tmp && \
     VNUM=$(echo ${CMAKE_VERSION} | awk -F \. {'print $1*1000+$2'}) && \
     LNAME=$([ ${VNUM} -gt 3019 ] && echo "linux" || echo "Linux") && \
