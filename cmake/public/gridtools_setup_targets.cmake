@@ -304,6 +304,8 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     endif()
 
     if (OpenMP_CXX_FOUND)
+        target_link_libraries(${_gt_namespace}fn_naive INTERFACE OpenMP::OpenMP_CXX)
+
         _gt_add_library(${_config_mode} stencil_cpu_kfirst)
         target_link_libraries(${_gt_namespace}stencil_cpu_kfirst INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 

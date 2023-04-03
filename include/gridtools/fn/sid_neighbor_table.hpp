@@ -53,11 +53,7 @@ namespace gridtools::fn::sid_neighbor_table {
         }
 
         template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>
-        auto as_neighbor_table(Sid &&sid) -> sid_neighbor_table<IndexDimension,
-            NeighborDimension,
-            MaxNumNeighbors,
-            sid::ptr_holder_type<Sid>,
-            sid::strides_type<Sid>> {
+        auto as_neighbor_table(Sid &&sid) {
 
             static_assert(gridtools::tuple_util::size<decltype(sid::get_strides(std::declval<Sid>()))>::value == 2,
                 "Neighbor tables must have exactly two dimensions: the index dimension and the neighbor dimension");
@@ -67,7 +63,12 @@ namespace gridtools::fn::sid_neighbor_table {
             const auto origin = sid::get_origin(sid);
             const auto strides = sid::get_strides(sid);
 
-            return {origin, strides};
+            return sid_neighbor_table<IndexDimension,
+                NeighborDimension,
+                MaxNumNeighbors,
+                sid::ptr_holder_type<Sid>,
+                sid::strides_type<Sid>>{
+                origin, strides}; // Note: putting the return type into the function signature will crash nvcc 12.0
         }
     } // namespace sid_neighbor_table_impl_
 

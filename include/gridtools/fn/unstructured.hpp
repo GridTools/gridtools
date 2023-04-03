@@ -111,7 +111,10 @@ namespace gridtools::fn {
             } else {
                 return unstructured_impl_::shift(non_horizontal_shift(it, Dim(), offset), offsets...);
             }
+            // disable incorrect warning "missing return statement at end of non-void function"
+            GT_NVCC_DIAG_PUSH_SUPPRESS(940)
         }
+        GT_NVCC_DIAG_POP_SUPPRESS(940)
 
         template <class Domain>
         struct make_iterator {
