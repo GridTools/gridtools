@@ -3,11 +3,13 @@ FROM gitpod/workspace-full
 
 USER root
 
+ENV CLANG_VERSION 16
+
 RUN echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${CLANG_VERSION} main" >> /etc/apt/sources.list \
     && echo "deb-src http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${CLANG_VERSION} main" >> /etc/apt/sources.list \
     && wget -q -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
     && apt-get update \
-    && apt-get install -y libboost-all-dev ninja-build gfortran clang-15 libomp-15-dev \
+    && apt-get install -y libboost-all-dev ninja-build gfortran clang-${CLANG_VERSION} libomp-${CLANG_VERSION}-dev \
     && apt-get clean && rm -rf /var/cache/apt/* && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*
 
 ENV CXX=clang++-${CLANG_VERSION} CC=clang-${CLANG_VERSION}
