@@ -7,15 +7,15 @@
   },
   "configurePresets": [
     {
-      "name": "Clang",
+      "name": "default",
       "displayName": "Clang (default)",
       "description": "",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
-        "CMAKE_C_COMPILER": "/usr/bin/clang",
-        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "CMAKE_C_COMPILER": "/usr/bin/clang-16",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++-16",
         "CMAKE_Fortran_COMPILER": "/usr/bin/gfortran",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_BUILD_TYPE": "Debug"
@@ -39,10 +39,10 @@
   ],
   "buildPresets": [
     {
-      "name": "Clang",
+      "name": "default",
       "description": "Clang",
       "displayName": "",
-      "configurePreset": "Clang"
+      "configurePreset": "default"
     },
     {
       "name": "GCC",
