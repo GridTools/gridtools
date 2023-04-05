@@ -90,14 +90,19 @@ namespace gridtools {
         }
         constexpr int nlevels() const { return m_nz; }
 
-        template <class T = FloatType, class Init, class... Dims, std::enable_if_t<!std::is_integral_v<Init>, int> = 0>
+        template <class T = FloatType,
+            class Init,
+            class... Dims,
+            std::enable_if_t<!(std::is_integral_v<Init> || is_integral_constant<Init>::value), int> = 0>
         auto make_storage(Init const &init, Dims... dims) const {
             return storage::builder<StorageTraits>.dimensions(dims...).template type<T>().initializer(init).unknown_id().build();
         }
 
         template <class T = FloatType,
             class... Dims,
-            std::enable_if_t<std::conjunction_v<std::is_integral<Dims>...>, int> = 0>
+            std::enable_if_t<std::conjunction_v<std::bool_constant<std::is_integral<Dims>::value ||
+                                                                   is_integral_constant<Dims>::value>...>,
+                int> = 0>
         auto make_storage(Dims... dims) const {
             return make_storage<T>([](int...) { return T(); }, dims...);
         }
