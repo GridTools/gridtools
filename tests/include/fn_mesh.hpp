@@ -99,7 +99,7 @@ namespace gridtools {
             class... Dims,
             std::enable_if_t<std::conjunction_v<std::is_integral<Dims>...>, int> = 0>
         auto make_storage(Dims... dims) const {
-            return make_storage<T>([](int, int) { return T(); }, dims...);
+            return make_storage<T>([](int...) { return T(); }, dims...);
         }
 
         template <class T = FloatType, class... Args>

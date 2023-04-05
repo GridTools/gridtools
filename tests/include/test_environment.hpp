@@ -208,11 +208,18 @@ namespace gridtools {
                     EXPECT_TRUE(verify_data_store(expected, actual, halos, equal_to));
                 }
 
-                template <class T = FloatType>
-                static auto builder() {
-                    return storage::builder<storage_traits_t> //
-                        .dimensions(d(0), d(1), k_size())     //
-                        .halos(Halo, Halo, 0)                 //
+                template <class Expected, class Actual, size_t NDims, class EqualTo = default_equal_to>
+                static void verify_with_bounds(Expected const &expected, Actual const &actual, array<array<size_t, 2>, NDims> const& bounds, EqualTo equal_to = {}) {
+                    if (!ParamsSource::needs_verification())
+                        return;
+                    EXPECT_TRUE(verify(expected, actual, bounds, equal_to));
+                }
+
+                template <class T = FloatType, class... ExtraDims>
+                static auto builder(ExtraDims... extra_dims) {
+                    return storage::builder<storage_traits_t>                        //
+                        .dimensions(d(0), d(1), k_size(), extra_dims...)             //
+                        .halos(Halo, Halo, 0, [](auto) { return 0; }(extra_dims)...) //
                         .template type<T>();
                 }
 
