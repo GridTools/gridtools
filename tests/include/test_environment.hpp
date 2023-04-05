@@ -212,7 +212,7 @@ namespace gridtools {
                 static void verify_with_bounds(Expected const &expected, Actual const &actual, array<array<size_t, 2>, NDims> const& bounds, EqualTo equal_to = {}) {
                     if (!ParamsSource::needs_verification())
                         return;
-                    EXPECT_TRUE(verify(expected, actual, bounds, equal_to));
+                    EXPECT_TRUE(gridtools::verify(expected, actual, bounds, equal_to));
                 }
 
                 template <class T = FloatType, class... ExtraDims>
