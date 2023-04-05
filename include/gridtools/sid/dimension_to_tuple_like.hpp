@@ -60,7 +60,14 @@ namespace gridtools {
             };
         } // namespace dimension_to_tuple_like_impl_
 
-        template <class Dim, size_t N, class Sid> // N optional?
+        /**
+         * Returns a SID, where `Dim` of `sid` is mapped to a tuple-like of size `N`.
+         *
+         * TODO(havogt):
+         * - Currently, no bounds check is implemented.
+         * - In case bounds are compile-time known we could infer `N`.
+         */
+        template <class Dim, size_t N, class Sid>
         auto dimension_to_tuple_like(Sid &&sid) {
             return dimension_to_tuple_like_impl_::as_tuple_like_helper<Dim, std::make_index_sequence<N>>::apply(
                 std::forward<Sid>(sid));
