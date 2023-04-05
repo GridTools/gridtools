@@ -182,7 +182,7 @@
  * ```
  * Also tuple algorithms works with `foo` as expected:
  * ```
- *    auto x = tuple_util::trasnform([](auto x) { return x * 2; }, foo{1, 2.5});
+ *    auto x = tuple_util::transform([](auto x) { return x * 2; }, foo{1, 2.5});
  *    assert(x.a == 2);
  *    assert(x.b == 5.);
  * ```
