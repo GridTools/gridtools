@@ -63,10 +63,10 @@ namespace {
 
         template <class Eval>
         GT_FUNCTION static void apply(Eval &&eval) {
-            tuple_util::get<0>(eval(out())) = tuple_util::get<0>(eval(in()));
-            tuple_util::get<1>(eval(out())) = tuple_util::get<1>(eval(in()));
-            tuple_util::get<2>(eval(out())) = tuple_util::get<2>(eval(in()));
-            tuple_util::get<3>(eval(out())) = tuple_util::get<3>(eval(in()));
+            tuple_util::host_device::get<0>(eval(out())) = tuple_util::host_device::get<0>(eval(in()));
+            tuple_util::host_device::get<1>(eval(out())) = tuple_util::host_device::get<1>(eval(in()));
+            tuple_util::host_device::get<2>(eval(out())) = tuple_util::host_device::get<2>(eval(in()));
+            tuple_util::host_device::get<3>(eval(out())) = tuple_util::host_device::get<3>(eval(in()));
         }
     };
 
