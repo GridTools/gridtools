@@ -298,7 +298,7 @@ namespace gridtools {
                 template <class... Sids>
                 struct values {
                     static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 8
 #else
                     static_assert(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
