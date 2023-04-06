@@ -12,7 +12,6 @@
 
 #include <gridtools/fn/unstructured.hpp>
 #include <gridtools/sid/dimension_to_tuple_like.hpp>
-#include <gridtools/sid/rename_dimensions.hpp>
 
 #include <fn_select.hpp>
 #include <test_environment.hpp>

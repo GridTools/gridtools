@@ -13,12 +13,12 @@
 #include <type_traits>
 #include <utility>
 
+#include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "../meta.hpp"
 #include "composite.hpp"
 #include "concept.hpp"
 #include "delegate.hpp"
-#include "gridtools/common/host_device.hpp"
 #include "sid_shift_origin.hpp"
 
 namespace gridtools {
