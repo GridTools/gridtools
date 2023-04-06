@@ -64,7 +64,7 @@ namespace gridtools {
                 }
 
                 template <std::size_t, class>
-                struct strides_kind_impl;
+                struct strides_kind_impl{};
 
                 /**
                  * @brief Strides kind tag. Strides depend on data type size (due to cache-line alignment) and extent.

@@ -51,7 +51,7 @@ namespace gridtools {
             EXPECT_EQ(42, dst);
         }
 
-        struct my_strides_kind;
+        struct my_strides_kind{};
 
         using dim_i = integral_constant<int, 0>;
         using dim_j = integral_constant<int, 1>;

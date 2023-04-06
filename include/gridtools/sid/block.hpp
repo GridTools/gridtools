@@ -121,7 +121,7 @@ namespace gridtools {
             };
 
             template <class...>
-            struct kind;
+            struct kind{};
 
             template <class Sid, class BlockMap>
             kind<strides_kind<Sid>, BlockMap> sid_get_strides_kind(blocked_sid<Sid, BlockMap> const &);
