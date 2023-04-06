@@ -271,31 +271,6 @@ namespace {
 
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla_tmp =
-            mesh.template make_storage<float_t>(integral_constant<int, 2>{}, mesh.nvertices(), mesh.nlevels());
-        auto nabla_dim = sid::dimension_to_tuple_like<integral_constant<int, 0>, 2>(nabla_tmp);
-        auto nabla = sid::rename_dimensions<integral_constant<int, 1>,
-            integral_constant<int, 0>,
-            integral_constant<int, 2>,
-            integral_constant<int, 1>>(nabla_dim);
-        auto comp = make_comp(fn_backend_t(), mesh, nabla);
-        comp();
-        auto expected = make_expected(mesh);
-        TypeParam::verify_with_bounds([&](int vertex, int k) { return get<0>(expected(vertex, k)); },
-            [&](int vertex, int k) { return nabla_tmp->const_host_view()(0, vertex, k); },
-            array<array<size_t, 2>, 2>{
-                {{0, static_cast<size_t>(mesh.nvertices())}, {0, static_cast<size_t>(mesh.nlevels())}}});
-        TypeParam::verify_with_bounds([&](int vertex, int k) { return get<1>(expected(vertex, k)); },
-            [&](int vertex, int k) { return nabla_tmp->const_host_view()(1, vertex, k); },
-            array<array<size_t, 2>, 2>{
-                {{0, static_cast<size_t>(mesh.nvertices())}, {0, static_cast<size_t>(mesh.nlevels())}}});
-        TypeParam::benchmark("fn_unstructured_nabla_dimension_to_tuple_like", comp);
-    }
-
-    GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_dimension_to_tuple_like_2, test_environment<>, fn_backend_t) {
-        using float_t = typename TypeParam::float_t;
-
-        auto mesh = TypeParam::fn_unstructured_mesh();
-        auto nabla_tmp =
             mesh.template make_storage<float_t>(mesh.nvertices(), mesh.nlevels(), integral_constant<int, 2>{});
         auto nabla = sid::dimension_to_tuple_like<integral_constant<int, 2>, 2>(nabla_tmp);
         auto comp = make_comp(fn_backend_t(), mesh, nabla);
@@ -309,6 +284,6 @@ namespace {
             [&](int vertex, int k) { return nabla_tmp->const_host_view()(1, vertex, k); },
             array<array<size_t, 2>, 2>{
                 {{0, static_cast<size_t>(mesh.nvertices())}, {0, static_cast<size_t>(mesh.nlevels())}}});
-        TypeParam::benchmark("fn_unstructured_nabla_dimension_to_tuple_like_2", comp);
+        TypeParam::benchmark("fn_unstructured_nabla_dimension_to_tuple_like", comp);
     }
 } // namespace
