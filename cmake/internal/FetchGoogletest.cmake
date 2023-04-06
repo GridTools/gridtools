@@ -17,4 +17,5 @@ function(fetch_googletest)
         GIT_TAG        release-1.10.0
     )
     FetchContent_MakeAvailable(googletest)
+    target_compile_options(gtest PRIVATE "-w")
 endfunction()
