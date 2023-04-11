@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <cstdint>
 
 #include "../common/array.hpp"
 #include "../common/array_addons.hpp"
