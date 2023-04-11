@@ -7,7 +7,7 @@ on:
     branches: [ master, release_v2.0 ]
 
 jobs:
-  perftests:
+  tests:
     runs-on: ubuntu-latest
     container: ghcr.io/gridtools/gridtools-base:${{ matrix.compiler }}
     strategy:
@@ -24,8 +24,8 @@ jobs:
         echo "OMP_NUM_THREADS=$(nproc)" >> $GITHUB_ENV
     - name: build
       run: |
-        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
+        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install
     - name: run tests
       if: (!contains(matrix.compiler, 'cuda') && !contains(matrix.compiler, 'hip')) # no GPUs available -> no tests
       run: |
-        $(pwd)/build/pyutils/driver.py -vv test --perftests-only
+        $(pwd)/build/pyutils/driver.py -vv test
