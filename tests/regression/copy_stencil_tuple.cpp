@@ -111,6 +111,22 @@ namespace {
         TypeParam::verify(in, out3);
         TypeParam::benchmark("copy_stencil_tuple_unrolled", comp);
     }
+    GT_REGRESSION_TEST(copy_stencil_tuple_array, test_environment<>, stencil_backend_t) {
+        // expected to perform bad on GPU because array of structures
+        using float_t = typename TypeParam::float_t;
+        auto in = [](int i, int j, int k) {
+            return array<float_t, 4>{
+                float_t(i + j + k), float_t(i + j + k + 1), float_t(i + j + k + 2), float_t(i + j + k + 3)};
+        };
+        auto out = TypeParam::template make_storage<array<float_t, 4>>();
+        auto comp =
+            [&out, grid = TypeParam::make_grid(), in = TypeParam::template make_const_storage<array<float_t, 4>>(in)] {
+                run_single_stage(copy_functor_tuple(), stencil_backend_t(), grid, in, out);
+            };
+        comp();
+        TypeParam::verify(in, out);
+        TypeParam::benchmark("copy_stencil_tuple_array", comp);
+    }
 
     GT_REGRESSION_TEST(copy_stencil_tuple_tuple, test_environment<>, stencil_backend_t) {
         // expected to perform bad on GPU because array of structures
