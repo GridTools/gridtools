@@ -47,17 +47,12 @@ namespace gridtools {
                 return {std::forward<Sid>(sid)};
             }
 
-            template <class Dim, class T>
-            struct as_tuple_like_helper;
-
-            template <class Dim, size_t... Is>
-            struct as_tuple_like_helper<Dim, std::index_sequence<Is...>> {
-                template <class Sid, class Keys = sid::composite::keys<integral_constant<int, Is>...>>
-                static auto apply(Sid &&sid) {
-                    return Keys::make_values(remove_dimension<Dim>(
-                        sid::shift_sid_origin(std::forward<Sid>(sid), hymap::keys<Dim>::make_values(Is)))...);
-                }
-            };
+            template <class Dim, class Sid, size_t... Is>
+            constexpr auto as_tuple_like_helper(Sid &&sid, std::index_sequence<Is...>) {
+                using keys = sid::composite::keys<integral_constant<int, Is>...>;
+                return keys::make_values(remove_dimension<Dim>(
+                    sid::shift_sid_origin(std::forward<Sid>(sid), hymap::keys<Dim>::make_values(Is)))...);
+            }
         } // namespace dimension_to_tuple_like_impl_
 
         /**
@@ -69,8 +64,8 @@ namespace gridtools {
          */
         template <class Dim, size_t N, class Sid>
         auto dimension_to_tuple_like(Sid &&sid) {
-            return dimension_to_tuple_like_impl_::as_tuple_like_helper<Dim, std::make_index_sequence<N>>::apply(
-                std::forward<Sid>(sid));
+            return dimension_to_tuple_like_impl_::as_tuple_like_helper<Dim>(
+                std::forward<Sid>(sid), std::make_index_sequence<N>{});
         }
     } // namespace sid
 } // namespace gridtools
