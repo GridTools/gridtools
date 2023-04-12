@@ -109,7 +109,7 @@ namespace gridtools {
         }
 
         template <class Expected, class Actual, size_t NDims, class EqualTo = default_equal_to>
-        bool verify(Expected const &expected,
+        bool verify_generic(Expected const &expected,
             Actual const &actual,
             array<array<size_t, 2>, NDims> const &bounds,
             EqualTo equal_to = {}) {
@@ -143,7 +143,7 @@ namespace gridtools {
             for (size_t i = 0; i < bounds.size(); ++i)
                 bounds[i] = {halos[i][0], lengths[i] - halos[i][1]};
             auto view = actual->const_host_view();
-            return verify(expected, view, bounds, equal_to);
+            return verify_generic(expected, view, bounds, equal_to);
         }
 
         template <class DataStore, class Halos, class EqualTo = default_equal_to>
@@ -162,6 +162,5 @@ namespace gridtools {
         }
     } // namespace verify_impl_
     using verify_impl_::default_equal_to;
-    using verify_impl_::verify;
     using verify_impl_::verify_data_store;
 } // namespace gridtools
