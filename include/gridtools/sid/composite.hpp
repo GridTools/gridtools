@@ -137,7 +137,7 @@ namespace gridtools {
 
                 struct sum {
                     template <class Lhs, class Rhs>
-                    GT_FUNCTION constexpr auto operator()(Lhs &&lhs, Rhs &&rhs) const {
+                    GT_FORCE_INLINE constexpr auto operator()(Lhs &&lhs, Rhs &&rhs) const {
                         return std::forward<Lhs>(lhs) + std::forward<Rhs>(rhs);
                     }
                 };
