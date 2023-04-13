@@ -53,7 +53,7 @@ namespace gridtools {
             }
 
             template <class T>
-            T copy_if_rvalue(std::remove_reference_t<T> &p) {
+            T &copy_if_rvalue(std::remove_reference_t<T> &p) {
                 return p;
             }
 
