@@ -47,13 +47,12 @@ namespace gridtools {
                 return {std::forward<Sid>(sid)};
             }
 
-            template <class T>
-            T copy_if_rvalue(std::remove_reference_t<T> &&p) {
+            template <class T, class U>
+            std::enable_if_t<std::is_lvalue_reference_v<T>, T> copy_if_rvalue(U &p) {
                 return p;
             }
-
-            template <class T>
-            T &copy_if_rvalue(std::remove_reference_t<T> &p) {
+            template <class T, class U>
+            std::enable_if_t<!std::is_lvalue_reference_v<T>, std::remove_reference_t<T>> copy_if_rvalue(U const &p) {
                 return p;
             }
 
