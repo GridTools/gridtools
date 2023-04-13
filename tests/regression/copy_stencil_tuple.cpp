@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "gridtools/meta/debug.hpp"
 #include <gtest/gtest.h>
 
 #include <gridtools/sid/composite.hpp>
@@ -131,6 +132,7 @@ namespace {
         TypeParam::verify(in(4), out4);
         TypeParam::benchmark("copy_stencil_tuple_unrolled", comp);
     }
+
     GT_REGRESSION_TEST(copy_stencil_tuple_array, test_environment<>, stencil_backend_t) {
         // expected to perform bad on GPU because array of structures
         using float_t = typename TypeParam::float_t;
@@ -198,17 +200,18 @@ namespace {
             integral_constant<int, 2>,
             integral_constant<int, 3>,
             integral_constant<int, 4>>::make_values(out0, out1, out2, out3, out4);
-        auto in0 = TypeParam::make_const_storage(in(0));
-        auto in1 = TypeParam::make_const_storage(in(1));
-        auto in2 = TypeParam::make_const_storage(in(2));
-        auto in3 = TypeParam::make_const_storage(in(3));
-        auto in4 = TypeParam::make_const_storage(in(4));
-        auto in_sid = sid::composite::keys<integral_constant<int, 0>,
-            integral_constant<int, 1>,
-            integral_constant<int, 2>,
-            integral_constant<int, 3>,
-            integral_constant<int, 4>>::make_values(in0, in1, in2, in3, in4);
-        auto comp = [&out, grid = TypeParam::make_grid(), &in = in_sid] {
+
+        auto comp = [&out,
+                        grid = TypeParam::make_grid(),
+                        in = sid::composite::keys<integral_constant<int, 0>,
+                            integral_constant<int, 1>,
+                            integral_constant<int, 2>,
+                            integral_constant<int, 3>,
+                            integral_constant<int, 4>>::make_values(TypeParam::make_const_storage(in(0)),
+                            TypeParam::make_const_storage(in(1)),
+                            TypeParam::make_const_storage(in(2)),
+                            TypeParam::make_const_storage(in(3)),
+                            TypeParam::make_const_storage(in(4)))]() mutable {
             run_single_stage(copy_functor_tuple(), stencil_backend_t(), grid, in, out);
         };
         comp();
@@ -225,9 +228,12 @@ namespace {
         auto in = [](int i, int j, int k, int t) { return i + j + k + t; };
         auto out_ds = TypeParam::template builder<float_t>(integral_constant<int, 5>{}).build();
         auto out = sid::dimension_to_tuple_like<integral_constant<int, 3>, 5>(out_ds);
-        auto in_ds = TypeParam::template builder<float_t const>(integral_constant<int, 5>{}).initializer(in).build();
-        auto in_transformed = sid::dimension_to_tuple_like<integral_constant<int, 3>, 5>(in_ds);
-        auto comp = [&out, grid = TypeParam::make_grid(), &in = in_transformed] {
+        auto comp = [&out,
+                        grid = TypeParam::make_grid(),
+                        in = sid::dimension_to_tuple_like<integral_constant<int, 3>, 5>(
+                            TypeParam::template builder<float_t const>(integral_constant<int, 5>{})
+                                .initializer(in)
+                                .build())]() mutable {
             run_single_stage(copy_functor_tuple(), stencil_backend_t(), grid, in, out);
         };
         comp();
@@ -242,9 +248,12 @@ namespace {
         auto in = [](int i, int j, int k, int t) { return i + j + k + t; };
         auto out_ds = TypeParam::template builder<float_t>(integral_constant<int, 5>{}).build();
         auto out = sid::dimension_to_tuple_like<integral_constant<int, 3>, 5>(out_ds);
-        auto in_ds = TypeParam::template builder<float_t const>(integral_constant<int, 5>{}).initializer(in).build();
-        auto in_transformed = sid::dimension_to_tuple_like<integral_constant<int, 3>, 5>(in_ds);
-        auto comp = [&out, grid = TypeParam::make_grid(), &in = in_transformed] {
+        auto comp = [&out,
+                        grid = TypeParam::make_grid(),
+                        in = sid::dimension_to_tuple_like<integral_constant<int, 3>, 5>(
+                            TypeParam::template builder<float_t const>(integral_constant<int, 5>{})
+                                .initializer(in)
+                                .build())]() mutable {
             run_single_stage(copy_functor_tuple_unrolled(), stencil_backend_t(), grid, in, out);
         };
         comp();

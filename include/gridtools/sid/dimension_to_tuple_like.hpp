@@ -48,10 +48,11 @@ namespace gridtools {
             }
 
             template <class Dim, class Sid, size_t... Is>
-            constexpr auto as_tuple_like_helper(Sid &&sid, std::index_sequence<Is...>) {
+            constexpr decltype(auto) as_tuple_like_helper(Sid &&sid, std::index_sequence<Is...>) {
                 using keys = sid::composite::keys<integral_constant<int, Is>...>;
-                return keys::make_values(remove_dimension<Dim>(
-                    sid::shift_sid_origin(std::forward<Sid>(sid), hymap::keys<Dim>::make_values(Is)))...);
+                return keys::make_values(
+                    remove_dimension<Dim>(sid::shift_sid_origin(std::decay_t<Sid>(sid), // copy required for r-values
+                        hymap::keys<Dim>::make_values(Is)))...);
             }
         } // namespace dimension_to_tuple_like_impl_
 
@@ -63,7 +64,7 @@ namespace gridtools {
          * - In case bounds are compile-time known we could infer `N`.
          */
         template <class Dim, size_t N, class Sid>
-        auto dimension_to_tuple_like(Sid &&sid) {
+        decltype(auto) dimension_to_tuple_like(Sid &&sid) {
             return dimension_to_tuple_like_impl_::as_tuple_like_helper<Dim>(
                 std::forward<Sid>(sid), std::make_index_sequence<N>{});
         }
