@@ -47,12 +47,21 @@ namespace gridtools {
                 return {std::forward<Sid>(sid)};
             }
 
+            template <class T>
+            T copy_if_rvalue(std::remove_reference_t<T> &&p) {
+                return p;
+            }
+
+            template <class T>
+            T copy_if_rvalue(std::remove_reference_t<T> &p) {
+                return p;
+            }
+
             template <class Dim, class Sid, size_t... Is>
             constexpr decltype(auto) as_tuple_like_helper(Sid &&sid, std::index_sequence<Is...>) {
                 using keys = sid::composite::keys<integral_constant<int, Is>...>;
-                return keys::make_values(
-                    remove_dimension<Dim>(sid::shift_sid_origin(std::decay_t<Sid>(sid), // copy required for r-values
-                        hymap::keys<Dim>::make_values(Is)))...);
+                return keys::make_values(remove_dimension<Dim>(
+                    sid::shift_sid_origin(copy_if_rvalue<Sid>(sid), hymap::keys<Dim>::make_values(Is)))...);
             }
         } // namespace dimension_to_tuple_like_impl_
 
