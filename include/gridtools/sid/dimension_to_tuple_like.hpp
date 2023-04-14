@@ -48,19 +48,20 @@ namespace gridtools {
             }
 
             template <class T, class U>
-            std::enable_if_t<std::is_lvalue_reference_v<T>, T> copy_if_rvalue(U &p) {
+            std::enable_if_t<std::is_reference_v<T>, T> copy_if_rvalue(U &p) {
                 return p;
             }
             template <class T, class U>
-            std::enable_if_t<!std::is_lvalue_reference_v<T>, std::remove_reference_t<T>> copy_if_rvalue(U const &p) {
+            std::enable_if_t<!std::is_reference_v<T>, T> copy_if_rvalue(U const &p) {
                 return p;
             }
 
             template <class Dim, class Sid, size_t... Is>
             constexpr decltype(auto) as_tuple_like_helper(Sid &&sid, std::index_sequence<Is...>) {
                 using keys = sid::composite::keys<integral_constant<int, Is>...>;
-                return keys::make_values(remove_dimension<Dim>(
-                    sid::shift_sid_origin(copy_if_rvalue<Sid>(sid), hymap::keys<Dim>::make_values(Is)))...);
+                return keys::make_values(remove_dimension<Dim>(sid::shift_sid_origin(
+                    copy_if_rvalue<Sid>(sid), // copy required otherwise we move away from `sid` multiple times
+                    hymap::keys<Dim>::make_values(Is)))...);
             }
         } // namespace dimension_to_tuple_like_impl_
 
