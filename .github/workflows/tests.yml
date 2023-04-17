@@ -38,6 +38,7 @@ jobs:
       run: |
         python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
     - name: run tests
-      if: (!contains(matrix.compiler, 'cuda') && !contains(matrix.compiler, 'hip')) # no GPUs available -> no tests
+      # no GPUs available -> no tests (for nvhpc we could run cpu, but we currently don't expose that option in pyutils/driver.py)
+      if: (!contains(matrix.compiler, 'cuda') && !contains(matrix.compiler, 'hip') && !contains(matrix.compiler, 'nvhpc')) 
       run: |
         $(pwd)/build/pyutils/driver.py -vv test --perftests-only
