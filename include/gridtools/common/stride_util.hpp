@@ -53,7 +53,7 @@ namespace gridtools {
 
         template <class Sizes>
         auto total_size(Sizes const &sizes) {
-            return tuple_util::fold([](auto l, auto r) { return l * r; }, 1, sizes);
+            return tuple_util::fold([](auto l, auto r) { return l * r; }, integral_constant<int, 1>{}, sizes);
         }
     } // namespace stride_util
 } // namespace gridtools
