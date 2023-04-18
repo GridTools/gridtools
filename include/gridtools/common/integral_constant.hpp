@@ -41,6 +41,19 @@ namespace gridtools {
         constexpr GT_FUNCTION operator T() const noexcept { return V; }
     };
 
+    // Returns the value_type of an integral_constant-like or returns the type itself
+    template <class T, class U = void>
+    struct to_integral_type {
+        using type = T;
+    };
+    template <class T>
+    struct to_integral_type<T, std::void_t<typename T::value_type>> {
+        using type = typename T::value_type;
+    };
+
+    template <class T>
+    using to_integral_type_t = typename to_integral_type<T>::type;
+
     // This predicate checks if the the class has `gridtools::integral_constant` as a public base, which has arithmetic
     // operators defined.
     template <class, class = void>

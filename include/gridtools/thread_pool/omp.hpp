@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <type_traits>
+#include "../common/integral_constant.hpp"
 
 #if defined(_OPENMP) || defined(GT_HIP_OPENMP_WORKAROUND)
 #include <omp.h>
@@ -18,37 +18,20 @@
 
 namespace gridtools {
     namespace thread_pool {
-        namespace thread_pool_omp_impl_ {
-            template <class T, class U = void>
-            struct to_integral_type {
-                using type = T;
-            };
-            template <class T>
-            struct to_integral_type<T, std::void_t<typename T::value_type>> {
-                using type = typename T::value_type;
-            };
 
-            template <class T>
-            using to_integral_type_t = typename to_integral_type<T>::type;
-
-        } // namespace thread_pool_omp_impl_
         struct omp {
 #if defined(_OPENMP) || defined(GT_HIP_OPENMP_WORKAROUND)
             friend auto thread_pool_get_thread_num(omp) { return omp_get_thread_num(); }
             friend auto thread_pool_get_max_threads(omp) { return omp_get_max_threads(); }
 
-            template <class F, class I, class I_t = thread_pool_omp_impl_::to_integral_type_t<I>>
+            template <class F, class I, class I_t = to_integral_type_t<I>>
             friend void thread_pool_parallel_for_loop(omp, F const &f, I lim) {
 #pragma omp parallel for
                 for (I_t i = 0; i < lim; ++i)
                     f(i);
             }
 
-            template <class F,
-                class I,
-                class J,
-                class I_t = thread_pool_omp_impl_::to_integral_type_t<I>,
-                class J_t = thread_pool_omp_impl_::to_integral_type_t<J>>
+            template <class F, class I, class J, class I_t = to_integral_type_t<I>, class J_t = to_integral_type_t<J>>
             friend void thread_pool_parallel_for_loop(omp, F const &f, I i_lim, J j_lim) {
 #pragma omp parallel for collapse(2)
                 for (J_t j = 0; j < j_lim; ++j)
@@ -60,9 +43,9 @@ namespace gridtools {
                 class I,
                 class J,
                 class K,
-                class I_t = thread_pool_omp_impl_::to_integral_type_t<I>,
-                class J_t = thread_pool_omp_impl_::to_integral_type_t<J>,
-                class K_t = thread_pool_omp_impl_::to_integral_type_t<K>>
+                class I_t = to_integral_type_t<I>,
+                class J_t = to_integral_type_t<J>,
+                class K_t = to_integral_type_t<K>>
             friend void thread_pool_parallel_for_loop(omp, F const &f, I i_lim, J j_lim, K k_lim) {
 #pragma omp parallel for collapse(3)
                 for (K_t k = 0; k < k_lim; ++k)
