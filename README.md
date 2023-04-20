@@ -36,8 +36,8 @@ CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host 
 
 ##### Requirements
 - C++17 compiler (see also list of tested compilers)
-- Boost (1.65.1 or later)
-- CMake (3.14.5 or later)
+- Boost headers (1.65.1 or later)
+- CMake (3.18.1 or later)
 - CUDA Toolkit (11.0 or later, optional)
 - MPI (optional, CUDA-aware MPI for the GPU communication module `gcl_gpu`)
 
@@ -65,15 +65,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | Compiler | Backend | Date | Comments |
 | --- | --- | --- | --- |
 | Intel 19.1.1.217 | all backends | 2021-09-30 | with `cmake . -DCMAKE_CXX_FLAGS=-qnextgen` |
-
-##### Officially not supported (no workarounds implemented and planned)
-
-| Compiler | Backend | Date | Comments |
-| --- | --- | --- | --- |
-| Cray without Clang frontend| cpu_kfirst |  | no effort to fix compilation |
-| Cray clang version 9.0.2 | all backends | 2020-09-30 | with Cray extensions (works with flags `-fno-cray -fno-cray-gpu`) |
-| PGI 20.1 | cpu backends | 2020-10-08 | no effort to fix compilation |
-| Intel 19.1.0.166 | all backends | 2020-05-11 | even with `-qnextgen`, no effort to fix compilation |
+| NVHPC 23.3 | all backends | 2023-04-20 | only compilation is tested regularly in CI |
 
 ### Contributing
 
