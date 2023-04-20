@@ -77,17 +77,17 @@ namespace gridtools {
 
         template <class T, size_t Dim, class Kind, size_t UnitStrideDim>
         struct wrapper {
-            pybind11::buffer_info m_info;
+            std::shared_ptr<pybind11::buffer_info> m_info;
 
             friend sid::simple_ptr_holder<T *> sid_get_origin(wrapper const &obj) {
-                return {reinterpret_cast<T *>(obj.m_info.ptr)};
+                return {reinterpret_cast<T *>(obj.m_info->ptr)};
             }
             friend auto sid_get_strides(wrapper const &obj) {
                 std::array<pybind11::ssize_t, Dim> res;
-                assert(obj.m_info.strides.size() == Dim);
+                assert(obj.m_info->strides.size() == Dim);
                 for (std::size_t i = 0; i != Dim; ++i) {
-                    assert(obj.m_info.strides[i] % obj.m_info.itemsize == 0);
-                    res[i] = obj.m_info.strides[i] / obj.m_info.itemsize;
+                    assert(obj.m_info->strides[i] % obj.m_info->itemsize == 0);
+                    res[i] = obj.m_info->strides[i] / obj.m_info->itemsize;
                 }
                 return assign_unit_stride<UnitStrideDim>(std::move(res), sid_get_upper_bounds(obj));
             }
@@ -97,10 +97,10 @@ namespace gridtools {
             }
             friend std::array<pybind11::ssize_t, Dim> sid_get_upper_bounds(wrapper const &obj) {
                 std::array<pybind11::ssize_t, Dim> res;
-                assert(obj.m_info.shape.size() == Dim);
+                assert(obj.m_info->shape.size() == Dim);
                 for (std::size_t i = 0; i != Dim; ++i) {
-                    assert(obj.m_info.shape[i] > 0);
-                    res[i] = obj.m_info.shape[i];
+                    assert(obj.m_info->shape[i] > 0);
+                    res[i] = obj.m_info->shape[i];
                 }
                 return res;
             }
@@ -142,7 +142,7 @@ namespace gridtools {
                 throw std::domain_error(
                     "buffer has incorrect format: " + info.format + "; expected " + expected_format);
             }
-            return {std::move(info)};
+            return {std::make_shared<pybind11::buffer_info>(std::move(info))};
         }
 
         struct typestr {
@@ -348,7 +348,6 @@ namespace gridtools {
     } // namespace python_sid_adapter_impl_
 
     // Makes a SID from the `pybind11::buffer`.
-    // Be aware that the return value is a move only object
     using python_sid_adapter_impl_::as_sid;
 
     using python_sid_adapter_impl_::as_cuda_sid;
