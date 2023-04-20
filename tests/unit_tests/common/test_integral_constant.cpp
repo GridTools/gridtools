@@ -32,6 +32,7 @@ namespace gridtools {
         static_assert(!is_gr_integral_constant<std::integral_constant<int, 42>>::value);
 
         static_assert(std::is_same_v<to_integral_type_t<integral_constant<int, 42>>, int>);
+        static_assert(std::is_same_v<to_integral_type_t<std::integral_constant<int, 42>>, int>);
         static_assert(std::is_same_v<to_integral_type_t<int>, int>);
     } // namespace
 } // namespace gridtools
