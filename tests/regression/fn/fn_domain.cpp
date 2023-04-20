@@ -22,7 +22,7 @@ namespace {
 
     struct empty_stencil {
         GT_FUNCTION constexpr auto operator()() const {
-            return []() { return 0.0f; };
+            return []() { return 1.0f; };
         }
     };
 
@@ -32,6 +32,21 @@ namespace {
         auto domain = unstructured_domain(tuple{0, 0}, tuple{0, 0});
         auto backend = make_backend(fn_backend_t{}, domain);
         backend.stencil_executor()().arg(out).assign(0_c, empty_stencil{}).execute();
+
+        using float_t = typename TypeParam::float_t;
+        ASSERT_EQ(float_t(0), out->host_view()({}));
+    }
+
+    GT_REGRESSION_TEST(zero_dimensional_domain_stencil, test_environment<>, fn_backend_t) {
+        auto out = TypeParam::make_storage([](...) { return 0; });
+
+        // executes the stencil once at the origin; seems to be the natural limit of removing all loops/dimensions in an
+        // expression like `for(d0: range_d0) for (d1: range_d1) ... { out(d0, d1, ...) = 1.0f)};`
+        auto domain = unstructured_domain(tuple{}, tuple{});
+        auto backend = make_backend(fn_backend_t{}, domain);
+        backend.stencil_executor()().arg(out).assign(0_c, empty_stencil{}).execute();
+
+        ASSERT_EQ(1.0f, out->host_view()({}));
     }
 
     struct empty_column : fwd {
@@ -50,6 +65,9 @@ namespace {
         auto domain = unstructured_domain(tuple{0, 0}, tuple{0, 0});
         auto backend = make_backend(fn_backend_t{}, domain);
         backend.vertical_executor()().arg(out).assign(0_c, empty_column{}, 0.0f).execute();
+
+        using float_t = typename TypeParam::float_t;
+        ASSERT_EQ(float_t(0), out->host_view()({}));
     }
 
 } // namespace

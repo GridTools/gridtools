@@ -15,6 +15,12 @@
 #include "host_device.hpp"
 
 namespace gridtools {
+    namespace integral_constant_impl_ {
+        template <class, class = void>
+        struct has_value_type : std::false_type {};
+        template <class T>
+        struct has_value_type<T, std::void_t<typename T::value_type>> : std::true_type {};
+    } // namespace integral_constant_impl_
 
     // This predicate checks if the the class has `std::integral_constant` as a public base.
     // Note that it is not the same as `class is an instantiation of gridtools::integral_constant`.
@@ -40,6 +46,23 @@ namespace gridtools {
 
         constexpr GT_FUNCTION operator T() const noexcept { return V; }
     };
+
+    // Returns the value_type of an integral_constant or returns the type itself
+    template <class, class = void>
+    struct to_integral_type;
+    template <class T>
+    struct to_integral_type<T,
+        std::enable_if_t<!integral_constant_impl_::has_value_type<T>::value && std::is_integral_v<T>>> {
+        using type = T;
+    };
+    template <class T>
+    struct to_integral_type<T,
+        std::enable_if_t<integral_constant_impl_::has_value_type<T>::value && is_integral_constant<T>::value>> {
+        using type = typename T::value_type;
+    };
+
+    template <class T>
+    using to_integral_type_t = typename to_integral_type<T>::type;
 
     // This predicate checks if the the class has `gridtools::integral_constant` as a public base, which has arithmetic
     // operators defined.
