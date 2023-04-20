@@ -1,10 +1,13 @@
-name: Python Package Tests
+name: Python Package Tests and Deploy
 
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   build-wheel:
@@ -36,6 +39,19 @@ jobs:
       with:
         name: gridtools-cpp-wheel
         path: .python_package/.nox/.cache/dist/gridtools_cpp-*.whl
+    - name: Publish distribution to Test PyPI
+      if: ${{ github.event_name == 'release' }}
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
+        packages-dir: .python_package/.nox/.cache/dist
+    - name: Publish distribution to PyPI
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        packages-dir: .python_package/.nox/.cache/dist
 
   test-wheel:
     needs: build-wheel
