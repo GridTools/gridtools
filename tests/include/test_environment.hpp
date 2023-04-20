@@ -210,9 +210,9 @@ namespace gridtools {
 
                 template <class T = FloatType, class... ExtraDims>
                 static auto builder(ExtraDims... extra_dims) {
-                    return storage::builder<storage_traits_t>                        //
-                        .dimensions(d(0), d(1), k_size(), extra_dims...)             //
-                        .halos(Halo, Halo, 0, [](auto) { return 0; }(extra_dims)...) //
+                    return storage::builder<storage_traits_t>            //
+                        .dimensions(d(0), d(1), k_size(), extra_dims...) //
+                        .halos(Halo, Halo, 0, ((void)extra_dims, 0)...)  //
                         .template type<T>();
                 }
 
