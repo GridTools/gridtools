@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/fn/unstructured.hpp>
+#include <gridtools/sid/dimension_to_tuple_like.hpp>
 
 #include <fn_select.hpp>
 #include <test_environment.hpp>
@@ -262,5 +263,23 @@ namespace {
         TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
         TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
         TypeParam::benchmark("fn_unstructured_nabla_tuple_of_fields", comp);
+    }
+
+    GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_dimension_to_tuple_like, test_environment<>, fn_backend_t) {
+        using float_t = typename TypeParam::float_t;
+
+        auto mesh = TypeParam::fn_unstructured_mesh();
+        auto nabla_tmp =
+            mesh.template make_storage<float_t>(mesh.nvertices(), mesh.nlevels(), integral_constant<int, 2>{});
+        auto nabla = sid::dimension_to_tuple_like<integral_constant<int, 2>, 2>(nabla_tmp);
+        auto comp = make_comp(fn_backend_t(), mesh, nabla);
+        comp();
+        auto expected = make_expected(mesh);
+        TypeParam::verify(
+            [&](int vertex, int k, int t) {
+                return t == 0 ? get<0>(expected(vertex, k)) : get<1>(expected(vertex, k));
+            },
+            nabla_tmp);
+        TypeParam::benchmark("fn_unstructured_nabla_dimension_to_tuple_like", comp);
     }
 } // namespace

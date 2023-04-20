@@ -22,6 +22,11 @@ namespace gridtools {
         struct apply_intent_type;
 
         template <class T>
+        struct apply_intent_type<intent::inout, T> {
+            using type = T; // in case T is wrapping a reference (e.g. sid::composite)
+        };
+
+        template <class T>
         struct apply_intent_type<intent::inout, T &> {
             using type = T &;
         };

@@ -16,8 +16,7 @@ for domain in 128 256; do
     for label in ault dom daint-cn tsa; do
         for env in cray hip nvcc_cray nvcc_cray_cxx20 nvcc_gcc; do
             current="${label%-*}_$env/$domain.json"
-            src="https://jenkins-mch.cscs.ch/view/GridTools/job/GridTools_perftest_PR/$1/env=$env,label=$label/artifact/build/pyutils/perftest/results/$current"
-
+            src="https://jenkins-mch.cscs.ch/job/GridTools/job/GridTools_perftest_PR/$1/env=$env,label=$label/artifact/build/pyutils/perftest/results/$current"
             tmp=$(mktemp)
             curl -fs -u "$user:$password" -o "$tmp" "$src"
 

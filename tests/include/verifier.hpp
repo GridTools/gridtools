@@ -108,6 +108,28 @@ namespace gridtools {
             return out;
         }
 
+        template <class Expected, class Actual, size_t NDims, class EqualTo = default_equal_to>
+        bool verify_generic(Expected const &expected,
+            Actual const &actual,
+            array<array<size_t, 2>, NDims> const &bounds,
+            EqualTo equal_to = {}) {
+            static constexpr size_t err_lim = 20;
+            size_t err_count = 0;
+            for (auto &&pos : make_hypercube_view(bounds)) {
+                auto a = verify_impl_::apply(actual, pos);
+                decltype(a) e = verify_impl_::apply(expected, pos);
+                if (equal_to(e, a))
+                    continue;
+                if (err_count < err_lim)
+                    std::cout << "Error in position " << pos << " ; expected : " << e << " ; actual : " << a << "\n";
+                err_count++;
+            }
+            if (err_count > err_lim)
+                std::cout << "Displayed the first " << err_lim << " errors, " << err_count - err_lim << " skipped!"
+                          << std::endl;
+            return err_count == 0;
+        }
+
         template <class Expected, class DataStore, class Halos, class EqualTo = default_equal_to>
         std::enable_if_t<storage::is_data_store<DataStore>::value &&
                              is_view_compatible<Expected, DataStore::ndims>::value,
@@ -121,21 +143,7 @@ namespace gridtools {
             for (size_t i = 0; i < bounds.size(); ++i)
                 bounds[i] = {halos[i][0], lengths[i] - halos[i][1]};
             auto view = actual->const_host_view();
-            static constexpr size_t err_lim = 20;
-            size_t err_count = 0;
-            for (auto &&pos : make_hypercube_view(bounds)) {
-                auto a = verify_impl_::apply(view, pos);
-                decltype(a) e = verify_impl_::apply(expected, pos);
-                if (equal_to(e, a))
-                    continue;
-                if (err_count < err_lim)
-                    std::cout << "Error in position " << pos << " ; expected : " << e << " ; actual : " << a << "\n";
-                err_count++;
-            }
-            if (err_count > err_lim)
-                std::cout << "Displayed the first " << err_lim << " errors, " << err_count - err_lim << " skipped!"
-                          << std::endl;
-            return err_count == 0;
+            return verify_generic(expected, view, bounds, equal_to);
         }
 
         template <class DataStore, class Halos, class EqualTo = default_equal_to>
