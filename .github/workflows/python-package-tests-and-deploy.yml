@@ -45,11 +45,13 @@ jobs:
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
+        packages-dir: .python_package/.nox/.cache/dist
     - name: Publish distribution to PyPI
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
+        packages-dir: .python_package/.nox/.cache/dist
 
   test-wheel:
     needs: build-wheel
