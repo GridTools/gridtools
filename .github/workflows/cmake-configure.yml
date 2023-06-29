@@ -42,11 +42,13 @@ jobs:
     strategy:
         matrix:
             clang_version: [11, 14, 15]
-            cuda_version: [11.8, 12.2]
+            cuda_version: [11, 12.2]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
             exclude:
               - clang_version: 15
-                cuda_version: 11.8
+                cuda_version: 11
+              - clang_version: 14
+                cuda_version: 11
     steps:
     - uses: actions/checkout@v2
     - name: CMake version
