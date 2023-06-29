@@ -90,6 +90,8 @@ jobs:
             exclude:
               - gcc_version: 12
                 cuda_version: 11.8
+              - gcc_version: 11
+                cuda_version: 11.8
     steps:
     - uses: actions/checkout@v2
     - name: CMake version
