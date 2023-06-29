@@ -41,7 +41,7 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.clang_version }}-cuda-${{ matrix.cuda_version }}
     strategy:
         matrix:
-            clang_version: [12, 13, 14, 15]
+            clang_version: [10, 14, 15]
             cuda_version: [11.8, 12.2]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
             exclude:
@@ -85,13 +85,13 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:gcc-${{ matrix.gcc_version }}-cuda-${{ matrix.cuda_version }}
     strategy:
         matrix:
-            gcc_version: [8, 11, 12, 13]
-            cuda_version: ["12.0", 12.1, 12.2]
+            gcc_version: [10, 12, 13]
+            cuda_version: [11.8, 12.2]
             exclude:
+              - gcc_version: 12
+                cuda_version: 11.8
               - gcc_version: 13
-                cuda_version: 12.1
-              - gcc_version: 13
-                cuda_version: "12.0"
+                cuda_version: 11.8
     steps:
     - uses: actions/checkout@v2
     - name: CMake version
