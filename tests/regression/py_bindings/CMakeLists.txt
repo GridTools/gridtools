@@ -36,4 +36,4 @@ pybind11_add_module(py_implementation implementation.cpp)
 
 target_link_libraries(py_implementation PRIVATE gridtools)
 
-add_test(NAME py_bindings COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/driver.py)
+add_test(NAME py_bindings COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/driver.py ${GT_CUDA_TYPE})

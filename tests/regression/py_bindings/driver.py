@@ -6,6 +6,8 @@ sys.path.append(os.getcwd())
 import numpy as np
 import py_implementation as testee
 
+HIP = True if len(sys.argv) > 1 and sys.argv[1] == "HIPCC-AMDGPU" else False
+
 def test_3d():
     src = np.fromfunction(lambda i, j, k : i + j + k, (3, 4, 5), dtype=np.double)
     dst = np.zeros_like(src)
@@ -35,9 +37,15 @@ def test_cuda_sid():
     class Mock:
         def __init__(self, **kwargs):
             self.kwargs = kwargs
-        @property
-        def __cuda_array_interface__(self):
-            return self.kwargs
+        
+        if not HIP:
+            @property
+            def __cuda_array_interface__(self):
+                return self.kwargs
+        else:
+            @property
+            def __hip_array_interface__(self):
+                return self.kwargs
 
     mock = Mock(
         shape=(3, 4, 5),
