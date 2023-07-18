@@ -268,7 +268,13 @@ namespace gridtools {
             static_assert(std::is_trivially_copy_constructible_v<T>,
                 "as_cuda_sid should be instantiated with the trivially copyable type");
 
+#if defined(__HIP__)
+            // This is a custom property that has to be added manually (not provided by cupy).
+            // Should be replaced by `dlpack` for uniform array interface support.
+            auto iface = src.attr("__hip_array_interface__").cast<pybind11::dict>();
+#else
             auto iface = src.attr("__cuda_array_interface__").cast<pybind11::dict>();
+#endif
 
             // shape
             array<size_t, Dim> shape;
