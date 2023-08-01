@@ -2,6 +2,8 @@
 
 source $(dirname "$BASH_SOURCE")/daint.sh
 
+module switch cce/14.0.0
+
 export CXX=$(which CC)
 export CC=$(which cc)
 export FC=$(which ftn)
