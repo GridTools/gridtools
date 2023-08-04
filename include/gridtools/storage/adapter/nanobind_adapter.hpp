@@ -11,9 +11,6 @@
 
 namespace gridtools {
     namespace nanobind_sid_adapter_impl_ {
-        template <size_t, class>
-        struct kind {};
-
         template <std::size_t UnitStrideDim = std::size_t(-1), class T, std::size_t... Sizes, class... Args>
         auto as_sid(nanobind::ndarray<T, nanobind::shape<Sizes...>, Args...> ndarray) {
             using sid::property;
