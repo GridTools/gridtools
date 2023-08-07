@@ -101,6 +101,28 @@ function(gridtools_add_mpi_test arch tgt)
 endfunction()
 
 
+# Find Python libraries
+option(GT_TESTS_REQUIRE_Python "CMake will abort if no Python environment can be found" OFF)
+
+if(GT_TESTS_REQUIRE_Python)
+    set(_GT_TESTS_Python_REQUIRED "REQUIRED")
+endif()
+
+find_package(Python "3.8" ${_GT_TESTS_Python_REQUIRED} COMPONENTS Interpreter Development)
+find_package(Python "3.8" ${_GT_TESTS_Python_REQUIRED} COMPONENTS NumPy)
+
+if (NOT Python_FOUND OR NOT Python_Development_FOUND)
+    set(GT_TESTS_PYTHON_FOUND TRUE)
+else()
+    set(GT_TESTS_PYTHON_FOUND FALSE)
+endif()
+set(GT_TESTS_NUMPY_FOUND ${Python_NumPy_FOUND})
+
+# This option is only useful if we have a broken setup,
+# where a Python environment is found but doesn't work.
+option(GT_TESTS_ENABLE_PYTHON_TESTS "Enable Python tests" ON)
+
+
 add_subdirectory(regression)
 add_subdirectory(unit_tests)
 

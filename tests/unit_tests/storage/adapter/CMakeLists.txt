@@ -5,15 +5,6 @@ FetchContent_Declare(
         GIT_TAG        v1.0.1
 )
 
-find_package(Python REQUIRED Development Interpreter)
-FetchContent_Declare(
-        nanobind
-        GIT_REPOSITORY https://github.com/wjakob/nanobind.git
-        GIT_TAG        v1.4.0
-)
-FetchContent_MakeAvailable(nanobind)
-nanobind_build_library(nanobind-static)
-
 set(build_testing_ ${BUILD_TESTING})
 set(BUILD_TESTING OFF)
 FetchContent_MakeAvailable(cpp_bindgen)
@@ -24,9 +15,20 @@ gridtools_add_unit_test(test_fortran_array_adapter
         LIBRARIES cpp_bindgen_interface
         NO_NVCC)
 
-gridtools_add_unit_test(test_nanobind_adapter
-        SOURCES test_nanobind_adapter.cpp
-        LIBRARIES nanobind-static Python::Python
-        NO_NVCC)
-nanobind_compile_options(test_nanobind_adapter)
-nanobind_link_options(test_nanobind_adapter)
+
+if (${GT_TESTS_PYTHON_FOUND})
+        FetchContent_Declare(
+                nanobind
+                GIT_REPOSITORY https://github.com/wjakob/nanobind.git
+                GIT_TAG        v1.4.0
+        )
+        FetchContent_MakeAvailable(nanobind)
+        nanobind_build_library(nanobind-static)
+
+        gridtools_add_unit_test(test_nanobind_adapter
+                SOURCES test_nanobind_adapter.cpp
+                LIBRARIES nanobind-static Python::Python
+                NO_NVCC)
+        nanobind_compile_options(test_nanobind_adapter)
+        nanobind_link_options(test_nanobind_adapter)
+endif()

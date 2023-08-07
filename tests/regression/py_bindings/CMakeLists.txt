@@ -1,20 +1,4 @@
-option(GT_TESTS_REQUIRE_Python "CMake will abort if no Python environment can be found" OFF)
-
-if(GT_TESTS_REQUIRE_Python)
-    set(_GT_TESTS_Python_REQUIRED "REQUIRED")
-endif()
-
-find_package(Python3 ${_GT_TESTS_Python_REQUIRED} COMPONENTS Interpreter Development NumPy)
-
-if (NOT Python3_FOUND OR NOT Python3_Development_FOUND OR NOT Python3_NumPy_FOUND)
-    return()
-endif()
-
-# This option is only useful if we have a broken setup,
-# where a Python environment is found but doesn't work.
-option(GT_TESTS_ENABLE_PYTHON_TESTS "Enable Python tests" ON)
-
-if(NOT GT_TESTS_ENABLE_PYTHON_TESTS)
+if (NOT ${GT_TESTS_ENABLE_PYTHON_TESTS} OR NOT ${GT_TESTS_PYTHON_FOUND} OR NOT ${GT_TESTS_NUMPY_FOUND})
     return()
 endif()
 
