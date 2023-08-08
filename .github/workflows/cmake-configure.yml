@@ -16,9 +16,6 @@ jobs:
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: |
-        pip install numpy
     - name: CMake version
       run: |
         cmake --version
@@ -48,9 +45,6 @@ jobs:
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: |
-        pip install numpy
     - name: CMake version
       run: |
         cmake --version
@@ -71,9 +65,6 @@ jobs:
             version: [8, 9, 10, 11]
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: |
-        pip install numpy
     - name: CMake version
       run: |
         cmake --version
@@ -90,9 +81,6 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:gcc-10-cuda-11
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: |
-        pip install numpy
     - name: CMake version
       run: |
         cmake --version
