@@ -8,11 +8,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/common/integral_constant.hpp>
-#include <gridtools/sid/concept.hpp>
+#include <array>
+
 #include <gtest/gtest.h>
 
-#include <array>
+#include <gridtools/common/integral_constant.hpp>
+#include <gridtools/sid/concept.hpp>
 #include <gridtools/storage/adapter/nanobind_adapter.hpp>
 
 namespace nb = nanobind;
@@ -24,7 +25,7 @@ TEST(NanobindAdapter, DataDynStrides) {
     constexpr std::array<std::intptr_t, ndim> strides = {1, 3};
     nb::ndarray<int, nb::shape<nb::any, nb::any>> ndarray{data, ndim, shape.data(), nb::handle{}, strides.data()};
 
-    const auto sid = gridtools::as_sid(ndarray);
+    const auto sid = gridtools::nanobind::as_sid(ndarray);
     const auto s_origin = sid_get_origin(sid);
     const auto s_strides = sid_get_strides(sid);
     const auto s_ptr = s_origin();
@@ -41,7 +42,7 @@ TEST(NanobindAdapter, StaticStridesMatch) {
     constexpr std::array<std::intptr_t, ndim> strides = {1, 3};
     nb::ndarray<int, nb::shape<nb::any, nb::any>> ndarray{data, ndim, shape.data(), nb::handle{}, strides.data()};
 
-    const auto sid = gridtools::as_sid(ndarray, gridtools::stride_spec<1, nanobind::any>{});
+    const auto sid = gridtools::nanobind::as_sid(ndarray, gridtools::nanobind::stride_spec<1, nanobind::any>{});
     const auto s_strides = sid_get_strides(sid);
 
     EXPECT_EQ(strides[0], gridtools::get<0>(s_strides).value);
@@ -55,5 +56,6 @@ TEST(NanobindAdapter, StaticStridesMismatch) {
     constexpr std::array<std::intptr_t, ndim> strides = {1, 3};
     nb::ndarray<int, nb::shape<nb::any, nb::any>> ndarray{data, ndim, shape.data(), nb::handle{}, strides.data()};
 
-    EXPECT_THROW(gridtools::as_sid(ndarray, gridtools::stride_spec<2, nanobind::any>{}), std::invalid_argument);
+    EXPECT_THROW(
+        gridtools::nanobind::as_sid(ndarray, gridtools::nanobind::stride_spec<2, nanobind::any>{}), std::invalid_argument);
 }

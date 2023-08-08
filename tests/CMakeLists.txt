@@ -112,8 +112,7 @@ if (${GT_TESTS_ENABLE_PYTHON_TESTS})
         set(_GT_TESTS_Python_REQUIRED "REQUIRED")
     endif()
 
-    find_package(Python "3.8" ${_GT_TESTS_Python_REQUIRED} COMPONENTS Interpreter Development)
-    find_package(Python "3.8" ${_GT_TESTS_Python_REQUIRED} COMPONENTS NumPy)
+    find_package(Python "3.8" ${_GT_TESTS_Python_REQUIRED} COMPONENTS Interpreter Development NumPy)
 endif()
 
 

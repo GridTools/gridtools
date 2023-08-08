@@ -1,15 +1,17 @@
 #pragma once
 
+#include <algorithm>
+#include <stdexcept>
+
+#include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
+
 #include "../../common/array.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
 #include "../../sid/unknown_kind.hpp"
-#include <algorithm>
-#include <nanobind/nanobind.h>
-#include <nanobind/ndarray.h>
-#include <stdexcept>
 
 namespace gridtools {
     namespace nanobind_sid_adapter_impl_ {
@@ -80,7 +82,9 @@ namespace gridtools {
         }
     } // namespace nanobind_sid_adapter_impl_
 
-    using nanobind_sid_adapter_impl_::as_sid;
-    using nanobind_sid_adapter_impl_::fully_dynamic_strides;
-    using nanobind_sid_adapter_impl_::stride_spec;
+    namespace nanobind {
+        using nanobind_sid_adapter_impl_::as_sid;
+        using nanobind_sid_adapter_impl_::fully_dynamic_strides;
+        using nanobind_sid_adapter_impl_::stride_spec;
+    } // namespace nanobind
 } // namespace gridtools
