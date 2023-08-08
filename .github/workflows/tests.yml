@@ -29,6 +29,9 @@ jobs:
                 build_type: debug
     steps:
     - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        pip install numpy
     - name: setup environment
       run: |
         echo "GTRUN_BUILD_COMMAND=make -j $(nproc)" >> $GITHUB_ENV
