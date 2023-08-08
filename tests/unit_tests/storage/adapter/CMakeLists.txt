@@ -16,7 +16,7 @@ gridtools_add_unit_test(test_fortran_array_adapter
         NO_NVCC)
 
 
-if (${GT_TESTS_ENABLE_PYTHON_TESTS})
+if (${Python_Development_FOUND})
         FetchContent_Declare(
                 nanobind
                 GIT_REPOSITORY https://github.com/wjakob/nanobind.git

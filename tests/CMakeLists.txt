@@ -104,6 +104,7 @@ endfunction()
 # This option is only useful if we have a broken setup,
 # where a Python environment is found but doesn't work.
 option(GT_TESTS_ENABLE_PYTHON_TESTS "Enable Python tests" ON)
+option(GT_TESTS_REQUIRE_Python "Enable Python tests" OFF)
 
 # Find Python libraries
 if (${GT_TESTS_ENABLE_PYTHON_TESTS})
@@ -111,7 +112,8 @@ if (${GT_TESTS_ENABLE_PYTHON_TESTS})
         set(_GT_TESTS_Python_REQUIRED "REQUIRED")
     endif()
 
-    find_package(Python "3.8" REQUIRED COMPONENTS Interpreter Development NumPy)
+    find_package(Python "3.8" ${_GT_TESTS_Python_REQUIRED} COMPONENTS Interpreter Development)
+    find_package(Python "3.8" ${_GT_TESTS_Python_REQUIRED} COMPONENTS NumPy)
 endif()
 
 

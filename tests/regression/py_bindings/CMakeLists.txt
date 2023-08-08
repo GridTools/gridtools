@@ -1,4 +1,4 @@
-if (NOT ${GT_TESTS_ENABLE_PYTHON_TESTS})
+if (NOT ${Python_Development_FOUND} OR NOT ${Python_NumPy_FOUND})
     return()
 endif()
 
