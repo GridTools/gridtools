@@ -1,4 +1,4 @@
-if (NOT ${Python_Development_FOUND} OR NOT ${Python_NumPy_FOUND})
+if (NOT "${Python_Development_FOUND}" OR NOT "${Python_NumPy_FOUND}")
     return()
 endif()
 
