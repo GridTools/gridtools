@@ -61,8 +61,8 @@ namespace gridtools {
             class Strides = fully_dynamic_strides<sizeof...(Sizes)>,
             class StridesKind = sid::unknown_kind>
         auto as_sid(nanobind::ndarray<T, nanobind::shape<Sizes...>, Args...> ndarray,
-            Strides stride_spec_ = fully_dynamic_strides<sizeof...(Sizes)>{},
-            [[maybe_unused]] StridesKind strides_kind = sid::unknown_kind{}) {
+            Strides stride_spec_ = {},
+            StridesKind = {}) {
             using sid::property;
             const auto ptr = ndarray.data();
             constexpr auto ndim = sizeof...(Sizes);
