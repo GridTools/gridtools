@@ -331,5 +331,13 @@ namespace gridtools {
             EXPECT_EQ(a, 42);
             EXPECT_EQ(b, 2.5);
         }
+
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 1 && __CUDACC_VER_MINOR <= 2
+#else
+        TEST(ctad, lambda) {
+            auto testee = tuple([](int i) { return i; });
+            EXPECT_EQ(1, get<0>(testee)(1));
+        }
+#endif
     } // namespace
 } // namespace gridtools

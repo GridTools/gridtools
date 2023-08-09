@@ -316,8 +316,15 @@ namespace gridtools {
 
                 auto operator()() const { return build(); }
             };
+#if defined(__NVCC__) && (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 1 && __CUDACC_VER_MINOR__ <= 2)
+            // workaround constexpr issue in CUDA 12.1, 12.2 (maybe related
+            // tohttps://github.com/GridTools/gridtools/issues/1766)
+            template <class Traits>
+            builder_type<Traits, keys<>::values<>> builder = {};
+#else
             template <class Traits>
             constexpr builder_type<Traits, keys<>::values<>> builder = {};
+#endif
         } // namespace builder_impl_
         using builder_impl_::builder;
     } // namespace storage
