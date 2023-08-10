@@ -16,7 +16,7 @@ namespace gridtools {
         // see https://github.com/GridTools/gridtools/issues/1766
         template <class T>
         constexpr auto make_1_tuple(T &&t) {
-            return tuple(t);
+            return tuple(std::forward<T>(t));
         }
     } // namespace nvcc_workarounds
 } // namespace gridtools
