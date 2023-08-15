@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/defs.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
 
@@ -332,8 +333,7 @@ namespace gridtools {
             EXPECT_EQ(b, 2.5);
         }
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 1 && __CUDACC_VER_MINOR <= 2
-#else
+#if not GT_NVCC_WORKAROUND_1766
         TEST(ctad, lambda) {
             auto testee = tuple([](int i) { return i; });
             EXPECT_EQ(1, get<0>(testee)(1));
