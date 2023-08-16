@@ -333,7 +333,7 @@ namespace gridtools {
             EXPECT_EQ(b, 2.5);
         }
 
-#if not GT_NVCC_WORKAROUND_1766
+#if !GT_NVCC_WORKAROUND_1766
         TEST(ctad, lambda) {
             auto testee = tuple([](int i) { return i; });
             EXPECT_EQ(1, get<0>(testee)(1));
