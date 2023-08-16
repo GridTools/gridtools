@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "../common/defs.hpp"
 #include "../common/functional.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
@@ -101,5 +102,13 @@ namespace gridtools::fn {
     using column_stage_impl_::column_stage;
     using column_stage_impl_::fwd;
     using column_stage_impl_::merged_column_stage;
+
+#if GT_NVCC_WORKAROUND_1766
+    template <class F, class Projector = host_device::identity>
+    GT_FUNCTION constexpr auto scan_pass(F &&f, Projector &&p = {}) {
+        return column_stage_impl_::scan_pass(std::forward<F>(f), std::forward<Projector>(p));
+    }
+#else
     using column_stage_impl_::scan_pass;
+#endif
 } // namespace gridtools::fn

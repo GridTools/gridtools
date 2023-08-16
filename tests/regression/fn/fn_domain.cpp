@@ -13,6 +13,7 @@
 #include <gridtools/fn/unstructured.hpp>
 
 #include <fn_select.hpp>
+#include <nvcc_workarounds.hpp>
 #include <test_environment.hpp>
 
 namespace {
@@ -51,7 +52,7 @@ namespace {
 
     struct empty_column : fwd {
         static GT_FUNCTION constexpr auto prologue() {
-            return tuple(scan_pass([](auto acc) { return acc; }, host_device::identity()));
+            return nvcc_workarounds::make_1_tuple(scan_pass([](auto acc) { return acc; }, host_device::identity()));
         }
 
         static GT_FUNCTION constexpr auto body() {

@@ -316,8 +316,14 @@ namespace gridtools {
 
                 auto operator()() const { return build(); }
             };
+#if GT_NVCC_WORKAROUND_1766
+            // not sure if the same bug as https://github.com/GridTools/gridtools/issues/1766
+            template <class Traits>
+            builder_type<Traits, keys<>::values<>> builder = {};
+#else
             template <class Traits>
             constexpr builder_type<Traits, keys<>::values<>> builder = {};
+#endif
         } // namespace builder_impl_
         using builder_impl_::builder;
     } // namespace storage
