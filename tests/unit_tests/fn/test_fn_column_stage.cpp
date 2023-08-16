@@ -14,6 +14,8 @@
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
+#include <nvcc_workarounds.hpp>
+
 namespace gridtools::fn {
     namespace {
         using namespace literals;
@@ -35,10 +37,10 @@ namespace gridtools::fn {
 
         struct sum_fold_with_logues : sum_fold {
             static GT_FUNCTION constexpr auto prologue() {
-                return tuple([](auto acc, auto const &iter) { return acc + 2 * *iter; });
+                return nvcc_workarounds::make_1_tuple([](auto acc, auto const &iter) { return acc + 2 * *iter; });
             }
             static GT_FUNCTION constexpr auto epilogue() {
-                return tuple([](auto acc, auto const &iter) { return acc + 3 * *iter; });
+                return nvcc_workarounds::make_1_tuple([](auto acc, auto const &iter) { return acc + 3 * *iter; });
             }
         };
 
