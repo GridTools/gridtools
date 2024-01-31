@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-wheel:
+  build:
     runs-on: ubuntu-latest
     container: ghcr.io/gridtools/gridtools-base:${{ matrix.compiler }}
     strategy:
@@ -39,22 +39,40 @@ jobs:
       with:
         name: gridtools-cpp-wheel
         path: .python_package/.nox/.cache/dist/gridtools_cpp-*.whl
-    - name: Publish distribution to Test PyPI
-      if: ${{ github.event_name == 'release' }}
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
-        packages-dir: .python_package/.nox/.cache/dist
+  publish-pypi:
+    name: Publish Python distribution to pypi.org
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' }} # the action was triggered manually
+    environment:
+      name: pypi
+      url: https://pypi.org/project/gridtools-cpp
+    permissions:
+      id-token: write
+    steps:
     - name: Publish distribution to PyPI
-      if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
-        packages-dir: .python_package/.nox/.cache/dist
+        packages-dir: .python_package/.nox/.cache/dist   
+  publish-test-pypi:
+    name: Publish Python distribution to test.pypi.org
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event_name == 'release' }} # triggered by releasing on github, test first before manually triggering the deployment to PyPI (see release documentation)
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/gridtools-cpp
+    permissions:
+      id-token: write
+    steps:
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: .python_package/.nox/.cache/dist   
+        repository_url: https://test.pypi.org/legacy/
 
   test-wheel:
-    needs: build-wheel
+    needs: build
     runs-on: ubuntu-latest
     container: ghcr.io/gridtools/gridtools-base:${{ matrix.compiler }}
     strategy:
