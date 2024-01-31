@@ -50,6 +50,11 @@ jobs:
     permissions:
       id-token: write
     steps:
+    - name: download wheel
+      uses: actions/download-artifact@v3
+      with:
+        name: gridtools-cpp-wheel
+        path: .python_package/.nox/.cache/dist
     - name: Publish distribution to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
@@ -65,11 +70,16 @@ jobs:
     permissions:
       id-token: write
     steps:
+    - name: download wheel
+      uses: actions/download-artifact@v3
+      with:
+        name: gridtools-cpp-wheel
+        path: .python_package/.nox/.cache/dist
     - name: Publish distribution to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages-dir: .python_package/.nox/.cache/dist   
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
 
   test-wheel:
     needs: build
