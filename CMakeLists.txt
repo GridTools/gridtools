@@ -55,7 +55,7 @@ else()
     endif()
 endif()
 
-set(REQUIRED_BOOST_VERSION 1.65.1)
+set(REQUIRED_BOOST_VERSION 1.77)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
 
 # setup main gridtools target
