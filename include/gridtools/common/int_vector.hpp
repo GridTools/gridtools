@@ -107,12 +107,22 @@ namespace gridtools {
                 std::forward<Vecs>(vecs)...);
         }
 
+        template <class Scalar>
+        struct foo {
+            Scalar scalar_;
+            template <class T>
+            GT_FUNCTION constexpr auto operator()(T const &arg) const {
+                return arg * scalar_;
+            }
+        };
         /**
          * @brief Returns `int_vector` with elements multiplied by an integral scalar
          */
         template <class Vec, class Scalar>
         GT_FUNCTION constexpr auto multiply(Vec && vec, Scalar scalar) {
-            return tuple_util::host_device::transform([scalar](auto v) { return v * scalar; }, std::forward<Vec>(vec));
+            return tuple_util::host_device::transform(foo{scalar}, std::forward<Vec>(vec));
+            // return tuple_util::host_device::transform([scalar](auto v) { return v * scalar; },
+            // std::forward<Vec>(vec));
         }
 
         /**
