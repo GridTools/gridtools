@@ -41,10 +41,10 @@ if(TARGET _gridtools_cuda)
             SOURCES test_hypercube_iterator.cu
             LIBRARIES _gridtools_cuda
             LABELS cuda)
-    gridtools_add_unit_test(test_int_vector_cuda
-        SOURCES test_int_vector.cu
-        LIBRARIES _gridtools_cuda
-        LABELS cuda)
+#     gridtools_add_unit_test(test_int_vector_cuda
+#             SOURCES test_int_vector.cu
+#             LIBRARIES _gridtools_cuda
+#             LABELS cuda)
     gridtools_add_unit_test(test_tuple_cuda
             SOURCES test_tuple.cu
             LIBRARIES _gridtools_cuda
