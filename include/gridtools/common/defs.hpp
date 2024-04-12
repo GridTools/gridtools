@@ -18,6 +18,8 @@ namespace gridtools {
 #define GT_CUDACC
 #ifdef __CUDA_ARCH__
 #define GT_CUDA_ARCH __CUDA_ARCH__
+#elif defined(__CUDA_ARCH_LIST__)
+#define GT_CUDA_ARCH __CUDA_ARCH_LIST__
 #endif
 #elif defined(__HIP__)
 #define GT_CUDACC
