@@ -10,7 +10,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cstddef>
 #include <stdexcept>
 
 #include <nanobind/nanobind.h>
