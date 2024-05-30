@@ -21,8 +21,6 @@
 
 namespace nb = nanobind;
 
-void initialize_python() {}
-
 class python_init_fixture : public ::testing::Test {
   protected:
     void SetUp() override { Py_Initialize(); }
