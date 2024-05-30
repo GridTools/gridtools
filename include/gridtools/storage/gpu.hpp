@@ -44,6 +44,7 @@ namespace gridtools {
                 T *m_ptr;
                 Info m_info;
 
+#ifdef GT_CUDACC
                 GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
                 GT_FUNCTION_DEVICE auto const &info() const { return m_info; }
 
@@ -61,6 +62,7 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE decltype(auto) operator()(array<int, Info::ndims> const &arg) const {
                     return m_ptr[m_info.index_from_tuple(arg)];
                 }
+#endif
             };
         } // namespace gpu_impl_
 
