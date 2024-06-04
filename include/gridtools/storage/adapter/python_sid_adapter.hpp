@@ -136,7 +136,8 @@ namespace gridtools {
                 // just check upper/lower case for integer formats which indicates signedness (itemsize already checked)
                 // direct format comparison in not enough, for details see
                 // https://github.com/pybind/pybind11/issues/1806 and https://github.com/pybind/pybind11/issues/1908
-                if (std::islower(*int_char) != std::islower(*expected_int_char))
+                // ignore this check for boolean type
+                if (std::islower(*int_char) != std::islower(*expected_int_char) && std::islower(*int_char) != 'b')
                     throw std::domain_error("incompatible integer formats: " + info.format + " and " + expected_format);
             } else if (info.format != expected_format) {
                 throw std::domain_error(
