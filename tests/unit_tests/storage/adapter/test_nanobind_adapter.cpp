@@ -8,16 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "nanobind/nanobind.h"
+#include <gridtools/storage/adapter/nanobind_adapter.hpp>
+
 #include <Python.h>
 #include <array>
-
-#include <gtest/gtest.h>
-
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/sid/concept.hpp>
-#include <gridtools/storage/adapter/nanobind_adapter.hpp>
-#include <pylifecycle.h>
+
+#include <gtest/gtest.h>
 
 namespace nb = nanobind;
 
