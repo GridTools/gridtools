@@ -19,39 +19,63 @@ namespace gridtools {
     struct v2e {};
     struct e2v {};
 
+    namespace storage {
+
+        template <class StorageTraits>
+        struct nb_table_storage_traits {
+            friend decltype(storage_is_host_referenceable(std::declval<StorageTraits>())) storage_is_host_referenceable(
+                nb_table_storage_traits<StorageTraits>) {
+                return {};
+            }
+
+            friend layout_map<1, 0> storage_layout(
+                nb_table_storage_traits<StorageTraits>, std::integral_constant<size_t, 2>) {
+                return {};
+            }
+
+            friend decltype(storage_alignment(std::declval<StorageTraits>())) storage_alignment(
+                nb_table_storage_traits<StorageTraits>) {
+                return {};
+            }
+
+            template <class LazyType, class T = typename LazyType::type>
+            friend auto storage_allocate(nb_table_storage_traits<StorageTraits>, LazyType type, size_t size) {
+                return storage_allocate(StorageTraits{}, type, size);
+            }
+        };
+
+    } // namespace storage
+
     template <class StorageTraits, class FloatType>
     class structured_unstructured_mesh {
         int m_nx, m_ny, m_nz;
 
         constexpr auto v2e_initializer() const {
-            return [nx = m_nx, ny = m_ny](int vertex) {
+            return [nx = m_nx, ny = m_ny](int const vertex, int const neighbor) {
                 assert(vertex >= 0 && vertex < nx * ny);
                 int const nxedges = (nx - 1) * ny;
                 int const nyedges = nx * (ny - 1);
-                int i = vertex % nx;
-                int j = vertex / nx;
-                array<int, max_v2e_neighbors_t::value> neighbors;
+                int const i = vertex % nx;
+                int const j = vertex / nx;
                 int n = 0;
-                if (i > 0)
-                    neighbors[n++] = (i - 1) + (nx - 1) * j;
-                if (i < nx - 1)
-                    neighbors[n++] = i + (nx - 1) * j;
-                if (j > 0)
-                    neighbors[n++] = nxedges + i + nx * (j - 1);
-                if (j < ny - 1)
-                    neighbors[n++] = nxedges + i + nx * j;
-                if (i < nx - 1 && j > 0)
-                    neighbors[n++] = nxedges + nyedges + i + (nx - 1) * (j - 1);
-                if (i > 0 && j < ny - 1)
-                    neighbors[n++] = nxedges + nyedges + (i - 1) + (nx - 1) * j;
-                for (; n < neighbors.size(); ++n)
-                    neighbors[n] = -1;
-                return neighbors;
+                if (i > 0 && neighbor == n++)
+                    return (i - 1) + (nx - 1) * j;
+                if (i < nx - 1 && neighbor == n++)
+                    return i + (nx - 1) * j;
+                if (j > 0 && neighbor == n++)
+                    return nxedges + i + nx * (j - 1);
+                if (j < ny - 1 && neighbor == n++)
+                    return nxedges + i + nx * j;
+                if (i < nx - 1 && j > 0 && neighbor == n++)
+                    return nxedges + nyedges + i + (nx - 1) * (j - 1);
+                if (i > 0 && j < ny - 1 && neighbor == n++)
+                    return nxedges + nyedges + (i - 1) + (nx - 1) * j;
+                return -1;
             };
         }
 
         constexpr auto e2v_initializer() const {
-            return [nx = m_nx, ny = m_ny](int edge) {
+            return [nx = m_nx, ny = m_ny](int edge, int const neighbor) {
                 int const nxedges = (nx - 1) * ny;
                 int const nyedges = nx * (ny - 1);
                 [[maybe_unused]] int const nxyedges = (nx - 1) * (ny - 1);
@@ -59,19 +83,19 @@ namespace gridtools {
                 if (edge < nxedges) {
                     int i = edge % (nx - 1);
                     int j = edge / (nx - 1);
-                    return array{i + nx * j, i + 1 + nx * j};
+                    return neighbor == 0 ? i + nx * j : i + 1 + nx * j;
                 }
                 edge -= nxedges;
                 if (edge < nyedges) {
                     int i = edge % nx;
                     int j = edge / nx;
-                    return array{i + nx * j, i + nx * (j + 1)};
+                    return neighbor == 0 ? i + nx * j : i + nx * (j + 1);
                 }
                 edge -= nyedges;
                 assert(edge < nxyedges);
                 int i = edge % (nx - 1);
                 int j = edge / (nx - 1);
-                return array{i + 1 + nx * j, i + nx * (j + 1)};
+                return neighbor == 0 ? i + 1 + nx * j : i + nx * (j + 1);
             };
         }
 
@@ -113,11 +137,11 @@ namespace gridtools {
         }
 
         auto v2e_table() const {
-            return storage::builder<StorageTraits>.dimensions(nvertices()).template type<array<int, max_v2e_neighbors_t::value>>().initializer(v2e_initializer()).unknown_id().build();
+            return storage::builder<storage::nb_table_storage_traits<StorageTraits>>.dimensions(nvertices(), max_v2e_neighbors_t()).template type<int>().initializer(v2e_initializer()).unknown_id().build();
         }
 
         auto e2v_table() const {
-            return storage::builder<StorageTraits>.dimensions(nedges()).template type<array<int, max_e2v_neighbors_t::value>>().initializer(e2v_initializer()).unknown_id().build();
+            return storage::builder<storage::nb_table_storage_traits<StorageTraits>>.dimensions(nedges(), max_e2v_neighbors_t()).template type<int>().initializer(e2v_initializer()).unknown_id().build();
         }
     };
 

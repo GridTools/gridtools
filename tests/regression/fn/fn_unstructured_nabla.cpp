@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/fn/sid_neighbor_table.hpp>
 #include <gridtools/fn/unstructured.hpp>
 #include <gridtools/sid/dimension_to_tuple_like.hpp>
 
@@ -101,7 +102,7 @@ namespace {
         return [&e2v](int edge, int k) {
             double tmp = 0.0;
             for (int neighbor = 0; neighbor < 2; ++neighbor)
-                tmp += pp(e2v(edge)[neighbor], k);
+                tmp += pp(e2v(edge, neighbor), k);
             tmp /= 2.0;
             return tuple{tmp * get<0>(s(edge, k)), tmp * get<1>(s(edge, k))};
         };
@@ -111,7 +112,7 @@ namespace {
         return [&v2e, zavg = zavg(e2v)](int vertex, int k) {
             auto res = tuple(0.0, 0.0);
             for (int neighbor = 0; neighbor < 6; ++neighbor) {
-                int edge = v2e(vertex)[neighbor];
+                int edge = v2e(vertex, neighbor);
                 if (edge != -1) {
                     get<0>(res) += get<0>(zavg(edge, k)) * sign(vertex)[neighbor];
                     get<1>(res) += get<1>(zavg(edge, k)) * sign(vertex)[neighbor];
@@ -184,6 +185,7 @@ namespace {
     };
 
     constexpr inline auto make_comp = [](auto backend, auto const &mesh, auto &nabla) {
+        using mesh_t = std::remove_reference_t<decltype(mesh)>;
         return [backend,
                    &nabla,
                    nvertices = mesh.nvertices(),
@@ -195,13 +197,18 @@ namespace {
                    sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
                    vol = mesh.make_const_storage(vol, mesh.nvertices()),
                    s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
-            auto v2e_ptr = v2e_table->get_const_target_ptr();
-            auto e2v_ptr = e2v_table->get_const_target_ptr();
+            auto v2e_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                integral_constant<int, 1>,
+                mesh_t::max_v2e_neighbors_t::value>(v2e_table);
+            auto e2v_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                integral_constant<int, 1>,
+                mesh_t::max_e2v_neighbors_t::value>(e2v_table);
             fencil(backend, nvertices, nedges, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
         };
     };
 
     constexpr inline auto make_comp_fused = [](auto backend, auto const &mesh, auto &nabla) {
+        using mesh_t = std::remove_reference_t<decltype(mesh)>;
         return [backend,
                    &nabla,
                    nvertices = mesh.nvertices(),
@@ -212,8 +219,12 @@ namespace {
                    sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
                    vol = mesh.make_const_storage(vol, mesh.nvertices()),
                    s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
-            auto v2e_ptr = v2e_table->get_const_target_ptr();
-            auto e2v_ptr = e2v_table->get_const_target_ptr();
+            auto v2e_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                integral_constant<int, 1>,
+                mesh_t::max_v2e_neighbors_t::value>(v2e_table);
+            auto e2v_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                integral_constant<int, 1>,
+                mesh_t::max_e2v_neighbors_t::value>(e2v_table);
             fencil_fused(backend, nvertices, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
         };
     };
