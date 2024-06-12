@@ -42,6 +42,22 @@ namespace gridtools {
             friend auto storage_allocate(nb_table_storage_traits<StorageTraits>, LazyType type, size_t size) {
                 return storage_allocate(StorageTraits{}, type, size);
             }
+
+            template <class T>
+            friend void storage_update_target(
+                nb_table_storage_traits<StorageTraits>, T *dst, T const *src, size_t size) {
+                storage_update_target(StorageTraits{}, dst, src, size);
+            }
+
+            template <class T>
+            friend void storage_update_host(nb_table_storage_traits<StorageTraits>, T *dst, T const *src, size_t size) {
+                storage_update_host(StorageTraits{}, dst, src, size);
+            }
+
+            template <class T, class Info>
+            friend auto storage_make_target_view(nb_table_storage_traits<StorageTraits>, T *ptr, Info const &info) {
+                return storage_make_target_view(StorageTraits{}, ptr, info);
+            }
         };
 
     } // namespace storage
