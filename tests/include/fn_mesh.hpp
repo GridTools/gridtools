@@ -19,49 +19,6 @@ namespace gridtools {
     struct v2e {};
     struct e2v {};
 
-    namespace storage {
-
-        template <class StorageTraits>
-        struct nb_table_storage_traits {
-            friend decltype(storage_is_host_referenceable(std::declval<StorageTraits>())) storage_is_host_referenceable(
-                nb_table_storage_traits<StorageTraits>) {
-                return {};
-            }
-
-            friend layout_map<1, 0> storage_layout(
-                nb_table_storage_traits<StorageTraits>, std::integral_constant<size_t, 2>) {
-                return {};
-            }
-
-            friend decltype(storage_alignment(std::declval<StorageTraits>())) storage_alignment(
-                nb_table_storage_traits<StorageTraits>) {
-                return {};
-            }
-
-            template <class LazyType, class T = typename LazyType::type>
-            friend auto storage_allocate(nb_table_storage_traits<StorageTraits>, LazyType type, size_t size) {
-                return storage_allocate(StorageTraits{}, type, size);
-            }
-
-            template <class T>
-            friend void storage_update_target(
-                nb_table_storage_traits<StorageTraits>, T *dst, T const *src, size_t size) {
-                storage_update_target(StorageTraits{}, dst, src, size);
-            }
-
-            template <class T>
-            friend void storage_update_host(nb_table_storage_traits<StorageTraits>, T *dst, T const *src, size_t size) {
-                storage_update_host(StorageTraits{}, dst, src, size);
-            }
-
-            template <class T, class Info>
-            friend auto storage_make_target_view(nb_table_storage_traits<StorageTraits>, T *ptr, Info const &info) {
-                return storage_make_target_view(StorageTraits{}, ptr, info);
-            }
-        };
-
-    } // namespace storage
-
     template <class StorageTraits, class FloatType>
     class structured_unstructured_mesh {
         int m_nx, m_ny, m_nz;
@@ -153,11 +110,11 @@ namespace gridtools {
         }
 
         auto v2e_table() const {
-            return storage::builder<storage::nb_table_storage_traits<StorageTraits>>.dimensions(nvertices(), max_v2e_neighbors_t()).template type<int>().initializer(v2e_initializer()).unknown_id().build();
+            return storage::builder<StorageTraits>.dimensions(nvertices(), max_v2e_neighbors_t()).template type<int>().initializer(v2e_initializer()).unknown_id().build();
         }
 
         auto e2v_table() const {
-            return storage::builder<storage::nb_table_storage_traits<StorageTraits>>.dimensions(nedges(), max_e2v_neighbors_t()).template type<int>().initializer(e2v_initializer()).unknown_id().build();
+            return storage::builder<StorageTraits>.dimensions(nedges(), max_e2v_neighbors_t()).template type<int>().initializer(e2v_initializer()).unknown_id().build();
         }
     };
 
