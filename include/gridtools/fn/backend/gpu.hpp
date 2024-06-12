@@ -24,23 +24,23 @@
 namespace gridtools::fn::backend {
     namespace gpu_impl_ {
         /*
-         * BlockSizes must be a meta map, mapping dimensions to integral constant block sizes.
+         * ThreadBlockSizes must be a meta map, mapping dimensions to integral constant block sizes.
          *
          * For example, meta::list<meta::list<dim::i, integral_constant<int, 32>>,
          *                         meta::list<dim::j, integral_constant<int, 8>>,
          *                         meta::list<dim::k, integral_constant<int, 1>>>;
          * When using a cartesian grid.
          */
-        template <class BlockSizes>
+        template <class ThreadBlockSizes>
         struct gpu {
-            using block_sizes_t = BlockSizes;
+            using thread_block_sizes_t = ThreadBlockSizes;
             cudaStream_t stream = 0;
         };
 
         template <class BlockSizes, class Dims, int I>
         using block_size_at_dim = meta::second<meta::mp_find<BlockSizes, meta::at_c<Dims, I>>>;
 
-        template <class BlockSizes, class Sizes>
+        template <class ThreadBlockSizes, class Sizes>
         GT_FUNCTION_DEVICE auto global_thread_index() {
             using all_keys_t = get_keys<Sizes>;
             using ndims_t = meta::length<all_keys_t>;
@@ -48,19 +48,19 @@ namespace gridtools::fn::backend {
             if constexpr (ndims_t::value == 0) {
                 return hymap::keys<>::values<>();
             } else if constexpr (ndims_t::value == 1) {
-                using block_dim_x = block_size_at_dim<BlockSizes, keys_t, 0>;
+                using block_dim_x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>;
                 using values_t = typename keys_t::template values<int>;
                 return values_t(blockIdx.x * block_dim_x::value + threadIdx.x);
             } else if constexpr (ndims_t::value == 2) {
-                using block_dim_x = block_size_at_dim<BlockSizes, keys_t, 0>;
-                using block_dim_y = block_size_at_dim<BlockSizes, keys_t, 1>;
+                using block_dim_x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>;
+                using block_dim_y = block_size_at_dim<ThreadBlockSizes, keys_t, 1>;
                 using values_t = typename keys_t::template values<int, int>;
                 return values_t(
                     blockIdx.x * block_dim_x::value + threadIdx.x, blockIdx.y * block_dim_y::value + threadIdx.y);
             } else {
-                using block_dim_x = block_size_at_dim<BlockSizes, keys_t, 0>;
-                using block_dim_y = block_size_at_dim<BlockSizes, keys_t, 1>;
-                using block_dim_z = block_size_at_dim<BlockSizes, keys_t, 2>;
+                using block_dim_x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>;
+                using block_dim_y = block_size_at_dim<ThreadBlockSizes, keys_t, 1>;
+                using block_dim_z = block_size_at_dim<ThreadBlockSizes, keys_t, 2>;
                 using values_t = typename keys_t::template values<int, int, int>;
                 return values_t(blockIdx.x * block_dim_x::value + threadIdx.x,
                     blockIdx.y * block_dim_y::value + threadIdx.y,
@@ -87,7 +87,7 @@ namespace gridtools::fn::backend {
             return tuple_util::device::all_of(std::less(), index, indexed_sizes);
         }
 
-        template <class BlockSizes,
+        template <class ThreadBlockSizes,
             class Sizes,
             class PtrHolder,
             class Strides,
@@ -95,7 +95,7 @@ namespace gridtools::fn::backend {
             class NDims = tuple_util::size<Sizes>,
             class SizeKeys = get_keys<Sizes>>
         __global__ void kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
-            auto thread_idx = global_thread_index<BlockSizes, Sizes>();
+            auto thread_idx = global_thread_index<ThreadBlockSizes, Sizes>();
             if (!in_domain(thread_idx, sizes))
                 return;
             auto ptr = ptr_holder();
@@ -108,22 +108,22 @@ namespace gridtools::fn::backend {
             }
         }
 
-        template <class BlockSizes, class Sizes>
+        template <class ThreadBlockSizes, class Sizes>
         std::tuple<dim3, dim3> blocks_and_threads(Sizes const &sizes) {
             using keys_t = get_keys<Sizes>;
             using ndims_t = meta::length<keys_t>;
             dim3 blocks(1, 1, 1);
             dim3 threads(1, 1, 1);
             if constexpr (ndims_t::value >= 1) {
-                threads.x = block_size_at_dim<BlockSizes, keys_t, 0>();
+                threads.x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>();
                 blocks.x = (tuple_util::get<0>(sizes) + threads.x - 1) / threads.x;
             }
             if constexpr (ndims_t::value >= 2) {
-                threads.y = block_size_at_dim<BlockSizes, keys_t, 1>();
+                threads.y = block_size_at_dim<ThreadBlockSizes, keys_t, 1>();
                 blocks.y = (tuple_util::get<1>(sizes) + threads.y - 1) / threads.y;
             }
             if constexpr (ndims_t::value >= 3) {
-                threads.z = block_size_at_dim<BlockSizes, keys_t, 2>();
+                threads.z = block_size_at_dim<ThreadBlockSizes, keys_t, 2>();
                 blocks.z = (tuple_util::get<2>(sizes) + threads.z - 1) / threads.z;
             }
             return {blocks, threads};
@@ -144,8 +144,8 @@ namespace gridtools::fn::backend {
             return tuple_util::host::apply([](auto... sizes) { return ((sizes == 0) || ...); }, sizes);
         }
 
-        template <class BlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
-        void apply_stencil_stage(gpu<BlockSizes> const &g,
+        template <class ThreadBlockSizes, class Sizes, class StencilStage, class MakeIterator, class Composite>
+        void apply_stencil_stage(gpu<ThreadBlockSizes> const &g,
             Sizes const &sizes,
             StencilStage,
             MakeIterator make_iterator,
@@ -158,13 +158,13 @@ namespace gridtools::fn::backend {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
 
-            auto [blocks, threads] = blocks_and_threads<BlockSizes>(sizes);
+            auto [blocks, threads] = blocks_and_threads<ThreadBlockSizes>(sizes);
             assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
             cuda_util::launch(blocks,
                 threads,
                 0,
                 g.stream,
-                kernel<BlockSizes,
+                kernel<ThreadBlockSizes,
                     Sizes,
                     decltype(ptr_holder),
                     decltype(strides),
@@ -187,14 +187,14 @@ namespace gridtools::fn::backend {
             }
         };
 
-        template <class BlockSizes,
+        template <class ThreadBlockSizes,
             class Sizes,
             class ColumnStage,
             class MakeIterator,
             class Composite,
             class Vertical,
             class Seed>
-        void apply_column_stage(gpu<BlockSizes> const &g,
+        void apply_column_stage(gpu<ThreadBlockSizes> const &g,
             Sizes const &sizes,
             ColumnStage,
             MakeIterator make_iterator,
@@ -211,13 +211,13 @@ namespace gridtools::fn::backend {
             auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);
             int v_size = at_key<Vertical>(sizes);
 
-            auto [blocks, threads] = blocks_and_threads<BlockSizes>(h_sizes);
+            auto [blocks, threads] = blocks_and_threads<ThreadBlockSizes>(h_sizes);
             assert(threads.x > 0 && threads.y > 0 && threads.z > 0);
             cuda_util::launch(blocks,
                 threads,
                 0,
                 g.stream,
-                kernel<BlockSizes,
+                kernel<ThreadBlockSizes,
                     decltype(h_sizes),
                     decltype(ptr_holder),
                     decltype(strides),
@@ -228,13 +228,14 @@ namespace gridtools::fn::backend {
                 column_fun_f<ColumnStage, MakeIterator, Seed>{std::move(make_iterator), std::move(seed), v_size});
         }
 
-        template <class BlockSizes>
-        auto tmp_allocator(gpu<BlockSizes> be) {
+        template <class ThreadBlockSizes>
+        auto tmp_allocator(gpu<ThreadBlockSizes> be) {
             return std::make_tuple(be, sid::device::cached_allocator(&cuda_util::cuda_malloc<char[]>));
         }
 
-        template <class BlockSizes, class Allocator, class Sizes, class T>
-        auto allocate_global_tmp(std::tuple<gpu<BlockSizes>, Allocator> &alloc, Sizes const &sizes, data_type<T>) {
+        template <class ThreadBlockSizes, class Allocator, class Sizes, class T>
+        auto allocate_global_tmp(
+            std::tuple<gpu<ThreadBlockSizes>, Allocator> &alloc, Sizes const &sizes, data_type<T>) {
             return sid::make_contiguous<T, int_t, sid::unknown_kind>(std::get<1>(alloc), sizes);
         }
     } // namespace gpu_impl_
