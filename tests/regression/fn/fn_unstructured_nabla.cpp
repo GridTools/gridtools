@@ -277,7 +277,7 @@ namespace {
         auto expected = make_expected(mesh);
         TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
         TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
-        TypeParam::benchmark("fn_unstructured_nabla_tuple_of_fields", comp);
+        TypeParam::benchmark("fn_unstructured_nabla_fused_tuple_of_fields", comp);
     }
 
     GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_dimension_to_tuple_like, test_environment<>, fn_backend_t) {
