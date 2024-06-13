@@ -21,7 +21,7 @@ if (${GT_TESTS_ENABLE_PYTHON_TESTS})
                 FetchContent_Declare(
                         nanobind
                         GIT_REPOSITORY https://github.com/wjakob/nanobind.git
-                        GIT_TAG        v1.4.0
+                        GIT_TAG        v2.0.0
                 )
                 FetchContent_MakeAvailable(nanobind)
                 nanobind_build_library(nanobind-static)
