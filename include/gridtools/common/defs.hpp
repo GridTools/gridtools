@@ -53,7 +53,7 @@ namespace gridtools {
 #endif
 
 #if defined(__NVCC__) && (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 1 && __CUDACC_VER_MINOR__ <= 4)
-// enables workaround for CTAD/constexpr issues in CUDA 12.1, 12.2, 12.3 (https://github.com/GridTools/gridtools/issues/1766)
+// enables workaround for CTAD/constexpr issues in CUDA 12.1, 12.2, 12.3, 12.4 (https://github.com/GridTools/gridtools/issues/1766)
 #define GT_NVCC_WORKAROUND_1766 1
 #else
 #define GT_NVCC_WORKAROUND_1766 0
