@@ -27,7 +27,7 @@ namespace gridtools {
 
         // Use `-1` for dynamic stride, use an integral value for static stride.
         template <nanobind::ssize_t... Values>
-        using stride_spec = std::integer_sequence<int, Values...>;
+        using stride_spec = std::integer_sequence<nanobind::ssize_t, Values...>;
 
         template <class IndexSequence>
         struct dynamic_strides_helper;
