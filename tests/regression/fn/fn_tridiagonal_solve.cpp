@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2021, ETH Zurich
+ * Copyright (c) 2014-2023, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -14,6 +14,7 @@
 #include <gridtools/fn/unstructured.hpp>
 
 #include <fn_select.hpp>
+#include <nvcc_workarounds.hpp>
 #include <test_environment.hpp>
 
 namespace {
@@ -23,7 +24,7 @@ namespace {
 
     struct forward_scan : fwd {
         static GT_FUNCTION constexpr auto prologue() {
-            return tuple(scan_pass(
+            return nvcc_workarounds::make_1_tuple(scan_pass(
                 [](auto /*acc*/, auto const & /*a*/, auto const &b, auto const &c, auto const &d) {
                     return tuple(deref(c) / deref(b), deref(d) / deref(b));
                 },
@@ -43,7 +44,7 @@ namespace {
 
     struct backward_scan : bwd {
         static GT_FUNCTION constexpr auto prologue() {
-            return tuple(scan_pass(
+            return nvcc_workarounds::make_1_tuple(scan_pass(
                 [](auto /*xp*/, auto const &cpdp) {
                     auto [cp, dp] = deref(cpdp);
                     return dp;

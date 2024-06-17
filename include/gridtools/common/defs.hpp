@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2021, ETH Zurich
+ * Copyright (c) 2014-2023, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -50,4 +50,11 @@ namespace gridtools {
 #else
 #define GT_NVCC_DIAG_PUSH_SUPPRESS(x)
 #define GT_NVCC_DIAG_POP_SUPPRESS(x)
+#endif
+
+#if defined(__NVCC__) && (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 1 && __CUDACC_VER_MINOR__ <= 4)
+// enables workaround for CTAD/constexpr issues in CUDA 12.1, 12.2, 12.3, 12.4 (https://github.com/GridTools/gridtools/issues/1766)
+#define GT_NVCC_WORKAROUND_1766 1
+#else
+#define GT_NVCC_WORKAROUND_1766 0
 #endif

@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2021, ETH Zurich
+ * Copyright (c) 2014-2023, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/defs.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
 
@@ -331,5 +332,12 @@ namespace gridtools {
             EXPECT_EQ(a, 42);
             EXPECT_EQ(b, 2.5);
         }
+
+#if !GT_NVCC_WORKAROUND_1766
+        TEST(ctad, lambda) {
+            auto testee = tuple([](int i) { return i; });
+            EXPECT_EQ(1, get<0>(testee)(1));
+        }
+#endif
     } // namespace
 } // namespace gridtools
