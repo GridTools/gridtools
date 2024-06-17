@@ -265,6 +265,21 @@ namespace {
         TypeParam::benchmark("fn_unstructured_nabla_tuple_of_fields", comp);
     }
 
+    GT_REGRESSION_TEST(fn_unstructured_nabla_fused_tuple_of_fields, test_environment<>, fn_backend_t) {
+        auto mesh = TypeParam::fn_unstructured_mesh();
+        auto nabla0 = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
+        auto nabla1 = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
+        auto nabla =
+            sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(nabla0, nabla1);
+
+        auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
+        comp();
+        auto expected = make_expected(mesh);
+        TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
+        TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
+        TypeParam::benchmark("fn_unstructured_nabla_fused_tuple_of_fields", comp);
+    }
+
     GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_dimension_to_tuple_like, test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
 

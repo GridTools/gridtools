@@ -44,7 +44,7 @@ namespace gridtools {
                 T *m_ptr;
                 Info m_info;
 
-#if defined(GT_CUDA_ARCH) or (defined(GT_CUDACC) and defined(__clang__))
+#ifdef GT_CUDACC
                 GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
                 GT_FUNCTION_DEVICE auto const &info() const { return m_info; }
 
@@ -53,7 +53,6 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE decltype(auto) strides() const { return m_info.strides(); }
                 GT_FUNCTION_DEVICE decltype(auto) native_lengths() const { return m_info.native_lengths(); }
                 GT_FUNCTION_DEVICE decltype(auto) native_strides() const { return m_info.native_strides(); }
-
                 template <class... Args>
                 GT_FUNCTION_DEVICE auto operator()(Args &&...args) const
                     -> decltype(m_ptr[m_info.index(std::forward<Args>(args)...)]) {
