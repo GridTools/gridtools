@@ -47,7 +47,7 @@ namespace {
                                  gridtools::integral_constant>,
             gridtools::meta::list<gridtools::integral_constant<int, sizes>...>>;
 
-    using fn_backend_t = gridtools::fn::backend::gpu<block_sizes_t<32, 8, 1>>;
+    using fn_backend_t = gridtools::fn::backend::gpu<block_sizes_t<32, 8, 1>, block_sizes_t<2, 2, 2>>;
 } // namespace
 #endif
 
@@ -70,14 +70,14 @@ namespace gridtools::fn::backend {
     } // namespace naive_impl_
 
     namespace gpu_impl_ {
-        template <class>
+        template <class, class>
         struct gpu;
-        template <class BlockSizes>
-        storage::gpu backend_storage_traits(gpu<BlockSizes>);
-        template <class BlockSizes>
-        timer_cuda backend_timer_impl(gpu<BlockSizes>);
-        template <class BlockSizes>
-        inline char const *backend_name(gpu<BlockSizes> const &) {
+        template <class ThreadBlockSizes, class LoopBlockSizes>
+        storage::gpu backend_storage_traits(gpu<ThreadBlockSizes, LoopBlockSizes>);
+        template <class ThreadBlockSizes, class LoopBlockSizes>
+        timer_cuda backend_timer_impl(gpu<ThreadBlockSizes, LoopBlockSizes>);
+        template <class ThreadBlockSizes, class LoopBlockSizes>
+        inline char const *backend_name(gpu<ThreadBlockSizes, LoopBlockSizes> const &) {
             return "gpu";
         }
     } // namespace gpu_impl_
