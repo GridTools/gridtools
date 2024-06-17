@@ -41,7 +41,7 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.clang_version }}-cuda-${{ matrix.cuda_version }}
     strategy:
         matrix:
-            clang_version: [10, 18]
+            clang_version: [10, 17]
             cuda_version: [12.2, 12.5]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
             exclude:
