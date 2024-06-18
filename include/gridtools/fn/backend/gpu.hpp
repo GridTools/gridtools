@@ -51,7 +51,7 @@ namespace gridtools::fn::backend {
 
         template <class BlockSizes, class Sizes>
         using block_sizes_for_sizes =
-            hymap::from_meta_map<meta::transform<block_size_at_dim<BlockSizes>::apply, get_keys<Sizes>>>;
+            hymap::from_meta_map<meta::transform<block_size_at_dim<BlockSizes>::template apply, get_keys<Sizes>>>;
 
         struct extract_uint3_f {
             uint3 const &values;
