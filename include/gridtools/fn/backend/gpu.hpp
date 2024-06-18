@@ -88,7 +88,10 @@ namespace gridtools::fn::backend {
                 } else {
                     return size;
                 }
+                // disable incorrect warning "missing return statement at end of non-void function"
+                GT_NVCC_DIAG_PUSH_SUPPRESS(940)
             }
+            GT_NVCC_DIAG_POP_SUPPRESS(940)
         };
 
         template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
