@@ -132,7 +132,7 @@ namespace gridtools::fn::backend {
         __global__ void __launch_bounds__(NumThreads)
             kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
             auto const [thread_idx, block_size] = global_thread_index<ThreadBlockSizes, LoopBlockSizes>(sizes);
-            if (!tuple_util::all_of(std::less(), thread_idx, sizes))
+            if (!tuple_util::device::all_of(std::less(), thread_idx, sizes))
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
