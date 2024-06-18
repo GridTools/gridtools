@@ -25,24 +25,24 @@
 namespace gridtools {
     namespace nanobind_sid_adapter_impl_ {
 
-        // Use nanobind::any for dynamic stride, use an integral value for static stride.
-        template <std::size_t... Values>
-        using stride_spec = std::index_sequence<Values...>;
+        // Use `-1` for dynamic stride, use an integral value for static stride.
+        template <nanobind::ssize_t... Values>
+        using stride_spec = std::integer_sequence<nanobind::ssize_t, Values...>;
 
         template <class IndexSequence>
         struct dynamic_strides_helper;
 
         template <std::size_t... Indices>
         struct dynamic_strides_helper<std::index_sequence<Indices...>> {
-            using type = stride_spec<(void(Indices), nanobind::any)...>;
+            using type = stride_spec<(void(Indices), -1)...>;
         };
 
         template <std::size_t N>
         using fully_dynamic_strides = typename dynamic_strides_helper<std::make_index_sequence<N>>::type;
 
-        template <std::size_t SpecValue>
+        template <nanobind::ssize_t SpecValue>
         auto select_static_stride_value(std::size_t dyn_value) {
-            if constexpr (SpecValue == nanobind::any) {
+            if constexpr (SpecValue == -1) {
                 return dyn_value;
             } else {
                 if (SpecValue != dyn_value) {
@@ -52,20 +52,20 @@ namespace gridtools {
             }
         }
 
-        template <std::size_t... SpecValues, std::size_t... IndexValues>
+        template <nanobind::ssize_t... SpecValues, std::size_t... IndexValues>
         auto select_static_strides_helper(
             stride_spec<SpecValues...>, const std::size_t *dyn_values, std::index_sequence<IndexValues...>) {
 
             return gridtools::tuple{select_static_stride_value<SpecValues>(dyn_values[IndexValues])...};
         }
 
-        template <std::size_t... SpecValues>
+        template <nanobind::ssize_t... SpecValues>
         auto select_static_strides(stride_spec<SpecValues...> spec, const std::size_t *dyn_values) {
             return select_static_strides_helper(spec, dyn_values, std::make_index_sequence<sizeof...(SpecValues)>{});
         }
 
         template <class T,
-            std::size_t... Sizes,
+            nanobind::ssize_t... Sizes,
             class... Args,
             class Strides = fully_dynamic_strides<sizeof...(Sizes)>,
             class StridesKind = sid::unknown_kind>
