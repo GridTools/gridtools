@@ -53,8 +53,8 @@ namespace gridtools::fn::backend {
         using block_sizes_for_sizes =
             hymap::from_meta_map<meta::transform<block_size_at_dim<BlockSizes>::apply, get_keys<Sizes>>>;
 
-        struct extract_dim3_f {
-            dim3 values;
+        struct extract_uint3_f {
+            uint3 const &values;
 
             template <size_t I, class Value>
             GT_FUNCTION_DEVICE constexpr void operator()(Value &value) const {
@@ -92,7 +92,7 @@ namespace gridtools::fn::backend {
         };
 
         template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
-        GT_FUNCTION_DEVICE auto global_thread_index(Sizes const &sizes) {
+        GT_FUNCTION_DEVICE constexpr auto global_thread_index(Sizes const &sizes) {
             using keys_t = meta::rename<hymap::keys, get_keys<Sizes>>;
 
             constexpr int dynamic_indices = std::min(int(meta::length<keys_t>::value), 3);
@@ -101,8 +101,8 @@ namespace gridtools::fn::backend {
                 meta::concat<meta::repeat_c<dynamic_indices, meta::list<int>>,
                     meta::repeat_c<static_indices, meta::list<integral_constant<int, 0>>>>>;
             indices_t thread_indices, block_indices;
-            tuple_util::device::for_each_index(extract_dim3_f{threadIdx}, thread_indices);
-            tuple_util::device::for_each_index(extract_dim3_f{blockIdx}, block_indices);
+            tuple_util::device::for_each_index(extract_uint3_f{threadIdx}, thread_indices);
+            tuple_util::device::for_each_index(extract_uint3_f{blockIdx}, block_indices);
 
             constexpr auto thread_block_sizes = block_sizes_for_sizes<ThreadBlockSizes, Sizes>();
             constexpr auto loop_block_sizes = block_sizes_for_sizes<LoopBlockSizes, Sizes>();
