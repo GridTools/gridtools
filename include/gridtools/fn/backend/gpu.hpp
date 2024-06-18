@@ -25,7 +25,7 @@
 namespace gridtools::fn::backend {
     namespace gpu_impl_ {
         /*
-         * ThreadBlockSizes must be a meta map, mapping dimensions to integral constant block sizes.
+         * ThreadBlockSizes and LoopBlockSizes must be meta maps, mapping dimensions to integral constant block sizes.
          *
          * For example, meta::list<meta::list<dim::i, integral_constant<int, 32>>,
          *                         meta::list<dim::j, integral_constant<int, 8>>,
