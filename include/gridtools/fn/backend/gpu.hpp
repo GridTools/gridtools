@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <utility>
 
 #include "../../common/cuda_util.hpp"
@@ -40,100 +41,72 @@ namespace gridtools::fn::backend {
             cudaStream_t stream = 0;
         };
 
-        template <class BlockSizes, class Dims, int I>
-        using block_size_at_dim = meta::second<meta::mp_find<BlockSizes, meta::at_c<Dims, I>>>;
+        template <class BlockSizes>
+        struct block_size_at_dim {
+            template <class Dim>
+            using apply = std::conditional_t<std::is_void_v<meta::mp_find<BlockSizes, Dim, void>>,
+                meta::list<Dim, integral_constant<int, 1>>,
+                meta::mp_find<BlockSizes, Dim, void>>;
+        };
 
-        template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
-        GT_FUNCTION_DEVICE auto global_thread_index(Sizes const &sizes) {
-            using all_keys_t = get_keys<Sizes>;
-            using ndims_t = meta::length<all_keys_t>;
-            using keys_t = meta::rename<hymap::keys, meta::take_c<std::min(3, (int)ndims_t::value), all_keys_t>>;
-            if constexpr (ndims_t::value == 0) {
-                return std::make_tuple(hymap::keys<>::values<>(), hymap::keys<>::values<>());
-            } else if constexpr (ndims_t::value == 1) {
-                using thread_block_dim_x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>;
-                using loop_block_dim_x = block_size_at_dim<LoopBlockSizes, keys_t, 0>;
-                using values_t = typename keys_t::template values<int>;
-                int thread_idx_x = blockIdx.x * (thread_block_dim_x::value * loop_block_dim_x::value) +
-                                   threadIdx.x * loop_block_dim_x::value;
-                int block_size_x = tuple_util::get<0>(sizes) - thread_idx_x;
-                if (block_size_x > loop_block_dim_x::value)
-                    block_size_x = loop_block_dim_x::value;
-                if (block_size_x < 0)
-                    block_size_x = 0;
-                return std::make_tuple(values_t(thread_idx_x), values_t(block_size_x));
-            } else if constexpr (ndims_t::value == 2) {
-                using thread_block_dim_x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>;
-                using thread_block_dim_y = block_size_at_dim<ThreadBlockSizes, keys_t, 1>;
-                using loop_block_dim_x = block_size_at_dim<LoopBlockSizes, keys_t, 0>;
-                using loop_block_dim_y = block_size_at_dim<LoopBlockSizes, keys_t, 1>;
-                using values_t = typename keys_t::template values<int, int>;
-                int thread_idx_x = blockIdx.x * (thread_block_dim_x::value * loop_block_dim_x::value) +
-                                   threadIdx.x * loop_block_dim_x::value;
-                int thread_idx_y = blockIdx.y * (thread_block_dim_y::value * loop_block_dim_y::value) +
-                                   threadIdx.y * loop_block_dim_y::value;
-                int block_size_x = tuple_util::get<0>(sizes) - thread_idx_x;
-                int block_size_y = tuple_util::get<1>(sizes) - thread_idx_y;
-                if (block_size_x > loop_block_dim_x::value)
-                    block_size_x = loop_block_dim_x::value;
-                if (block_size_x < 0)
-                    block_size_x = 0;
-                if (block_size_y > loop_block_dim_y::value)
-                    block_size_y = loop_block_dim_y::value;
-                if (block_size_y < 0)
-                    block_size_y = 0;
-                return std::make_tuple(values_t(thread_idx_x, thread_idx_y), values_t(block_size_x, block_size_y));
-            } else {
-                using thread_block_dim_x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>;
-                using thread_block_dim_y = block_size_at_dim<ThreadBlockSizes, keys_t, 1>;
-                using thread_block_dim_z = block_size_at_dim<ThreadBlockSizes, keys_t, 2>;
-                using loop_block_dim_x = block_size_at_dim<LoopBlockSizes, keys_t, 0>;
-                using loop_block_dim_y = block_size_at_dim<LoopBlockSizes, keys_t, 1>;
-                using loop_block_dim_z = block_size_at_dim<LoopBlockSizes, keys_t, 2>;
-                using values_t = typename keys_t::template values<int, int, int>;
-                int thread_idx_x = blockIdx.x * (thread_block_dim_x::value * loop_block_dim_x::value) +
-                                   threadIdx.x * loop_block_dim_x::value;
-                int thread_idx_y = blockIdx.y * (thread_block_dim_y::value * loop_block_dim_y::value) +
-                                   threadIdx.y * loop_block_dim_y::value;
-                int thread_idx_z = blockIdx.z * (thread_block_dim_z::value * loop_block_dim_z::value) +
-                                   threadIdx.z * loop_block_dim_z::value;
-                int block_size_x = tuple_util::get<0>(sizes) - thread_idx_x;
-                int block_size_y = tuple_util::get<1>(sizes) - thread_idx_y;
-                int block_size_z = tuple_util::get<2>(sizes) - thread_idx_z;
-                if (block_size_x > loop_block_dim_x::value)
-                    block_size_x = loop_block_dim_x::value;
-                if (block_size_x < 0)
-                    block_size_x = 0;
-                if (block_size_y > loop_block_dim_y::value)
-                    block_size_y = loop_block_dim_y::value;
-                if (block_size_y < 0)
-                    block_size_y = 0;
-                if (block_size_z > loop_block_dim_z::value)
-                    block_size_z = loop_block_dim_z::value;
-                if (block_size_z < 0)
-                    block_size_z = 0;
-                return std::make_tuple(values_t(thread_idx_x, thread_idx_y, thread_idx_z),
-                    values_t(block_size_x, block_size_y, block_size_z));
-            }
-            // disable incorrect warning "missing return statement at end of non-void function"
-            GT_NVCC_DIAG_PUSH_SUPPRESS(940)
+        template <class BlockSizes, class Sizes>
+        GT_FUNCTION_DEVICE constexpr auto block_sizes_for_sizes() {
+            return hymap::from_meta_map<meta::transform<block_size_at_dim<BlockSizes>::apply, get_keys<Sizes>>>();
         }
-        GT_NVCC_DIAG_POP_SUPPRESS(940)
 
-        template <class Key>
-        struct at_generator_f {
-            template <class Value>
-            GT_FUNCTION_DEVICE decltype(auto) operator()(Value &&value) const {
-                return device::at_key<Key>(std::forward<Value>(value));
+        struct extract_dim3_f {
+            dim3 values;
+
+            template <size_t I>
+            GT_FUNCTION_DEVICE constexpr void operator()(int &value) const {
+                if constexpr (I == 0)
+                    value = values.x;
+                else if constexpr (I == 1)
+                    value = values.y;
+                else if constexpr (I == 2)
+                    value = values.z;
+                else
+                    value = 0;
             }
         };
 
-        template <class Index, class Sizes>
-        GT_FUNCTION_DEVICE bool in_domain(Index const &index, Sizes const &sizes) {
-            using sizes_t = meta::rename<tuple, Index>;
-            using generators_t = meta::transform<at_generator_f, get_keys<Index>>;
-            auto indexed_sizes = tuple_util::device::generate<generators_t, sizes_t>(sizes);
-            return tuple_util::device::all_of(std::less(), index, indexed_sizes);
+        struct global_thread_index_f {
+            template <class ThreadBlockSize, class LoopBlockSize>
+            GT_FUNCTION_DEVICE constexpr int operator()(
+                int block_index, int thread_index, ThreadBlockSize, LoopBlockSize) const {
+                return block_index * (ThreadBlockSize::value * LoopBlockSize::value) +
+                       thread_index * LoopBlockSize::value;
+            }
+        };
+
+        struct block_size_f {
+            template <size_t I, class LoopBlockSize>
+            GT_FUNCTION_DEVICE constexpr int operator()(int global_thread_index, LoopBlockSize, int size) const {
+                if constexpr (I < 3) {
+                    return std::clamp(size - global_thread_index, 0, int(LoopBlockSize::value));
+                } else {
+                    return size;
+                }
+            }
+        };
+
+        template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
+        GT_FUNCTION_DEVICE auto global_thread_index(Sizes const &sizes) {
+            using keys_t = meta::rename<hymap::keys, get_keys<Sizes>>;
+
+            using indices_t = meta::rename<keys_t::values, meta::repeat<meta::length<keys_t>, meta::list<int>>>;
+            indices_t thread_indices, block_indices;
+            tuple_util::device::for_each_index(extract_dim3_f{threadIdx}, thread_indices);
+            tuple_util::device::for_each_index(extract_dim3_f{blockIdx}, block_indices);
+
+            constexpr auto thread_block_sizes = block_sizes_for_sizes<ThreadBlockSizes, Sizes>();
+            constexpr auto loop_block_sizes = block_sizes_for_sizes<LoopBlockSizes, Sizes>();
+
+            auto global_thread_indices = tuple_util::device::transform(
+                global_thread_index_f{}, block_indices, thread_indices, thread_block_sizes, loop_block_sizes);
+            auto block_sizes =
+                tuple_util::device::transform_index(block_size_f{}, global_thread_indices, loop_block_sizes, sizes);
+            return std::make_tuple(std::move(global_thread_indices), std::move(block_sizes));
         }
 
         template <class ThreadBlockSizes,
@@ -141,47 +114,40 @@ namespace gridtools::fn::backend {
             class Sizes,
             class PtrHolder,
             class Strides,
-            class Fun,
-            class NDims = tuple_util::size<Sizes>,
-            class SizeKeys = get_keys<Sizes>>
+            class Fun>
         __global__ void kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
             auto const [thread_idx, block_size] = global_thread_index<ThreadBlockSizes, LoopBlockSizes>(sizes);
-            if (!in_domain(thread_idx, sizes))
+            if (!tuple_util::all_of(std::less(), thread_idx, sizes))
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            if constexpr (NDims::value <= 3) {
-                common::make_loops(block_size)(std::move(fun))(ptr, strides);
-            } else {
-                auto inner_sizes = tuple_util::device::convert_to<meta::drop_front_c<3, SizeKeys>::values>(
-                    tuple_util::device::drop_front<3>(tuple_util::device::convert_to<std::tuple>(sizes)));
-                auto loop_sizes = hymap::concat(block_size, inner_sizes);
-                common::make_loops(loop_sizes)(std::move(fun))(ptr, strides);
-            }
+            common::make_loops(block_size)(std::move(fun))(ptr, strides);
         }
 
         template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
         std::tuple<dim3, dim3> blocks_and_threads(Sizes const &sizes) {
             using keys_t = get_keys<Sizes>;
             using ndims_t = meta::length<keys_t>;
+            [[maybe_unused]] constexpr auto thread_block_sizes = block_sizes_for_sizes<ThreadBlockSizes, Sizes>();
+            [[maybe_unused]] constexpr auto loop_block_sizes = block_sizes_for_sizes<LoopBlockSizes, Sizes>();
             dim3 blocks(1, 1, 1);
             dim3 threads(1, 1, 1);
             if constexpr (ndims_t::value >= 1) {
-                threads.x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>();
-                constexpr int block_dim_x = block_size_at_dim<ThreadBlockSizes, keys_t, 0>::value *
-                                            block_size_at_dim<LoopBlockSizes, keys_t, 0>::value;
+                threads.x = tuple_util::get<0>(thread_block_sizes);
+                constexpr int block_dim_x =
+                    tuple_util::get<0>(thread_block_sizes) * tuple_util::get<0>(loop_block_sizes);
                 blocks.x = (tuple_util::get<0>(sizes) + block_dim_x - 1) / block_dim_x;
             }
             if constexpr (ndims_t::value >= 2) {
-                threads.y = block_size_at_dim<ThreadBlockSizes, keys_t, 1>();
-                constexpr int block_dim_y = block_size_at_dim<ThreadBlockSizes, keys_t, 1>::value *
-                                            block_size_at_dim<LoopBlockSizes, keys_t, 1>::value;
+                threads.y = tuple_util::get<1>(thread_block_sizes);
+                constexpr int block_dim_y =
+                    tuple_util::get<1>(thread_block_sizes) * tuple_util::get<1>(loop_block_sizes);
                 blocks.y = (tuple_util::get<1>(sizes) + block_dim_y - 1) / block_dim_y;
             }
             if constexpr (ndims_t::value >= 3) {
-                threads.z = block_size_at_dim<ThreadBlockSizes, keys_t, 2>();
-                constexpr int block_dim_z = block_size_at_dim<ThreadBlockSizes, keys_t, 2>::value *
-                                            block_size_at_dim<LoopBlockSizes, keys_t, 2>::value;
+                threads.z = tuple_util::get<2>(thread_block_sizes);
+                constexpr int block_dim_z =
+                    tuple_util::get<2>(thread_block_sizes) * tuple_util::get<2>(loop_block_sizes);
                 blocks.z = (tuple_util::get<2>(sizes) + block_dim_z - 1) / block_dim_z;
             }
             return {blocks, threads};
