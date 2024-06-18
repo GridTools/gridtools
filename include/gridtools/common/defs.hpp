@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+#include <cassert>
 
 namespace gridtools {
     using int_t = int;
@@ -24,6 +25,22 @@ namespace gridtools {
 #ifdef __HIP_DEVICE_COMPILE__
 #define GT_CUDA_ARCH 1
 #endif
+#endif
+
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_assume)
+#define GT_ASSUME(x) __builtin_assume(x)
+#else
+#define GT_ASSUME(x)
+#endif
+#else
+#define GT_ASSUME(x)
+#endif
+
+#ifdef NDEBUG
+#define GT_PROMISE(x) GT_ASSUME(x)
+#else
+#define GT_PROMISE(x) assert(x)
 #endif
 
 #ifdef __cpp_consteval
@@ -53,7 +70,8 @@ namespace gridtools {
 #endif
 
 #if defined(__NVCC__) && (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 1 && __CUDACC_VER_MINOR__ <= 4)
-// enables workaround for CTAD/constexpr issues in CUDA 12.1, 12.2, 12.3, 12.4 (https://github.com/GridTools/gridtools/issues/1766)
+// enables workaround for CTAD/constexpr issues in CUDA 12.1, 12.2, 12.3, 12.4
+// (https://github.com/GridTools/gridtools/issues/1766)
 #define GT_NVCC_WORKAROUND_1766 1
 #else
 #define GT_NVCC_WORKAROUND_1766 0
