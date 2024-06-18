@@ -18,6 +18,7 @@
 #include "./common_interface.hpp"
 #include "./executor.hpp"
 #include "./neighbor_table.hpp"
+#include "gridtools/common/defs.hpp"
 
 namespace gridtools::fn {
     namespace unstructured::dim {
@@ -76,7 +77,7 @@ namespace gridtools::fn {
 
         template <class Tag, class Ptr, class Strides, class Domain>
         GT_FUNCTION constexpr auto deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
-            assert(can_deref(it));
+            GT_PROMISE(can_deref(it));
             decltype(auto) stride = host_device::at_key<Tag>(sid::get_stride<dim::horizontal>(it.m_strides));
             return *sid::shifted(it.m_ptr, stride, it.m_index);
         }
