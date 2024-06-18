@@ -33,8 +33,8 @@ namespace gridtools::fn::backend {
          * When using a cartesian grid.
          */
         template <class ThreadBlockSizes,
-            class LoopBlockSizes = meta::transpose<meta::list<meta::first<meta::transpose<ThreadBlockSizes>>,
-                meta::repeat<meta::length<ThreadBlockSizes>, meta::list<integral_constant<int, 1>>>>>>
+            class LoopBlockSizes = meta::zip<meta::transform<meta::first, ThreadBlockSizes>,
+                meta::repeat<meta::length<ThreadBlockSizes>, meta::list<integral_constant<int, 1>>>>>
         struct gpu {
             using thread_block_sizes_t = ThreadBlockSizes;
             using loop_block_sizes_t = LoopBlockSizes;
