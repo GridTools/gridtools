@@ -57,33 +57,35 @@ namespace gridtools::fn::backend {
         struct extract_dim3_f {
             dim3 values;
 
-            template <size_t I>
-            GT_FUNCTION_DEVICE constexpr void operator()(int &value) const {
+            template <size_t I, class Value>
+            GT_FUNCTION_DEVICE constexpr void operator()(Value &value) const {
                 if constexpr (I == 0)
                     value = values.x;
                 else if constexpr (I == 1)
                     value = values.y;
                 else if constexpr (I == 2)
                     value = values.z;
-                else
-                    value = 0;
             }
         };
 
         struct global_thread_index_f {
-            template <class ThreadBlockSize, class LoopBlockSize>
-            GT_FUNCTION_DEVICE constexpr int operator()(
-                int block_index, int thread_index, ThreadBlockSize, LoopBlockSize) const {
+            template <class BlockIndex, class ThreadIndex, class ThreadBlockSize, class LoopBlockSize>
+            GT_FUNCTION_DEVICE constexpr auto operator()(
+                BlockIndex block_index, ThreadIndex thread_index, ThreadBlockSize, LoopBlockSize) const {
                 return block_index * (ThreadBlockSize::value * LoopBlockSize::value) +
                        thread_index * LoopBlockSize::value;
             }
         };
 
         struct block_size_f {
-            template <size_t I, class LoopBlockSize>
-            GT_FUNCTION_DEVICE constexpr int operator()(int global_thread_index, LoopBlockSize, int size) const {
+            template <size_t I, class GlobalThreadIndex, class LoopBlockSize, class Size>
+            GT_FUNCTION_DEVICE constexpr auto operator()(
+                GlobalThreadIndex global_thread_index, LoopBlockSize, Size size) const {
                 if constexpr (I < 3) {
-                    return std::clamp(size - global_thread_index, 0, int(LoopBlockSize::value));
+                    if constexpr (LoopBlockSize::value == 1)
+                        return integral_constant<int, 1>();
+                    else
+                        return std::clamp(size - global_thread_index, 0, int(LoopBlockSize::value));
                 } else {
                     return size;
                 }
@@ -94,7 +96,11 @@ namespace gridtools::fn::backend {
         GT_FUNCTION_DEVICE auto global_thread_index(Sizes const &sizes) {
             using keys_t = meta::rename<hymap::keys, get_keys<Sizes>>;
 
-            using indices_t = meta::rename<keys_t::values, meta::repeat<meta::length<keys_t>, meta::list<int>>>;
+            constexpr int dynamic_indices = std::min(int(meta::length<keys_t>::value), 3);
+            constexpr int static_indices = meta::length<keys_t>::value - dynamic_indices;
+            using indices_t = meta::rename<keys_t::values,
+                meta::concat<meta::repeat_c<dynamic_indices, meta::list<int>>,
+                    meta::repeat_c<static_indices, meta::list<integral_constant<int, 0>>>>>;
             indices_t thread_indices, block_indices;
             tuple_util::device::for_each_index(extract_dim3_f{threadIdx}, thread_indices);
             tuple_util::device::for_each_index(extract_dim3_f{blockIdx}, block_indices);
@@ -109,12 +115,7 @@ namespace gridtools::fn::backend {
             return std::make_tuple(std::move(global_thread_indices), std::move(block_sizes));
         }
 
-        template <class ThreadBlockSizes,
-            class LoopBlockSizes,
-            class Sizes,
-            class PtrHolder,
-            class Strides,
-            class Fun>
+        template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes, class PtrHolder, class Strides, class Fun>
         __global__ void kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
             auto const [thread_idx, block_size] = global_thread_index<ThreadBlockSizes, LoopBlockSizes>(sizes);
             if (!tuple_util::all_of(std::less(), thread_idx, sizes))
