@@ -100,7 +100,7 @@ namespace gridtools::fn::backend {
 
             constexpr int dynamic_indices = std::min(int(meta::length<keys_t>::value), 3);
             constexpr int static_indices = meta::length<keys_t>::value - dynamic_indices;
-            using indices_t = meta::rename<keys_t::values,
+            using indices_t = meta::rename<keys_t::template values,
                 meta::concat<meta::repeat_c<dynamic_indices, meta::list<int>>,
                     meta::repeat_c<static_indices, meta::list<integral_constant<int, 0>>>>>;
             indices_t thread_indices, block_indices;
