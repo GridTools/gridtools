@@ -50,13 +50,13 @@ namespace gridtools {
 #endif
 
 #if defined(__has_attribute)
-#if __has_attribute(const)
-#define GT_CONST_FUNCTION __attribute__((const))
+#if __has_attribute(pure)
+#define GT_PURE_FUNCTION __attribute__((pure))
 #else
-#define GT_CONST_FUNCTION
+#define GT_PURE_FUNCTION
 #endif
 #else
-#define GT_CONST_FUNCTION
+#define GT_PURE_FUNCTION
 #endif
 
 #define GT_INTERNAL_ERROR                                                                                       \
