@@ -71,7 +71,7 @@ namespace gridtools::fn {
         };
 
         template <class Tag, class Ptr, class Strides, class Domain>
-        GT_FUNCTION constexpr bool can_deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
+        GT_CONST_FUNCTION GT_FUNCTION constexpr bool can_deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return it.m_index != -1;
         }
 

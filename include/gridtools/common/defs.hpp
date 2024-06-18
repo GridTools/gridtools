@@ -49,6 +49,16 @@ namespace gridtools {
 #define GT_CONSTEVAL constexpr
 #endif
 
+#if defined(__has_attribute)
+#if __has_attribute(const)
+#define GT_CONST_FUNCTION __attribute__((const))
+#else
+#define GT_CONST_FUNCTION
+#endif
+#else
+#define GT_CONST_FUNCTION
+#endif
+
 #define GT_INTERNAL_ERROR                                                                                       \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team."
