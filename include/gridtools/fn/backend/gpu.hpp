@@ -50,9 +50,8 @@ namespace gridtools::fn::backend {
         };
 
         template <class BlockSizes, class Sizes>
-        GT_FUNCTION_DEVICE constexpr auto block_sizes_for_sizes() {
-            return hymap::from_meta_map<meta::transform<block_size_at_dim<BlockSizes>::apply, get_keys<Sizes>>>();
-        }
+        using block_sizes_for_sizes =
+            hymap::from_meta_map<meta::transform<block_size_at_dim<BlockSizes>::apply, get_keys<Sizes>>>;
 
         struct extract_dim3_f {
             dim3 values;
