@@ -117,8 +117,20 @@ namespace gridtools::fn::backend {
             return std::make_tuple(std::move(global_thread_indices), std::move(block_sizes));
         }
 
-        template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes, class PtrHolder, class Strides, class Fun>
-        __global__ void kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
+        template <class Int, Int... i>
+        constexpr int iseq_product(std::integer_sequence<Int, i...>) {
+            return (1 * ... * i);
+        }
+
+        template <class ThreadBlockSizes,
+            class LoopBlockSizes,
+            class Sizes,
+            class PtrHolder,
+            class Strides,
+            class Fun,
+            int NumThreads = iseq_product(meta::list_to_iseq<block_sizes_for_sizes<ThreadBlockSizes, Sizes>>())>
+        __global__ void __launch_bounds__(NumThreads)
+            kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
             auto const [thread_idx, block_size] = global_thread_index<ThreadBlockSizes, LoopBlockSizes>(sizes);
             if (!tuple_util::all_of(std::less(), thread_idx, sizes))
                 return;

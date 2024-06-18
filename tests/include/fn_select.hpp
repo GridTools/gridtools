@@ -47,7 +47,7 @@ namespace {
                                  gridtools::integral_constant>,
             gridtools::meta::list<gridtools::integral_constant<int, sizes>...>>;
 
-    using fn_backend_t = gridtools::fn::backend::gpu<block_sizes_t<32, 8, 1>, block_sizes_t<2, 2, 2>>;
+    using fn_backend_t = gridtools::fn::backend::gpu<block_sizes_t<32, 8, 1>, block_sizes_t<1, 1, 1>>;
 } // namespace
 #endif
 
