@@ -27,7 +27,9 @@ namespace gridtools {
 #endif
 #endif
 
-#ifdef __CUDA_ARCH__
+#if defined(__CUDACC__) &&                                                                       \
+    (__CUDACC_VER_MAJOR__ >= 12 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 2)) && \
+    defined(__CUDA_ARCH__)
 // TODO(havogt) define for all architectures that support it
 #define GT_ASSUME(x) __builtin_assume(x)
 #else
