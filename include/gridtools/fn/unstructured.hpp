@@ -11,6 +11,7 @@
 
 #include <functional>
 
+#include "../common/defs.hpp"
 #include "../common/hymap.hpp"
 #include "../meta/logical.hpp"
 #include "../sid/concept.hpp"
@@ -18,7 +19,6 @@
 #include "./common_interface.hpp"
 #include "./executor.hpp"
 #include "./neighbor_table.hpp"
-#include "gridtools/common/defs.hpp"
 
 namespace gridtools::fn {
     namespace unstructured::dim {
