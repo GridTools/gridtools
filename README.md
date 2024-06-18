@@ -36,7 +36,7 @@ CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host 
 
 ##### Requirements
 - C++17 compiler (see also list of tested compilers)
-- Boost headers (1.65.1 or later)
+- Boost headers (1.73 or later)
 - CMake (3.18.1 or later)
 - CUDA Toolkit (11.0 or later, optional)
 - MPI (optional, CUDA-aware MPI for the GPU communication module `gcl_gpu`)
@@ -45,14 +45,14 @@ CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host 
 
 The GridTools libraries are currently nightly tested with the following compilers on [CSCS supercomputers](https://www.cscs.ch/computers/overview/).
 
-| Compiler | Backend | Tested on | Comments |
-| --- | --- | --- | --- |
-| Cray clang version 12.0.3 | all backends | Piz Daint | P100 GPU | with Clang-CUDA
-| Cray clang version 10.0.2 + NVCC 11.2 | all backends | Piz Daint | P100 GPU | 
-| Cray clang version 12.0.3 | all backends | Piz Daint | with -std=c++20
-| GNU 11.2.0 + NVCC 11.0 | all backends | Piz Daint | P100 GPU |
-| GNU 11.2.0 + NVCC 11.2 | all backends | Dom | P100 GPU |
-| GNU 8.3.0 + NVCC 11.2 | all backends | Tsa | V100 GPU |
+| Compiler                              | Backend      | Tested on | Comments        |
+| ------------------------------------- | ------------ | --------- | --------------- |
+| Cray clang version 12.0.3             | all backends | Piz Daint | P100 GPU        | with Clang-CUDA |
+| Cray clang version 10.0.2 + NVCC 11.2 | all backends | Piz Daint | P100 GPU        |
+| Cray clang version 12.0.3             | all backends | Piz Daint | with -std=c++20 |
+| GNU 11.2.0 + NVCC 11.0                | all backends | Piz Daint | P100 GPU        |
+| GNU 11.2.0 + NVCC 11.2                | all backends | Dom       | P100 GPU        |
+| GNU 8.3.0 + NVCC 11.2                 | all backends | Tsa       | V100 GPU        |
 
 ##### Known issues
 
@@ -62,10 +62,10 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 ##### Partly supported (expected to work, but not tested regularly)
 
-| Compiler | Backend | Date | Comments |
-| --- | --- | --- | --- |
+| Compiler         | Backend      | Date       | Comments                                   |
+| ---------------- | ------------ | ---------- | ------------------------------------------ |
 | Intel 19.1.1.217 | all backends | 2021-09-30 | with `cmake . -DCMAKE_CXX_FLAGS=-qnextgen` |
-| NVHPC 23.3 | all backends | 2023-04-20 | only compilation is tested regularly in CI |
+| NVHPC 23.3       | all backends | 2023-04-20 | only compilation is tested regularly in CI |
 
 ### Contributing
 
