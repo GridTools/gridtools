@@ -66,8 +66,13 @@ namespace gridtools::fn::backend {
             using thread_block_sizes_t = meta::list<meta::list<int_t<0>, int_t<4>>, meta::list<int_t<2>, int_t<2>>>;
             using loop_block_sizes_t = meta::list<meta::list<int_t<0>, int_t<1>>, meta::list<int_t<2>, int_t<2>>>;
 
-            apply_column_stage(
-                gpu<thread_block_sizes_t, loop_block_sizes_t>(), sizes, cs, make_iterator_mock(), composite, int_t<1>(), tuple(42, 1));
+            apply_column_stage(gpu<thread_block_sizes_t, loop_block_sizes_t>(),
+                sizes,
+                cs,
+                make_iterator_mock(),
+                composite,
+                int_t<1>(),
+                tuple(42, 1));
 
             cudaMemcpy(outh, out.get(), 5 * 7 * 3 * sizeof(int), cudaMemcpyDeviceToHost);
             for (int i = 0; i < 5; ++i)
@@ -104,8 +109,13 @@ namespace gridtools::fn::backend {
             using thread_block_sizes_t = meta::list<meta::list<int_t<0>, int_t<4>>, meta::list<int_t<2>, int_t<2>>>;
             using loop_block_sizes_t = meta::list<meta::list<int_t<0>, int_t<2>>, meta::list<int_t<2>, int_t<2>>>;
 
-            apply_column_stage(
-                gpu<thread_block_sizes_t, loop_block_sizes_t>(), sizes, cs, make_iterator_mock(), composite, int_t<0>(), tuple(42, 1));
+            apply_column_stage(gpu<thread_block_sizes_t, loop_block_sizes_t>(),
+                sizes,
+                cs,
+                make_iterator_mock(),
+                composite,
+                int_t<0>(),
+                tuple(42, 1));
 
             cudaMemcpy(outh, out.get(), 5 * sizeof(int), cudaMemcpyDeviceToHost);
             int res = 42;
@@ -145,10 +155,18 @@ namespace gridtools::fn::backend {
                 meta::list<int_t<2>, int_t<2>>,
                 meta::list<int_t<3>, int_t<2>>,
                 meta::list<int_t<4>, int_t<1>>>;
-            using loop_block_sizes_t = meta::list<meta::list<int_t<0>, int_t<2>>, meta::list<int_t<2>, int_t<2>>, meta::list<int_t<3>, int_t<2>>, meta::list<int_t<4>, int_t<2>>>;
+            using loop_block_sizes_t = meta::list<meta::list<int_t<0>, int_t<2>>,
+                meta::list<int_t<2>, int_t<2>>,
+                meta::list<int_t<3>, int_t<2>>,
+                meta::list<int_t<4>, int_t<2>>>;
 
-            apply_column_stage(
-                gpu<thread_block_sizes_t, loop_block_sizes_t>(), sizes, cs, make_iterator_mock(), composite, int_t<1>(), tuple(42, 1));
+            apply_column_stage(gpu<thread_block_sizes_t, loop_block_sizes_t>(),
+                sizes,
+                cs,
+                make_iterator_mock(),
+                composite,
+                int_t<1>(),
+                tuple(42, 1));
 
             cudaMemcpy(outh, out.get(), 5 * 7 * 3 * 2 * 3 * sizeof(int), cudaMemcpyDeviceToHost);
             for (int i = 0; i < 5; ++i)
