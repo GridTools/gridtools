@@ -24,6 +24,18 @@
 
 namespace gridtools::fn::backend {
     namespace gpu_impl_ {
+        template <class KeyValuePair, class = void>
+        struct is_valid_block_size_key_value_pair : std::false_type {};
+
+        template <template <class...> class List, class Key, class Value>
+        struct is_valid_block_size_key_value_pair<List<Key, Value>,
+            std::enable_if_t<is_integral_constant<Value>::value && (Value::value > 0)>> : std::true_type {};
+
+        template <class BlockSizes>
+        using is_valid_block_sizes =
+            std::bool_constant<meta::is_list<BlockSizes>::value &&
+                               meta::all<meta::transform<is_valid_block_size_key_value_pair, BlockSizes>>::value>;
+
         /*
          * ThreadBlockSizes and LoopBlockSizes must be meta maps, mapping dimensions to integral constant block sizes.
          *
@@ -32,13 +44,14 @@ namespace gridtools::fn::backend {
          *                         meta::list<dim::k, integral_constant<int, 1>>>;
          * When using a cartesian grid.
          */
-        template <class ThreadBlockSizes,
-            class LoopBlockSizes = meta::zip<meta::transform<meta::first, ThreadBlockSizes>,
-                meta::repeat<meta::length<ThreadBlockSizes>, meta::list<integral_constant<int, 1>>>>>
+        template <class ThreadBlockSizes, class LoopBlockSizes = meta::list<>>
         struct gpu {
             using thread_block_sizes_t = ThreadBlockSizes;
             using loop_block_sizes_t = LoopBlockSizes;
             cudaStream_t stream = 0;
+
+            static_assert(is_valid_block_sizes<ThreadBlockSizes>::value, "invalid thread block sizes");
+            static_assert(is_valid_block_sizes<LoopBlockSizes>::value, "invalid loop block sizes");
         };
 
         template <class BlockSizes>
