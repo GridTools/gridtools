@@ -30,18 +30,12 @@ namespace gridtools {
 #ifdef __cpp_attributes
 #if __has_cpp_attribute(assume)
 #define GT_ASSUME(x) [[assume(x)]]
-#warning "C++ assume"
 #endif
 #endif
 #if !defined(GT_ASSUME) && defined(__has_builtin)
 #if __has_builtin(__builtin_assume)
 #define GT_ASSUME(x) __builtin_assume(x)
-#warning "__builtin_assume"
 #endif
-#endif
-#if !defined(GT_ASSUME) && defined(__GNUC__)
-#define GT_ASSUME(x) __attribute__((assume(x)))
-#warning "GCC assume"
 #endif
 #ifndef GT_ASSUME
 #define GT_ASSUME(x)
