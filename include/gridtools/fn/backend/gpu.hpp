@@ -53,32 +53,33 @@ namespace gridtools::fn::backend {
         using block_sizes_for_sizes =
             hymap::from_meta_map<meta::transform<block_size_at_dim<BlockSizes>::template apply, get_keys<Sizes>>>;
 
-        template <class IndexType>
-        struct extract_index_f {
-            IndexType const &values;
-
-            template <size_t I, class Value>
-            GT_FUNCTION_DEVICE constexpr void operator()(Value &value) const {
-                if constexpr (I == 0)
-                    value = values.x;
-                else if constexpr (I == 1)
-                    value = values.y;
-                else if constexpr (I == 2)
-                    value = values.z;
-            }
-        };
-
         struct global_thread_index_f {
-            template <class BlockIndex, class ThreadIndex, class ThreadBlockSize, class LoopBlockSize>
-            GT_FUNCTION_DEVICE constexpr auto operator()(
-                BlockIndex block_index, ThreadIndex thread_index, ThreadBlockSize, LoopBlockSize) const {
-                return block_index * (ThreadBlockSize::value * LoopBlockSize::value) +
-                       thread_index * LoopBlockSize::value;
+            template <std::size_t I, class Index>
+            GT_FUNCTION_DEVICE static constexpr int index_at_dim(Index const &idx) {
+                static_assert(I < 3);
+                if constexpr (I == 0)
+                    return idx.x;
+                if constexpr (I == 1)
+                    return idx.y;
+                return idx.z;
             }
+
+            template <std::size_t I, class ThreadBlockSize, class LoopBlockSize>
+            GT_FUNCTION_DEVICE constexpr auto operator()(ThreadBlockSize, LoopBlockSize) const {
+                if constexpr (I < 3) {
+                    return index_at_dim<I>(blockIdx) * (ThreadBlockSize::value * LoopBlockSize::value) +
+                           index_at_dim<I>(threadIdx) * LoopBlockSize::value;
+                } else {
+                    return integral_constant<int, 0>();
+                }
+                // disable incorrect warning "missing return statement at end of non-void function"
+                GT_NVCC_DIAG_PUSH_SUPPRESS(940)
+            }
+            GT_NVCC_DIAG_POP_SUPPRESS(940)
         };
 
         struct block_size_f {
-            template <size_t I, class GlobalThreadIndex, class LoopBlockSize, class Size>
+            template <std::size_t I, class GlobalThreadIndex, class LoopBlockSize, class Size>
             GT_FUNCTION_DEVICE constexpr auto operator()(
                 GlobalThreadIndex global_thread_index, LoopBlockSize, Size size) const {
                 if constexpr (I < 3) {
@@ -99,20 +100,11 @@ namespace gridtools::fn::backend {
         GT_FUNCTION_DEVICE constexpr auto global_thread_index(Sizes const &sizes) {
             using keys_t = meta::rename<hymap::keys, get_keys<Sizes>>;
 
-            constexpr int dynamic_indices = std::min(int(meta::length<keys_t>::value), 3);
-            constexpr int static_indices = meta::length<keys_t>::value - dynamic_indices;
-            using indices_t = meta::rename<keys_t::template values,
-                meta::concat<meta::repeat_c<dynamic_indices, meta::list<int>>,
-                    meta::repeat_c<static_indices, meta::list<integral_constant<int, 0>>>>>;
-            indices_t thread_indices, block_indices;
-            tuple_util::device::for_each_index(extract_index_f<decltype(threadIdx)>{threadIdx}, thread_indices);
-            tuple_util::device::for_each_index(extract_index_f<decltype(blockIdx)>{blockIdx}, block_indices);
-
             constexpr auto thread_block_sizes = block_sizes_for_sizes<ThreadBlockSizes, Sizes>();
             constexpr auto loop_block_sizes = block_sizes_for_sizes<LoopBlockSizes, Sizes>();
 
-            auto global_thread_indices = tuple_util::device::transform(
-                global_thread_index_f{}, block_indices, thread_indices, thread_block_sizes, loop_block_sizes);
+            auto global_thread_indices =
+                tuple_util::device::transform_index(global_thread_index_f{}, thread_block_sizes, loop_block_sizes);
             auto block_sizes =
                 tuple_util::device::transform_index(block_size_f{}, global_thread_indices, loop_block_sizes, sizes);
             return std::make_tuple(std::move(global_thread_indices), std::move(block_sizes));
