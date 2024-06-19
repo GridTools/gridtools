@@ -70,8 +70,9 @@ namespace gridtools::fn {
             int m_index;
         };
 
+        /// gnu::pure attribute is necessary to enable __builtin_assume() optimization with Clang
         template <class Tag, class Ptr, class Strides, class Domain>
-        GT_PURE_FUNCTION GT_FUNCTION constexpr bool can_deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
+        [[gnu::pure]] GT_FUNCTION constexpr bool can_deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return it.m_index != -1;
         }
 
