@@ -18,4 +18,18 @@ namespace gridtools {
         };
         foo(0);
     }
+    __device__ void test_comp2() {
+        int a, b, c, d;
+        auto foo = [](auto const &a, auto const &b, auto &c, auto &d) {
+            // GT_META_PRINT_TYPE(decltype(a));
+            auto bar = hymap::keys<int, float>::template values<int const &, int const &>(a, b);
+
+            // GT_META_PRINT_TYPE(decltype(bar));
+            auto baz = hymap::keys<int, float>::template values<int &, int &>(c, d);
+            GT_META_PRINT_TYPE(decltype(baz));
+
+            baz = bar;
+        };
+        foo(a, b, c, d);
+    }
 } // namespace gridtools
