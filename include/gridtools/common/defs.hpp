@@ -27,14 +27,14 @@ namespace gridtools {
 #endif
 #endif
 
-#ifdef __cpp_attributes
+#ifdef __has_builtin
+#if __has_builtin(__builtin_assume) || defined(__NVCC__)
+#define GT_ASSUME(x) __builtin_assume(x)
+#endif
+#if !defined(GT_ASSUME) && defined(__cpp_attributes)
 #if __has_cpp_attribute(assume)
 #define GT_ASSUME(x) [[assume(x)]]
 #endif
-#endif
-#if !defined(GT_ASSUME) && defined(__has_builtin)
-#if __has_builtin(__builtin_assume) || defined(__NVCC__)
-#define GT_ASSUME(x) __builtin_assume(x)
 #endif
 #endif
 #ifndef GT_ASSUME
