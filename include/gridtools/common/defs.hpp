@@ -33,7 +33,7 @@ namespace gridtools {
 #endif
 #endif
 #if !defined(GT_ASSUME) && defined(__has_builtin)
-#if __has_builtin(__builtin_assume)
+#if __has_builtin(__builtin_assume) || defined(__NVCC__)
 #define GT_ASSUME(x) __builtin_assume(x)
 #endif
 #endif
