@@ -28,7 +28,9 @@ namespace gridtools {
 #endif
 
 #if defined(__has_builtin)
-#if __has_builtin(__builtin_assume) || (defined(GT_CUDA_ARCH) && ((__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 2) || __CUDACC_VER_MAJOR__ > 11))
+#if __has_builtin(__builtin_assume) \
+    || (defined(GT_CUDA_ARCH) && \
+        ((__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 2) || __CUDACC_VER_MAJOR__ >= 12))
 #define GT_ASSUME(x) __builtin_assume(x)
 #else
 #define GT_ASSUME(x)
