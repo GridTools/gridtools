@@ -36,6 +36,7 @@ function(gridtools_add_unit_test tgt)
 endfunction()
 
 gridtools_check_compilation(test_meta test_meta.cpp)
+gridtools_check_compilation(test_defs test_defs.cpp)
 
 add_subdirectory(common)
 add_subdirectory(sid)
