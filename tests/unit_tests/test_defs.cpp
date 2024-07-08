@@ -14,7 +14,8 @@
 
 #include <gridtools/common/defs.hpp>
 
-#if defined(__NVCC__) && (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 2 || __CUDACC__VER_MAJOR__ > 11)
+#if defined(__NVCC__) && defined(__CUDA_ARCH__) && \
+    (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 2 || __CUDACC__VER_MAJOR__ > 11)
 
 #if !defined(GT_ASSUME)
 #error "GT_ASSUME is undefined"
