@@ -79,21 +79,14 @@ namespace gridtools {
 
         constexpr structured_unstructured_mesh(int nx, int ny, int nz) : m_nx(nx), m_ny(ny), m_nz(nz) {}
 
-        constexpr auto nvertices() const { 
-            return integral_constant<int, 256 * 256>();
-            //return m_nx * m_ny;
+        constexpr int nvertices() const { return m_nx * m_ny; }
+        constexpr int nedges() const {
+            int nxedges = (m_nx - 1) * m_ny;
+            int nyedges = m_nx * (m_ny - 1);
+            int nxyedges = (m_nx - 1) * (m_ny - 1);
+            return nxedges + nyedges + nxyedges;
         }
-        constexpr auto nedges() const {
-            //int nxedges = (m_nx - 1) * m_ny;
-            //int nyedges = m_nx * (m_ny - 1);
-            //int nxyedges = (m_nx - 1) * (m_ny - 1);
-            //return nxedges + nyedges + nxyedges;
-            return integral_constant<int, 255 * 256 + 256 * 255 + 255 * 255>();
-        }
-        constexpr auto nlevels() const { 
-            //return m_nz; 
-            return integral_constant<int, 80>();
-        }
+        constexpr int nlevels() const { return m_nz; }
 
         template <class T = FloatType,
             int Id = -1,
