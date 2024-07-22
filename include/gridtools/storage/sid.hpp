@@ -32,49 +32,43 @@ namespace gridtools {
                     return lhs;
                 }
             };
-
             template <class T>
-            struct ptr {
-                T *m_val;
+            struct const_ptr_wrapper {
+                T const *m_val;
+
+                GT_FUNCTION constexpr const_ptr_wrapper(T const *val) : m_val(val) {}
 
                 GT_FUNCTION constexpr T operator*() const {
-                    if constexpr (std::is_same_v<std::remove_const_t<T>, float> ||
-                                  std::is_same_v<std::remove_const_t<T>, double> ||
-                                  std::is_same_v<std::remove_const_t<T>, int> ||
-                                  std::is_same_v<std::remove_const_t<T>, long>)
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+                    if constexpr (is_texture_type<T>::value)
                         return __ldg(m_val);
-                    else
-                        return *m_val;
+#endif
+                    return *m_val;
                 }
-                GT_FUNCTION constexpr ptr &operator+=(int_t arg) {
+                GT_FUNCTION constexpr const_ptr_wrapper &operator+=(int_t arg) {
                     m_val += arg;
                     return *this;
                 }
-                GT_FUNCTION constexpr ptr &operator-=(int_t arg) {
+                GT_FUNCTION constexpr const_ptr_wrapper &operator-=(int_t arg) {
                     m_val -= arg;
                     return *this;
                 }
-                friend GT_FUNCTION constexpr ptr operator+(ptr obj, int_t arg) { return {obj.m_val + arg}; }
-                friend GT_FUNCTION constexpr ptr operator-(ptr obj, int_t arg) { return {obj.m_val - arg}; }
+                friend GT_FUNCTION constexpr const_ptr_wrapper operator+(const_ptr_wrapper obj, int_t arg) {
+                    return {obj.m_val + arg};
+                }
+                friend GT_FUNCTION constexpr const_ptr_wrapper operator-(const_ptr_wrapper obj, int_t arg) {
+                    return {obj.m_val - arg};
+                }
             };
 
             template <class T>
             struct ptr_holder {
                 T *m_val;
-                GT_FUNCTION constexpr T *operator()() const { return m_val; }
-
-                friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
-                    return {obj.m_val + arg};
+                GT_FUNCTION constexpr std::
+                    conditional_t<std::is_const_v<T>, const_ptr_wrapper<std::remove_const_t<T>>, T *>
+                    operator()() const {
+                    return m_val;
                 }
-
-                friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
-            };
-
-            template <class T>
-            struct ptr_holder<const T> {
-                const T *m_val;
-
-                GT_FUNCTION constexpr ptr<const T> operator()() const { return {m_val}; }
 
                 friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
                     return {obj.m_val + arg};
