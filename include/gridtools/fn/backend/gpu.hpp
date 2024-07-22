@@ -99,7 +99,8 @@ namespace gridtools::fn::backend {
                     if constexpr (LoopBlockSize::value == 1)
                         return integral_constant<int, 1>();
                     else
-                        return std::clamp(size - global_thread_index, 0, int(LoopBlockSize::value));
+                        return LoopBlockSize();
+                        //return std::clamp(size - global_thread_index, 0, int(LoopBlockSize::value));
                 } else {
                     return size;
                 }
@@ -142,7 +143,14 @@ namespace gridtools::fn::backend {
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            common::make_loops(block_size)(std::move(fun))(ptr, strides);
+            //common::make_loops(block_size)(std::move(fun))(ptr, strides);
+            using kdim = meta::at_c<get_keys<Sizes>, 1>;
+            auto&& kstride = sid::get_stride<kdim>(strides);
+#pragma unroll
+            for (int k = 0; k < 5; ++k) {
+                fun(ptr, strides);
+                sid::shift(ptr, kstride, integral_constant<int, 1>());
+            }
         }
 
         template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
@@ -179,7 +187,7 @@ namespace gridtools::fn::backend {
             MakeIterator m_make_iterator;
 
             template <class Ptr, class Strides>
-            GT_FUNCTION_DEVICE void operator()(Ptr &ptr, Strides const &strides) const {
+            GT_FUNCTION_DEVICE constexpr void operator()(Ptr &ptr, Strides const &strides) const {
                 StencilStage()(m_make_iterator(), ptr, strides);
             }
         };

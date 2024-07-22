@@ -75,46 +75,60 @@ namespace gridtools {
       public:
         using max_v2e_neighbors_t = std::integral_constant<int, 6>;
         using max_e2v_neighbors_t = std::integral_constant<int, 2>;
+        using float_t = FloatType;
 
         constexpr structured_unstructured_mesh(int nx, int ny, int nz) : m_nx(nx), m_ny(ny), m_nz(nz) {}
 
-        constexpr int nvertices() const { return m_nx * m_ny; }
-        constexpr int nedges() const {
-            int nxedges = (m_nx - 1) * m_ny;
-            int nyedges = m_nx * (m_ny - 1);
-            int nxyedges = (m_nx - 1) * (m_ny - 1);
-            return nxedges + nyedges + nxyedges;
+        constexpr auto nvertices() const { 
+            return integral_constant<int, 256 * 256>();
+            //return m_nx * m_ny;
         }
-        constexpr int nlevels() const { return m_nz; }
+        constexpr auto nedges() const {
+            //int nxedges = (m_nx - 1) * m_ny;
+            //int nyedges = m_nx * (m_ny - 1);
+            //int nxyedges = (m_nx - 1) * (m_ny - 1);
+            //return nxedges + nyedges + nxyedges;
+            return integral_constant<int, 255 * 256 + 256 * 255 + 255 * 255>();
+        }
+        constexpr auto nlevels() const { 
+            //return m_nz; 
+            return integral_constant<int, 80>();
+        }
 
         template <class T = FloatType,
+            int Id = -1,
             class Init,
             class... Dims,
             std::enable_if_t<!(std::is_integral_v<Init> || is_integral_constant<Init>::value), int> = 0>
         auto make_storage(Init const &init, Dims... dims) const {
-            return storage::builder<StorageTraits>.dimensions(dims...).template type<T>().initializer(init).unknown_id().build();
+            auto builder = storage::builder<StorageTraits>.dimensions(dims...).template type<T>().initializer(init);
+            if constexpr (Id == -1)
+                return builder.unknown_id().build();
+            else
+                return builder.template id<Id>().build();
         }
 
         template <class T = FloatType,
+            int Id = -1,
             class... Dims,
             std::enable_if_t<std::conjunction_v<std::bool_constant<std::is_integral<Dims>::value ||
                                                                    is_integral_constant<Dims>::value>...>,
                 int> = 0>
         auto make_storage(Dims... dims) const {
-            return make_storage<T>([](int...) { return T(); }, dims...);
+            return make_storage<T, Id>([](int...) { return T(); }, dims...);
         }
 
-        template <class T = FloatType, class... Args>
+        template <class T = FloatType, int Id = -1, class... Args>
         auto make_const_storage(Args &&...args) const {
-            return make_storage<T const>(std::forward<Args>(args)...);
+            return make_storage<T const, Id>(std::forward<Args>(args)...);
         }
 
         auto v2e_table() const {
-            return storage::builder<StorageTraits>.dimensions(nvertices(), max_v2e_neighbors_t()).template type<int>().initializer(v2e_initializer()).unknown_id().build();
+            return storage::builder<StorageTraits>.dimensions(nvertices(), max_v2e_neighbors_t()).template type<int const>().initializer(v2e_initializer()).unknown_id().build();
         }
 
         auto e2v_table() const {
-            return storage::builder<StorageTraits>.dimensions(nedges(), max_e2v_neighbors_t()).template type<int>().initializer(e2v_initializer()).unknown_id().build();
+            return storage::builder<StorageTraits>.dimensions(nedges(), max_e2v_neighbors_t()).template type<int const>().initializer(e2v_initializer()).unknown_id().build();
         }
     };
 

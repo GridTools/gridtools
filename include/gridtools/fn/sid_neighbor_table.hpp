@@ -32,24 +32,15 @@ namespace gridtools::fn::sid_neighbor_table {
             class NeighborDimension,
             std::size_t MaxNumNeighbors,
             class PtrHolder,
-            class Strides>
+            class Strides,
+            class Neighbor>
         GT_FUNCTION auto neighbor_table_neighbors(
             sid_neighbor_table<IndexDimension, NeighborDimension, MaxNumNeighbors, PtrHolder, Strides> const &table,
-            int index) {
-
-            using namespace gridtools::literals;
-
+            int index, Neighbor neighbor) {
             auto ptr = table.origin();
-            using element_type = std::decay_t<decltype(*ptr)>;
-
-            gridtools::array<element_type, MaxNumNeighbors> neighbors;
-
             sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
-            for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
-                neighbors[element_idx] = *ptr;
-                sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1_c);
-            }
-            return neighbors;
+            sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), neighbor);
+            return *ptr;
         }
 
         template <class IndexDimension, class NeighborDimension, std::size_t MaxNumNeighbors, class Sid>

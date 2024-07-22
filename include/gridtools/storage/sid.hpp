@@ -34,9 +34,47 @@ namespace gridtools {
             };
 
             template <class T>
+            struct ptr {
+                T *m_val;
+
+                GT_FUNCTION constexpr T operator*() const {
+                    if constexpr (std::is_same_v<std::remove_const_t<T>, float> ||
+                                  std::is_same_v<std::remove_const_t<T>, double> ||
+                                  std::is_same_v<std::remove_const_t<T>, int> ||
+                                  std::is_same_v<std::remove_const_t<T>, long>)
+                        return __ldg(m_val);
+                    else
+                        return *m_val;
+                }
+                GT_FUNCTION constexpr ptr &operator+=(int_t arg) {
+                    m_val += arg;
+                    return *this;
+                }
+                GT_FUNCTION constexpr ptr &operator-=(int_t arg) {
+                    m_val -= arg;
+                    return *this;
+                }
+                friend GT_FUNCTION constexpr ptr operator+(ptr obj, int_t arg) { return {obj.m_val + arg}; }
+                friend GT_FUNCTION constexpr ptr operator-(ptr obj, int_t arg) { return {obj.m_val - arg}; }
+            };
+
+            template <class T>
             struct ptr_holder {
                 T *m_val;
                 GT_FUNCTION constexpr T *operator()() const { return m_val; }
+
+                friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
+                    return {obj.m_val + arg};
+                }
+
+                friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
+            };
+
+            template <class T>
+            struct ptr_holder<const T> {
+                const T *m_val;
+
+                GT_FUNCTION constexpr ptr<const T> operator()() const { return {m_val}; }
 
                 friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
                     return {obj.m_val + arg};
