@@ -35,7 +35,7 @@ namespace gridtools::fn {
             Tables m_tables;
             Sizes m_sizes;
 
-            constexpr Sizes const &sizes() const { return m_sizes; }
+            Sizes const &sizes() const { return m_sizes; }
         };
 
         template <class Tables, class Sizes, class Offsets>
@@ -57,7 +57,7 @@ namespace gridtools::fn {
         }
 
         template <class Sizes = std::tuple<int, int>, class Offsets = std::tuple<>, class... Connectivities>
-        constexpr auto unstructured_domain(Sizes const &sizes, Offsets const &offsets, Connectivities const &...conns) {
+        auto unstructured_domain(Sizes const &sizes, Offsets const &offsets, Connectivities const &...conns) {
 
             return domain_with_offsets(hymap::concat(conns...), sizes, offsets);
         };
@@ -67,12 +67,12 @@ namespace gridtools::fn {
             Ptr m_ptr;
             Strides const &m_strides;
             Domain const &m_domain;
-            int const m_index;
+            int m_index;
         };
 
         /// gnu::pure attribute is necessary to enable __builtin_assume() optimization with Clang
         template <class Tag, class Ptr, class Strides, class Domain>
-        [[gnu::pure]] GT_FUNCTION constexpr bool can_deref(iterator<Tag, Ptr, Strides, Domain> const& it) {
+        [[gnu::pure]] GT_FUNCTION constexpr bool can_deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
             return it.m_index != -1;
         }
 
@@ -86,11 +86,10 @@ namespace gridtools::fn {
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
         GT_FUNCTION constexpr auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset) {
             auto const &table = host_device::at_key<Conn>(it.m_domain.m_tables);
-            int const new_index = get<Offset::value>(neighbor_table::neighbors(table, std::max(it.m_index, 0)));
-            return iterator<Tag, Ptr, Strides, Domain>{it.m_ptr, it.m_strides, it.m_domain, it.m_index == -1 ? -1 : new_index};
-            //auto shifted = it;
-            //shifted.m_index = it.m_index == -1 ? -1 : new_index;
-            //return shifted;
+            auto new_index = get<Offset::value>(neighbor_table::neighbors(table, std::max(it.m_index, 0)));
+            auto shifted = it;
+            shifted.m_index = new_index;
+            return shifted;
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Dim, class Offset>
@@ -125,12 +124,12 @@ namespace gridtools::fn {
 
             explicit make_iterator(Domain const &domain) : m_domain(domain) {}
 
-            GT_FUNCTION constexpr auto operator()() const {
-                return [&](auto tag, auto const &ptr, auto const &strides) constexpr {
+            GT_FUNCTION auto operator()() const {
+                return [&](auto tag, auto const &ptr, auto const &strides) {
                     auto tptr = host_device::at_key<decltype(tag)>(ptr);
                     // the first argument is always the horizontal index
-                    int const& index = *host_device::at_key<integral_constant<int, 0>>(ptr);
-                    auto stride =
+                    int index = *host_device::at_key<integral_constant<int, 0>>(ptr);
+                    decltype(auto) stride =
                         host_device::at_key<decltype(tag)>(sid::get_stride<dim::horizontal>(strides));
                     sid::shift(tptr, stride, -index);
                     return iterator<decltype(tag), decltype(tptr), decltype(strides), Domain>{
@@ -147,7 +146,7 @@ namespace gridtools::fn {
 
             static constexpr auto index = positional<dim::horizontal>();
 
-            constexpr auto stencil_executor() const {
+            auto stencil_executor() const {
                 return [&] {
                     return make_stencil_executor<1>(
                         m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
@@ -156,7 +155,7 @@ namespace gridtools::fn {
             }
 
             template <class Vertical = dim::vertical>
-            constexpr auto vertical_executor(Vertical = {}) const {
+            auto vertical_executor(Vertical = {}) const {
                 return [&] {
                     return make_vertical_executor<Vertical, 1>(
                         m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
@@ -166,7 +165,7 @@ namespace gridtools::fn {
         };
 
         template <class Backend, class Tables, class Sizes, class Offsets>
-        constexpr auto make_backend(Backend const &b, domain_with_offsets<Tables, Sizes, Offsets> const &d) {
+        auto make_backend(Backend const &b, domain_with_offsets<Tables, Sizes, Offsets> const &d) {
             auto allocator = tmp_allocator(Backend());
             return backend<Backend, domain_with_offsets<Tables, Sizes, Offsets>, decltype(allocator)>{
                 std::move(b), d, std::move(allocator)};
