@@ -18,7 +18,7 @@ namespace gridtools::fn {
     template <class Stencil, int Out, int... Ins>
     struct stencil_stage {
         template <class MakeIterator, class Ptr, class Strides>
-        GT_FUNCTION constexpr void operator()(MakeIterator &&make_iterator, Ptr &ptr, Strides const &strides) const {
+        GT_FUNCTION void operator()(MakeIterator &&make_iterator, Ptr &ptr, Strides const &strides) const {
             *host_device::at_key<integral_constant<int, Out>>(ptr) =
                 Stencil()()(make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
         }
@@ -27,7 +27,7 @@ namespace gridtools::fn {
     template <class... Stages>
     struct merged_stencil_stage {
         template <class MakeIterator, class Ptr, class Strides>
-        GT_FUNCTION constexpr void operator()(MakeIterator &&make_iterator, Ptr &ptr, Strides const &strides) const {
+        GT_FUNCTION void operator()(MakeIterator &&make_iterator, Ptr &ptr, Strides const &strides) const {
             (Stages()(std::forward<MakeIterator>(make_iterator), ptr, strides), ...);
         }
     };

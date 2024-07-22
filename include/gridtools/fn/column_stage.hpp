@@ -27,7 +27,7 @@ namespace gridtools::fn {
         struct scan_pass {
             F m_f;
             Projector m_p;
-            GT_FUNCTION constexpr scan_pass(F f, Projector p = {}) : m_f(f), m_p(p) {}
+            constexpr GT_FUNCTION scan_pass(F f, Projector p = {}) : m_f(f), m_p(p) {}
         };
 
         template <class T>
@@ -45,7 +45,7 @@ namespace gridtools::fn {
         template <class Vertical, class ScanOrFold, int Out, int... Ins>
         struct column_stage {
             template <class Seed, class MakeIterator, class Ptr, class Strides>
-            GT_FUNCTION constexpr auto operator()(
+            GT_FUNCTION auto operator()(
                 Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 constexpr std::size_t prologue_size = std::tuple_size_v<decltype(ScanOrFold::prologue())>;
                 constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(ScanOrFold::epilogue())>;
@@ -55,7 +55,7 @@ namespace gridtools::fn {
                 using step_t = integral_constant<int, ScanOrFold::value ? -1 : 1>;
                 auto const &v_stride = sid::get_stride<Vertical>(strides);
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };
-                auto next = [&](auto acc, auto pass) constexpr {
+                auto next = [&](auto acc, auto pass) {
                     if constexpr (is_scan_pass<decltype(pass)>()) {
                         // scan
                         auto res =
@@ -86,10 +86,10 @@ namespace gridtools::fn {
         template <class... ColumnStages>
         struct merged_column_stage {
             template <class Seed, class MakeIterator, class Ptr, class Strides>
-            GT_FUNCTION constexpr auto operator()(
+            GT_FUNCTION auto operator()(
                 Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 return tuple_util::host_device::fold(
-                    [&](auto acc, auto stage) constexpr {
+                    [&](auto acc, auto stage) {
                         return stage(std::move(acc), size, std::forward<MakeIterator>(make_iterator), ptr, strides);
                     },
                     std::move(seed),
