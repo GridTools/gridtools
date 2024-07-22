@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "../common/defs.hpp"
+#include "../common/for_each.hpp"
 #include "../common/functional.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
@@ -119,7 +120,6 @@ namespace gridtools {
                         if (m_num_steps <= 0)
                             return;
                         auto &&stride = get_stride<Key>(strides);
-#pragma unroll 5
                         for (T i = 0; i < m_num_steps; ++i) {
                             m_fun(ptr, strides);
                             shift(ptr, stride, integral_constant<T, Step>{});
@@ -255,7 +255,6 @@ namespace gridtools {
                     void GT_FUNCTION operator()(Ptr &&ptr, const Strides &strides) const {
                         auto &&stride = get_stride<Key>(strides);
                         // TODO(anstaf): to figure out if for_each<make_indices_c<NumSteps>>(...) produces better code.
-#pragma unroll
                         for (T i = 0; i < NumSteps; ++i) {
                             m_fun(ptr, strides);
                             shift(ptr, stride, m_step);
@@ -637,6 +636,30 @@ namespace gridtools {
             loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
             make_loop(std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
             return {};
+        }
+
+        template <class Key, int UnrollFactor, class NumSteps, class Step = integral_constant<int, 1>>
+        constexpr GT_FUNCTION auto make_unrolled_loop(NumSteps num_steps, Step step = {}) {
+            using u = integral_constant<int, UnrollFactor>;
+            return [step,
+                       unrolled = make_loop<Key>(num_steps / u(), step * u()),
+                       epilogue = make_loop<Key>(num_steps % u(), step),
+                       epilogue_start = step * ((num_steps / u()) * u())](auto &&fun) {
+                return [unrolled = unrolled([&](auto &&ptr, auto const strides) {
+                    ::gridtools::host_device::for_each<meta::make_indices_c<UnrollFactor>>([&](auto) {
+                        fun(std::forward<decltype(ptr)>(ptr), strides);
+                        shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), step);
+                    });
+                    shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), -step * u());
+                }),
+                           epilogue = epilogue(std::forward<decltype(fun)>(fun)),
+                           epilogue_start](auto &&ptr, auto const &strides) {
+                    unrolled(std::forward<decltype(ptr)>(ptr), strides);
+                    shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), epilogue_start);
+                    epilogue(std::forward<decltype(ptr)>(ptr), strides);
+                    shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), -epilogue_start);
+                };
+            };
         }
 
         /**

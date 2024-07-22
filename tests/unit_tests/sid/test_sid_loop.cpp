@@ -58,6 +58,33 @@ namespace gridtools {
                     EXPECT_EQ(88, data[i][j]) << " i:" << i << ", j:" << j;
         }
 
+        TEST(make_unrolled_loop, smoke) {
+            double data[10][10] = {};
+            auto strides = tuple(10_c, 1_c);
+
+            double *ptr = &data[0][0];
+            sid::make_unrolled_loop<i_t, 2>(5, 1)(assignment_f{42})(ptr, strides);
+            for (int i = 0; i < 5; ++i)
+                EXPECT_EQ(42, data[i][0]) << " i:" << i;
+
+            ptr = &data[2][3];
+            sid::make_unrolled_loop<j_t, 1>(4_c, -1_c)(assignment_f{5})(ptr, strides);
+            for (int i = 0; i < 4; ++i)
+                EXPECT_EQ(5, data[2][i]) << " i:" << i;
+
+            ptr = &data[0][0];
+            sid::make_unrolled_loop<i_t, 1>(10_c)(sid::make_unrolled_loop<j_t, 1>(10_c)(assignment_f{88}))(ptr, strides);
+            for (int i = 0; i < 10; ++i)
+                for (int j = 0; j < 10; ++j)
+                    EXPECT_EQ(88, data[i][j]) << " i:" << i << ", j:" << j;
+
+            // pass ptr as r-value
+            sid::make_unrolled_loop<i_t, 1>(10_c)(sid::make_unrolled_loop<j_t, 1>(10_c)(assignment_f{88}))(&data[0][0], strides);
+            for (int i = 0; i < 10; ++i)
+                for (int j = 0; j < 10; ++j)
+                    EXPECT_EQ(88, data[i][j]) << " i:" << i << ", j:" << j;
+        }
+
         TEST(nest_loops, smoke) {
             double data[10][10] = {};
             double *ptr = &data[0][0];
