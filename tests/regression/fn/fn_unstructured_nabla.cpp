@@ -243,7 +243,7 @@ namespace {
         };
     };
 
-    /*GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_tuples, test_environment<>, fn_backend_t) {
+    GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_tuples, test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
 
         auto mesh = TypeParam::fn_unstructured_mesh();
@@ -280,10 +280,11 @@ namespace {
         TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
         TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
         TypeParam::benchmark("fn_unstructured_nabla_tuple_of_fields", comp);
-    }*/
+    }
 
     GT_REGRESSION_TEST(fn_unstructured_nabla_fused_tuple_of_fields, test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
+
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla0 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
         auto nabla1 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
@@ -292,13 +293,13 @@ namespace {
 
         auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
         comp();
-        TypeParam::benchmark("fn_unstructured_nabla_fused_tuple_of_fields", comp);
         auto expected = make_expected(mesh);
         TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
         TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
+        TypeParam::benchmark("fn_unstructured_nabla_fused_tuple_of_fields", comp);
     }
 
-    /*GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_dimension_to_tuple_like, test_environment<>, fn_backend_t) {
+    GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_dimension_to_tuple_like, test_environment<>, fn_backend_t) {
         using float_t = typename TypeParam::float_t;
 
         auto mesh = TypeParam::fn_unstructured_mesh();
@@ -314,5 +315,5 @@ namespace {
             },
             nabla_tmp);
         TypeParam::benchmark("fn_unstructured_nabla_dimension_to_tuple_like", comp);
-    }*/
+    }
 } // namespace
