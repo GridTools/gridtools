@@ -50,27 +50,24 @@
 namespace gridtools::fn::neighbor_table {
     namespace neighbor_table_impl_ {
 
-        //template <class T>
-        //using is_neighbor_list = std::conjunction<tuple_util::is_tuple_like<T>,
-            //meta::all_of<std::is_integral, tuple_util::traits::to_types<T>>>;
-            //
         template <class T>
-        using is_neighbor_list = std::is_convertible<T, int>;
+        using is_neighbor_list = std::conjunction<tuple_util::is_tuple_like<T>,
+            meta::all_of<std::is_integral, tuple_util::traits::to_types<T>>>;
 
         template <class T, std::enable_if_t<is_neighbor_list<T>::value, int> = 0>
-        GT_FUNCTION constexpr T const &neighbor_table_neighbors(T const *table, int index) {
+        GT_FUNCTION T const &neighbor_table_neighbors(T const *table, int index) {
             return table[index];
         }
 
-        template <class NeighborTable, class Neighbor = int>
-        GT_FUNCTION constexpr auto neighbors(NeighborTable const &nt, int index, Neighbor neighbor)
-            -> decltype(neighbor_table_neighbors(nt, index, neighbor)) {
-            return neighbor_table_neighbors(nt, index, neighbor);
+        template <class NeighborTable>
+        GT_FUNCTION constexpr auto neighbors(NeighborTable const &nt, int index)
+            -> decltype(neighbor_table_neighbors(nt, index)) {
+            return neighbor_table_neighbors(nt, index);
         }
 
         template <class T>
         using neighbor_list_type = std::remove_cv_t<std::remove_reference_t<
-            decltype(::gridtools::fn::neighbor_table::neighbor_table_impl_::neighbors(std::declval<T const &>(), 0, 0))>>;
+            decltype(::gridtools::fn::neighbor_table::neighbor_table_impl_::neighbors(std::declval<T const &>(), 0))>>;
 
         template <class T, class = void>
         struct is_neighbor_table : std::false_type {};
