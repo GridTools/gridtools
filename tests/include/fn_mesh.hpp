@@ -99,7 +99,10 @@ namespace gridtools {
                 return builder.unknown_id().build();
             else
                 return builder.template id<Id>().build();
+            // disable incorrect warning "missing return statement at end of non-void function"
+            GT_NVCC_DIAG_PUSH_SUPPRESS(940)
         }
+        GT_NVCC_DIAG_POP_SUPPRESS(940)
 
         template <class T = FloatType,
             int Id = -1,
