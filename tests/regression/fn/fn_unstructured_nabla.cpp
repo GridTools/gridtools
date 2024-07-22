@@ -29,7 +29,7 @@ namespace {
                 tuple_util::host_device::for_each(
                     [&](auto i) {
                         auto shifted_pp = shift(pp, e2v(), i);
-                        GT_PROMISE(can_deref(shifted_pp))
+                        GT_PROMISE(can_deref(shifted_pp));
                         tmp += deref(shifted_pp);
                     },
                     meta::rename<tuple, meta::make_indices_c<2>>());
@@ -75,7 +75,7 @@ namespace {
                         tuple_util::host_device::for_each(
                             [=, &tmp2](auto const &j) {
                                 auto shifted_pp = shift(pp, v2e(), i, e2v(), j);
-                                GT_PROMISE(can_deref(shifted_pp))
+                                GT_PROMISE(can_deref(shifted_pp));
                                 tmp2 += edge_exists ? deref(shifted_pp) : 0;
                             },
                             meta::rename<tuple, meta::make_indices_c<2>>());
