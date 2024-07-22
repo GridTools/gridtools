@@ -295,9 +295,9 @@ namespace {
         auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
         comp();
         TypeParam::benchmark("fn_unstructured_nabla_fused_tuple_of_fields", comp);
-        //auto expected = make_expected(mesh);
-        //TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
-        //TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
+        auto expected = make_expected(mesh);
+        TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
+        TypeParam::verify([&](int vertex, int k) { return get<1>(expected(vertex, k)); }, nabla1);
     }
 
     /*GT_REGRESSION_TEST(fn_unstructured_nabla_field_of_dimension_to_tuple_like, test_environment<>, fn_backend_t) {
