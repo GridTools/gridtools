@@ -27,13 +27,21 @@ namespace gridtools {
 #endif
 #endif
 
-#if defined(__has_builtin)
+#if defined(__NVCC__) && defined(__CUDA_ARCH__) && \
+    (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 2 || __CUDACC_VER_MAJOR__ > 11)
+#define GT_ASSUME(x) __builtin_assume(x)
+#endif
+#if !defined(GT_ASSUME) && defined(__has_builtin)
 #if __has_builtin(__builtin_assume)
 #define GT_ASSUME(x) __builtin_assume(x)
-#else
-#define GT_ASSUME(x)
 #endif
-#else
+#if !defined(GT_ASSUME) && defined(__cpp_attributes)
+#if __has_cpp_attribute(assume)
+#define GT_ASSUME(x) [[assume(x)]]
+#endif
+#endif
+#endif
+#ifndef GT_ASSUME
 #define GT_ASSUME(x)
 #endif
 
