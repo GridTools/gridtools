@@ -186,6 +186,7 @@ namespace {
 
     constexpr inline auto make_comp = [](auto backend, auto const &mesh, auto &nabla) {
         using mesh_t = std::remove_reference_t<decltype(mesh)>;
+        using float_t = typename mesh_t::float_t;
         return [backend,
                    &nabla,
                    nvertices = mesh.nvertices(),
@@ -209,6 +210,7 @@ namespace {
 
     constexpr inline auto make_comp_fused = [](auto backend, auto const &mesh, auto &nabla) {
         using mesh_t = std::remove_reference_t<decltype(mesh)>;
+        using float_t = typename mesh_t::float_t;
         return [backend,
                    &nabla,
                    nvertices = mesh.nvertices(),
