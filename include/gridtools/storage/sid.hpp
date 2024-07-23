@@ -13,7 +13,6 @@
 #include <cassert>
 #include <type_traits>
 
-#include "../common/cuda_type_traits.hpp"
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
@@ -23,6 +22,10 @@
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "data_store.hpp"
+
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#include "../common/cuda_type_traits.hpp"
+#endif
 
 namespace gridtools {
     namespace storage {
