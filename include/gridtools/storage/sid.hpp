@@ -13,6 +13,7 @@
 #include <cassert>
 #include <type_traits>
 
+#include "../common/cuda_type_traits.hpp"
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
