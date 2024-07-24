@@ -266,7 +266,7 @@ namespace {
 
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla = mesh.template make_storage<tuple<float_t, float_t>>(mesh.nvertices(), mesh.nlevels());
-        auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
+        auto comp = make_comp_fused(k_blocked_backend_t(), mesh, nabla);
         comp();
         auto expected = make_expected(mesh);
         TypeParam::verify(expected, nabla);
@@ -299,7 +299,7 @@ namespace {
         auto nabla =
             sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(nabla0, nabla1);
 
-        auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
+        auto comp = make_comp_fused(k_blocked_backend_t(), mesh, nabla);
         comp();
         auto expected = make_expected(mesh);
         TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
