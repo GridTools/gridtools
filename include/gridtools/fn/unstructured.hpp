@@ -20,6 +20,10 @@
 #include "./executor.hpp"
 #include "./neighbor_table.hpp"
 
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#include "../common/cuda_type_traits.hpp"
+#endif
+
 namespace gridtools::fn {
     namespace unstructured::dim {
         using horizontal = integral_constant<int, 0>;
@@ -80,7 +84,14 @@ namespace gridtools::fn {
         GT_FUNCTION constexpr auto deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
             GT_PROMISE(can_deref(it));
             decltype(auto) stride = host_device::at_key<Tag>(sid::get_stride<dim::horizontal>(it.m_strides));
-            return *sid::shifted(it.m_ptr, stride, it.m_index);
+            auto ptr = sid::shifted(it.m_ptr, stride, it.m_index);
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+            if constexpr (std::is_pointer_v<decltype(ptr)> &&
+                          is_texture_type<std::decay_t<std::remove_pointer_t<decltype(ptr)>>>::value) {
+                return __ldg(ptr);
+            }
+#endif
+            return *ptr;
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
