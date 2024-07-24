@@ -88,7 +88,7 @@ namespace gridtools::fn {
             auto const &table = host_device::at_key<Conn>(it.m_domain.m_tables);
             auto new_index = get<Offset::value>(neighbor_table::neighbors(table, std::max(it.m_index, 0)));
             auto shifted = it;
-            shifted.m_index = new_index;
+            shifted.m_index = it.m_index == -1 ? -1 : new_index;
             return shifted;
         }
 
