@@ -9,6 +9,7 @@
  */
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <set>
 
 #include <gridtools/common/hugepage_alloc.hpp>
