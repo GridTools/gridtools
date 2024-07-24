@@ -184,51 +184,56 @@ namespace {
         apply_nabla_fused(vertex_backend.stencil_executor(), nabla, sign, vol, pp, s);
     };
 
+    static constexpr int vertex_field_id = 0;
+    static constexpr int edge_field_id = 1;
+
     constexpr inline auto make_comp = [](auto backend, auto const &mesh, auto &nabla) {
         using mesh_t = std::remove_reference_t<decltype(mesh)>;
         using float_t = typename mesh_t::float_t;
-        return [backend,
-                   &nabla,
-                   nvertices = mesh.nvertices(),
-                   nedges = mesh.nedges(),
-                   nlevels = mesh.nlevels(),
-                   v2e_table = mesh.v2e_table(),
-                   e2v_table = mesh.e2v_table(),
-                   pp = mesh.make_const_storage(pp, mesh.nvertices(), mesh.nlevels()),
-                   sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
-                   vol = mesh.make_const_storage(vol, mesh.nvertices()),
-                   s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
-            auto v2e_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
-                integral_constant<int, 1>,
-                mesh_t::max_v2e_neighbors_t::value>(v2e_table);
-            auto e2v_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
-                integral_constant<int, 1>,
-                mesh_t::max_e2v_neighbors_t::value>(e2v_table);
-            fencil(backend, nvertices, nedges, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
-        };
+        return
+            [backend,
+                &nabla,
+                nvertices = mesh.nvertices(),
+                nedges = mesh.nedges(),
+                nlevels = mesh.nlevels(),
+                v2e_table = mesh.v2e_table(),
+                e2v_table = mesh.e2v_table(),
+                pp = mesh.template make_const_storage<float_t, vertex_field_id>(pp, mesh.nvertices(), mesh.nlevels()),
+                sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
+                vol = mesh.make_const_storage(vol, mesh.nvertices()),
+                s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
+                auto v2e_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                    integral_constant<int, 1>,
+                    mesh_t::max_v2e_neighbors_t::value>(v2e_table);
+                auto e2v_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                    integral_constant<int, 1>,
+                    mesh_t::max_e2v_neighbors_t::value>(e2v_table);
+                fencil(backend, nvertices, nedges, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
+            };
     };
 
     constexpr inline auto make_comp_fused = [](auto backend, auto const &mesh, auto &nabla) {
         using mesh_t = std::remove_reference_t<decltype(mesh)>;
         using float_t = typename mesh_t::float_t;
-        return [backend,
-                   &nabla,
-                   nvertices = mesh.nvertices(),
-                   nlevels = mesh.nlevels(),
-                   v2e_table = mesh.v2e_table(),
-                   e2v_table = mesh.e2v_table(),
-                   pp = mesh.make_const_storage(pp, mesh.nvertices(), mesh.nlevels()),
-                   sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
-                   vol = mesh.make_const_storage(vol, mesh.nvertices()),
-                   s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
-            auto v2e_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
-                integral_constant<int, 1>,
-                mesh_t::max_v2e_neighbors_t::value>(v2e_table);
-            auto e2v_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
-                integral_constant<int, 1>,
-                mesh_t::max_e2v_neighbors_t::value>(e2v_table);
-            fencil_fused(backend, nvertices, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
-        };
+        return
+            [backend,
+                &nabla,
+                nvertices = mesh.nvertices(),
+                nlevels = mesh.nlevels(),
+                v2e_table = mesh.v2e_table(),
+                e2v_table = mesh.e2v_table(),
+                pp = mesh.template make_const_storage<float_t, vertex_field_id>(pp, mesh.nvertices(), mesh.nlevels()),
+                sign = mesh.template make_const_storage<array<float_t, 6>>(sign, mesh.nvertices()),
+                vol = mesh.make_const_storage(vol, mesh.nvertices()),
+                s = mesh.template make_const_storage<tuple<float_t, float_t>>(s, mesh.nedges(), mesh.nlevels())] {
+                auto v2e_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                    integral_constant<int, 1>,
+                    mesh_t::max_v2e_neighbors_t::value>(v2e_table);
+                auto e2v_ptr = sid_neighbor_table::as_neighbor_table<integral_constant<int, 0>,
+                    integral_constant<int, 1>,
+                    mesh_t::max_e2v_neighbors_t::value>(e2v_table);
+                fencil_fused(backend, nvertices, nlevels, v2e_ptr, e2v_ptr, nabla, pp, s, sign, vol);
+            };
     };
 
     constexpr inline auto make_expected = [](auto const &mesh) {
@@ -265,8 +270,8 @@ namespace {
 
     GT_REGRESSION_TEST(fn_unstructured_nabla_tuple_of_fields, test_environment<>, fn_backend_t) {
         auto mesh = TypeParam::fn_unstructured_mesh();
-        auto nabla0 = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
-        auto nabla1 = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
+        auto nabla0 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
+        auto nabla1 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
         auto nabla =
             sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(nabla0, nabla1);
 
@@ -280,8 +285,8 @@ namespace {
 
     GT_REGRESSION_TEST(fn_unstructured_nabla_fused_tuple_of_fields, test_environment<>, fn_backend_t) {
         auto mesh = TypeParam::fn_unstructured_mesh();
-        auto nabla0 = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
-        auto nabla1 = mesh.make_storage(mesh.nvertices(), mesh.nlevels());
+        auto nabla0 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
+        auto nabla1 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
         auto nabla =
             sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(nabla0, nabla1);
 
