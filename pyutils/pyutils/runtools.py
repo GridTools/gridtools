@@ -14,7 +14,7 @@ async def _run_async(command, log_output, **kwargs):
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
         env=env.env,
-        limit=2**20,
+        limit=2**24,
         **kwargs)
 
     async def read_output(stream):
