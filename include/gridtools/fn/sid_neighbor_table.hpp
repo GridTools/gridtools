@@ -16,6 +16,10 @@
 #include "../fn/unstructured.hpp"
 #include "../sid/concept.hpp"
 
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#include "../common/cuda_type_traits.hpp"
+#endif
+
 namespace gridtools::fn::sid_neighbor_table {
     namespace sid_neighbor_table_impl_ {
         template <class IndexDimension,
@@ -46,7 +50,13 @@ namespace gridtools::fn::sid_neighbor_table {
 
             sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
             for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
-                neighbors[element_idx] = *ptr;
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+                if constexpr (std::is_pointer_v<decltype(ptr)> &&
+                              is_texture_type<std::decay_t<std::remove_pointer_t<decltype(ptr)>>>::value)
+                    neighbors[element_idx] = __ldg(ptr);
+                else
+#endif
+                    neighbors[element_idx] = *ptr;
                 sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1_c);
             }
             return neighbors;
