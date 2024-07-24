@@ -645,7 +645,7 @@ namespace gridtools {
                        unrolled = make_loop<Key>(num_steps / u(), step * u()),
                        epilogue = make_loop<Key>(num_steps % u(), step),
                        epilogue_start = step * ((num_steps / u()) * u())](auto &&fun) {
-                return [unrolled = unrolled([step, fun=std::forward<decltype(fun)>(fun)](auto &&ptr, auto const strides) {
+                return [unrolled = unrolled([=](auto &&ptr, auto const strides) {
                     ::gridtools::host_device::for_each<meta::make_indices_c<UnrollFactor>>([&](auto) {
                         fun(std::forward<decltype(ptr)>(ptr), strides);
                         shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), step);
