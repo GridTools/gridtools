@@ -23,6 +23,10 @@
 #include "../meta.hpp"
 #include "data_store.hpp"
 
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#include "../common/cuda_type_traits.hpp"
+#endif
+
 namespace gridtools {
     namespace storage {
         namespace storage_sid_impl_ {
@@ -32,11 +36,43 @@ namespace gridtools {
                     return lhs;
                 }
             };
+            template <class T>
+            struct const_ptr_wrapper {
+                T const *m_val;
+
+                GT_FUNCTION constexpr const_ptr_wrapper(T const *val) : m_val(val) {}
+
+                GT_FUNCTION constexpr T operator*() const {
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+                    if constexpr (is_texture_type<T>::value)
+                        return __ldg(m_val);
+#endif
+                    return *m_val;
+                }
+                GT_FUNCTION constexpr const_ptr_wrapper &operator+=(int_t arg) {
+                    m_val += arg;
+                    return *this;
+                }
+                GT_FUNCTION constexpr const_ptr_wrapper &operator-=(int_t arg) {
+                    m_val -= arg;
+                    return *this;
+                }
+                friend GT_FUNCTION constexpr const_ptr_wrapper operator+(const_ptr_wrapper obj, int_t arg) {
+                    return {obj.m_val + arg};
+                }
+                friend GT_FUNCTION constexpr const_ptr_wrapper operator-(const_ptr_wrapper obj, int_t arg) {
+                    return {obj.m_val - arg};
+                }
+            };
 
             template <class T>
             struct ptr_holder {
                 T *m_val;
-                GT_FUNCTION constexpr T *operator()() const { return m_val; }
+                GT_FUNCTION constexpr std::
+                    conditional_t<std::is_const_v<T>, const_ptr_wrapper<std::remove_const_t<T>>, T *>
+                    operator()() const {
+                    return m_val;
+                }
 
                 friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
                     return {obj.m_val + arg};
