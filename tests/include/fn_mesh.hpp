@@ -75,6 +75,7 @@ namespace gridtools {
       public:
         using max_v2e_neighbors_t = std::integral_constant<int, 6>;
         using max_e2v_neighbors_t = std::integral_constant<int, 2>;
+        using float_t = FloatType;
 
         constexpr structured_unstructured_mesh(int nx, int ny, int nz) : m_nx(nx), m_ny(ny), m_nz(nz) {}
 
