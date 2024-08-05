@@ -89,25 +89,34 @@ namespace gridtools {
         constexpr int nlevels() const { return m_nz; }
 
         template <class T = FloatType,
+            int Id = -1,
             class Init,
             class... Dims,
             std::enable_if_t<!(std::is_integral_v<Init> || is_integral_constant<Init>::value), int> = 0>
         auto make_storage(Init const &init, Dims... dims) const {
-            return storage::builder<StorageTraits>.dimensions(dims...).template type<T>().initializer(init).unknown_id().build();
+            auto builder = storage::builder<StorageTraits>.dimensions(dims...).template type<T>().initializer(init);
+            if constexpr (Id == -1)
+                return builder.unknown_id().build();
+            else
+                return builder.template id<Id>().build();
+            // disable incorrect warning "missing return statement at end of non-void function"
+            GT_NVCC_DIAG_PUSH_SUPPRESS(940)
         }
+        GT_NVCC_DIAG_POP_SUPPRESS(940)
 
         template <class T = FloatType,
+            int Id = -1,
             class... Dims,
             std::enable_if_t<std::conjunction_v<std::bool_constant<std::is_integral<Dims>::value ||
                                                                    is_integral_constant<Dims>::value>...>,
                 int> = 0>
         auto make_storage(Dims... dims) const {
-            return make_storage<T>([](int...) { return T(); }, dims...);
+            return make_storage<T, Id>([](int...) { return T(); }, dims...);
         }
 
-        template <class T = FloatType, class... Args>
+        template <class T = FloatType, int Id = -1, class... Args>
         auto make_const_storage(Args &&...args) const {
-            return make_storage<T const>(std::forward<Args>(args)...);
+            return make_storage<T const, Id>(std::forward<Args>(args)...);
         }
 
         auto v2e_table() const {
