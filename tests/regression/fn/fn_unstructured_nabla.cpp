@@ -29,8 +29,7 @@ namespace {
                 tuple_util::host_device::for_each(
                     [&](auto i) {
                         auto shifted_pp = shift(pp, e2v(), i);
-                        if (can_deref(shifted_pp))
-                            tmp += deref(shifted_pp);
+                        tmp += deref(shifted_pp);
                     },
                     meta::rename<tuple, meta::make_indices_c<2>>());
                 tmp /= 2;
@@ -48,11 +47,11 @@ namespace {
                 tuple<float_t, float_t> tmp(0, 0);
                 tuple_util::host_device::for_each(
                     [&](auto i) {
-                        auto shifted_zavg = shift(zavg, v2e(), i);
-                        if (can_deref(shifted_zavg)) {
-                            tuple_get(0_c, tmp) += tuple_get(0_c, deref(shifted_zavg)) * get<i.value>(signs);
-                            tuple_get(1_c, tmp) += tuple_get(1_c, deref(shifted_zavg)) * get<i.value>(signs);
-                        }
+                        auto const shifted_zavg = shift(zavg, v2e(), i);
+                        bool const edge_exists = can_deref(shifted_zavg);
+                        auto const value = edge_exists ? deref(shifted_zavg) : tuple<float_t, float_t>(0, 0);
+                        tuple_get(0_c, tmp) += tuple_get(0_c, value) * get<i.value>(signs);
+                        tuple_get(1_c, tmp) += tuple_get(1_c, value) * get<i.value>(signs);
                     },
                     meta::rename<tuple, meta::make_indices_c<6>>());
                 auto v = deref(vol);
@@ -69,23 +68,21 @@ namespace {
                 tuple<float_t, float_t> tmp(0, 0);
                 tuple_util::host_device::for_each(
                     [&](auto i) {
-                        auto shifted_s = shift(s, v2e(), i);
-                        if (can_deref(shifted_s)) {
-                            float_t tmp2 = 0;
-                            tuple_util::host_device::for_each(
-                                [&](auto const &j) {
-                                    auto shifted_pp = shift(pp, v2e(), i, e2v(), j);
-                                    if (can_deref(shifted_pp))
-                                        tmp2 += deref(shifted_pp);
-                                },
-                                meta::rename<tuple, meta::make_indices_c<2>>());
-                            tmp2 /= 2;
-                            auto ss = deref(shifted_s);
-                            auto zavg = tuple(tmp2 * tuple_get(0_c, ss), tmp2 * tuple_get(1_c, ss));
+                        auto const shifted_s = shift(s, v2e(), i);
+                        bool const edge_exists = can_deref(shifted_s);
+                        float_t tmp2 = 0;
+                        tuple_util::host_device::for_each(
+                            [&](auto const &j) {
+                                auto shifted_pp = shift(pp, v2e(), i, e2v(), j);
+                                tmp2 += edge_exists ? deref(shifted_pp) : 0;
+                            },
+                            meta::rename<tuple, meta::make_indices_c<2>>());
+                        tmp2 /= 2;
+                        auto ss = edge_exists ? deref(shifted_s) : tuple<float_t, float_t>(0, 0);
+                        auto zavg = tuple(tmp2 * tuple_get(0_c, ss), tmp2 * tuple_get(1_c, ss));
 
-                            tuple_get(0_c, tmp) += tuple_get(0_c, zavg) * get<i.value>(signs);
-                            tuple_get(1_c, tmp) += tuple_get(1_c, zavg) * get<i.value>(signs);
-                        }
+                        tuple_get(0_c, tmp) += tuple_get(0_c, zavg) * get<i.value>(signs);
+                        tuple_get(1_c, tmp) += tuple_get(1_c, zavg) * get<i.value>(signs);
                     },
                     meta::rename<tuple, meta::make_indices_c<6>>());
                 auto v = deref(vol);
