@@ -16,6 +16,7 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
+#include "../common/ldg_ptr.hpp"
 
 #define GT_FILENAME <gridtools/sid/simple_ptr_holder.hpp>
 #include GT_ITERATE_ON_TARGETS()
@@ -29,15 +30,10 @@ namespace gridtools {
         GT_TARGET_NAMESPACE {
             template <class T>
             struct simple_ptr_holder {
-                T m_val;
+                ldg_ptr_t<T> m_val;
 
-#if defined(__cpp_deduction_guides) and __cpp_deduction_guides >= 201907
-// CTAD for aggregates works
-#else
-                // Enables CTAD in C++17.
                 simple_ptr_holder() = default;
                 GT_TARGET GT_FORCE_INLINE constexpr simple_ptr_holder(T const &ptr) : m_val{ptr} {}
-#endif
                 GT_TARGET GT_FORCE_INLINE constexpr T const &operator()() const { return m_val; }
             };
 
