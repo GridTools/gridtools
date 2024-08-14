@@ -10,8 +10,6 @@
 
 #include <gridtools/common/ldg_ptr.hpp>
 
-#include <gridtools/common/cuda_util.hpp>
-
 #include <gtest/gtest.h>
 
 #include <cuda_test_helper.hpp>
