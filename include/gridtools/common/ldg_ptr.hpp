@@ -93,8 +93,11 @@ namespace gridtools {
             friend GT_FUNCTION constexpr ldg_ptr operator-(ldg_ptr const &ptr, std::ptrdiff_t diff) {
                 return ldg_ptr(ptr.m_ptr - diff);
             }
-        };
 
+            friend GT_FUNCTION constexpr std::ptrdiff_t operator-(ldg_ptr const &ptr, ldg_ptr const &other) {
+                return ptr.m_ptr - other.m_ptr;
+            }
+        };
     } // namespace impl_
 
     template <class T>
