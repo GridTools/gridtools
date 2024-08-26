@@ -112,7 +112,4 @@ namespace gridtools {
         return std::forward<T>(value);
     }
 
-    template <class T>
-    using ldg_ptr_t = std::decay_t<decltype(as_ldg_ptr(std::declval<T>()))>;
-
 } // namespace gridtools
