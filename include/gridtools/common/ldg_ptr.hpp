@@ -55,10 +55,14 @@ namespace gridtools {
             friend GT_FUNCTION constexpr bool operator==(ldg_ptr const &a, ldg_ptr const &b) {
                 return a.m_ptr == b.m_ptr;
             }
+            friend GT_FUNCTION constexpr bool operator==(ldg_ptr const &a, T const *b) { return a.m_ptr == b; }
+            friend GT_FUNCTION constexpr bool operator==(T const *a, ldg_ptr const &b) { return a == b.m_ptr; }
 
             friend GT_FUNCTION constexpr bool operator!=(ldg_ptr const &a, ldg_ptr const &b) {
                 return a.m_ptr != b.m_ptr;
             }
+            friend GT_FUNCTION constexpr bool operator!=(ldg_ptr const &a, T const *b) { return a.m_ptr != b; }
+            friend GT_FUNCTION constexpr bool operator!=(T const *a, ldg_ptr const &b) { return a != b.m_ptr; }
 
             friend GT_FUNCTION constexpr ldg_ptr &operator++(ldg_ptr &ptr) {
                 ++ptr.m_ptr;
