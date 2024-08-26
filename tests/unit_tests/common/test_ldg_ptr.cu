@@ -17,7 +17,7 @@
 namespace gridtools {
     namespace {
         __device__ bool test_non_const_device() {
-            float data[5] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f};
+            volatile float data[5] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f};
 
             auto ptr = as_ldg_ptr(&data[2]);
             if (*ptr != 2.0f)
@@ -49,7 +49,7 @@ namespace gridtools {
         }
 
         __device__ bool test_const_device() {
-            float const data[5] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f};
+            volatile float const data[5] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f};
 
             auto ptr = as_ldg_ptr(&data[2]);
             if (*ptr != 2.0f)
