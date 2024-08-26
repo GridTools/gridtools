@@ -27,6 +27,7 @@ namespace gridtools {
             EXPECT_EQ(*(ptr++), 3.0f);
             EXPECT_EQ(*(ptr--), 4.0f);
             EXPECT_EQ(*(--ptr), 2.0f);
+            EXPECT_EQ((ptr + 2) - ptr, 2);
             *ptr = 5.0f;
             EXPECT_EQ(*ptr, 5.0f);
         }
@@ -44,6 +45,7 @@ namespace gridtools {
             EXPECT_EQ(*(ptr++), 3.0f);
             EXPECT_EQ(*(ptr--), 4.0f);
             EXPECT_EQ(*(--ptr), 2.0f);
+            EXPECT_EQ((ptr + 2) - ptr, 2);
         }
     } // namespace
 } // namespace gridtools

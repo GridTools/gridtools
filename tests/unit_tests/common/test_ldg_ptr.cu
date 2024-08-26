@@ -38,6 +38,8 @@ namespace gridtools {
                 return false;
             if (*(--ptr) != 2.0f)
                 return false;
+            if ((ptr + 2) - ptr != 2)
+                return false;
             *ptr = 5.0f;
             if (*ptr != 5.0f)
                 return false;
@@ -69,6 +71,8 @@ namespace gridtools {
             if (*(ptr--) != 4.0f)
                 return false;
             if (*(--ptr) != 2.0f)
+                return false;
+            if ((ptr + 2) - ptr != 2)
                 return false;
             return true;
         }
