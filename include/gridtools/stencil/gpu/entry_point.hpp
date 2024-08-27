@@ -18,6 +18,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../common/ldg_ptr.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../../sid/allocator.hpp"
@@ -132,6 +133,11 @@ namespace gridtools {
 
             template <class Keys>
             struct deref_f {
+                template <class Key, class T>
+                GT_FUNCTION std::enable_if_t<meta::st_contains<Keys, Key>::value, T> operator()(
+                    Key, T const *ptr) const {
+                    return *as_ldg_ptr(ptr);
+                }
                 template <class Key, class Ptr>
                 GT_FUNCTION decltype(auto) operator()(Key, Ptr ptr) const {
                     return *ptr;
