@@ -26,14 +26,11 @@ namespace gridtools {
     namespace impl_ {
 
         template <class T>
-        class ldg_ptr {
+        struct ldg_ptr {
             T const *m_ptr;
 
             static_assert(is_texture_type<T>::value);
 
-          public:
-            GT_FUNCTION constexpr ldg_ptr() {}
-            GT_FUNCTION constexpr explicit ldg_ptr(T const *ptr) : m_ptr(ptr) {}
             GT_FUNCTION constexpr T operator*() const {
 #ifdef GT_CUDA_ARCH
                 return __ldg(m_ptr);
@@ -87,11 +84,11 @@ namespace gridtools {
             }
 
             friend GT_FUNCTION constexpr ldg_ptr operator+(ldg_ptr const &ptr, std::ptrdiff_t diff) {
-                return ldg_ptr(ptr.m_ptr + diff);
+                return {ptr.m_ptr + diff};
             }
 
             friend GT_FUNCTION constexpr ldg_ptr operator-(ldg_ptr const &ptr, std::ptrdiff_t diff) {
-                return ldg_ptr(ptr.m_ptr - diff);
+                return {ptr.m_ptr - diff};
             }
 
             friend GT_FUNCTION constexpr std::ptrdiff_t operator-(ldg_ptr const &ptr, ldg_ptr const &other) {
@@ -102,7 +99,7 @@ namespace gridtools {
 
     template <class T>
     GT_FUNCTION constexpr std::enable_if_t<is_texture_type<T>::value, impl_::ldg_ptr<T>> as_ldg_ptr(T const *ptr) {
-        return impl_::ldg_ptr<T>(ptr);
+        return {ptr};
     }
 
 #endif
