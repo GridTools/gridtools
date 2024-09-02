@@ -16,10 +16,6 @@
 #include "./common_interface.hpp"
 #include "./executor.hpp"
 
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
-#include "../common/cuda_type_traits.hpp"
-#endif
-
 namespace gridtools::fn {
     namespace cartesian::dim {
         using i = integral_constant<int, 0>;
@@ -48,12 +44,6 @@ namespace gridtools::fn {
 
         template <class Tag, class Ptr, class Strides>
         GT_FUNCTION auto deref(iterator<Tag, Ptr, Strides> const &it) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
-            if constexpr (std::is_pointer_v<decltype(it.m_ptr)> &&
-                          is_texture_type<std::decay_t<std::remove_pointer_t<decltype(it.m_ptr)>>>::value) {
-                return __ldg(it.m_ptr);
-            }
-#endif
             return *it.m_ptr;
         }
 

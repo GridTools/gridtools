@@ -120,19 +120,11 @@ namespace gridtools {
         }
 
         auto v2e_table() const {
-            return storage::builder<StorageTraits>.dimensions(nvertices(), max_v2e_neighbors_t())
-                .template type<int const>()
-                .initializer(v2e_initializer())
-                .unknown_id()
-                .build();
+            return storage::builder<StorageTraits>.dimensions(nvertices(), max_v2e_neighbors_t()).template type<int>().initializer(v2e_initializer()).unknown_id().build();
         }
 
         auto e2v_table() const {
-            return storage::builder<StorageTraits>.dimensions(nedges(), max_e2v_neighbors_t())
-                .template type<int const>()
-                .initializer(e2v_initializer())
-                .unknown_id()
-                .build();
+            return storage::builder<StorageTraits>.dimensions(nedges(), max_e2v_neighbors_t()).template type<int>().initializer(e2v_initializer()).unknown_id().build();
         }
     };
 

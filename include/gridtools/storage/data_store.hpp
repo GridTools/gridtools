@@ -173,35 +173,25 @@ namespace gridtools {
                 auto const_host_view() const { return const_target_view(); }
             };
 
-            template <class Traits, class T, class Info, class Kind>
-            class data_store<Traits, T const, Info, Kind, true, false> : public base<Traits, T const, Info, Kind> {
-                std::unique_ptr<T[]> m_host_ptr;
+            template <class Traits, class T, class Info, class Kind, bool IsHostRefrenceable>
+            class data_store<Traits, T const, Info, Kind, true, IsHostRefrenceable>
+                : public base<Traits, T const, Info, Kind> {
 
-              public:
-                template <class Halos>
-                data_store(std::string, Info, Halos const &, uninitialized const &) = delete;
+                template <class>
+                struct is_host_refrenceable : std::bool_constant<IsHostRefrenceable> {};
 
-                template <class Initializer, class Halos>
-                data_store(std::string name, Info info, Halos const &halos, Initializer const &initializer)
-                    : data_store::base(std::move(name), std::move(info), halos),
-                      m_host_ptr(std::make_unique<T[]>(this->info().length())) {
-                    initializer(m_host_ptr.get(), typename data_store::layout_t(), this->info());
-                    traits::update_target<Traits>(this->raw_target_ptr(), m_host_ptr.get(), this->info().length());
+                template <class Initializer, std::enable_if_t<!is_host_refrenceable<Initializer>::value, int> = 0>
+                void init(Initializer const &initializer) {
+                    auto host_ptr = std::make_unique<T[]>(this->info().length());
+                    initializer(host_ptr.get(), typename data_store::layout_t(), this->info());
+                    traits::update_target<Traits>(this->raw_target_ptr(), host_ptr.get(), this->info().length());
                 }
 
-                T const *get_target_ptr() const { return this->raw_target_ptr(); }
-                T const *get_const_target_ptr() const { return this->raw_target_ptr(); }
-                auto target_view() const { return traits::make_target_view<Traits>(get_target_ptr(), this->info()); }
-                auto const_target_view() const { return target_view(); }
+                template <class Initializer, std::enable_if_t<is_host_refrenceable<Initializer>::value, int> = 0>
+                void init(Initializer const &initializer) {
+                    initializer(this->raw_target_ptr(), typename data_store::layout_t(), this->info());
+                }
 
-                T const *get_host_ptr() const { return m_host_ptr.get(); }
-                T const *get_const_host_ptr() const { return get_host_ptr(); }
-                auto host_view() const { return make_host_view(get_host_ptr(), this->info()); }
-                auto const_host_view() const { return host_view(); }
-            };
-
-            template <class Traits, class T, class Info, class Kind>
-            class data_store<Traits, T const, Info, Kind, true, true> : public base<Traits, T const, Info, Kind> {
               public:
                 template <class Halos>
                 data_store(std::string, Info, Halos const &, uninitialized const &) = delete;
@@ -209,16 +199,12 @@ namespace gridtools {
                 template <class Initializer, class Halos>
                 data_store(std::string name, Info info, Halos const &halos, Initializer const &initializer)
                     : base<Traits, T const, Info, Kind>(std::move(name), std::move(info), halos) {
-                    initializer(this->raw_target_ptr(), typename data_store::layout_t(), this->info());
+                    init(initializer);
                 }
                 T const *get_target_ptr() const { return this->raw_target_ptr(); }
-                T const *get_const_target_ptr() const { return get_target_ptr(); }
                 auto target_view() const { return traits::make_target_view<Traits>(get_target_ptr(), this->info()); }
+                auto get_const_target_ptr() const { return get_target_ptr(); }
                 auto const_target_view() const { return target_view(); }
-                T const *get_host_ptr() { return get_target_ptr(); }
-                T const *get_const_host_ptr() { return get_target_ptr(); }
-                auto host_view() const { return target_view(); }
-                auto const_host_view() const { return target_view(); }
             };
 
             template <class>
