@@ -35,7 +35,7 @@ jobs:
       working-directory: ./.python_package
       run: nox -s build_wheel test_wheel_with_python-${{ matrix.python-version }}
     - name: archive wheel
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: gridtools-cpp-wheel
         path: .python_package/.nox/.cache/dist/gridtools_cpp-*.whl
