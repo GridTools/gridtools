@@ -37,7 +37,9 @@ namespace gridtools {
             struct cuda_free {
                 template <class T>
                 void operator()(T *ptr) const {
-                    cudaFree(const_cast<std::remove_cv_t<T> *>(ptr));
+                    cudaError_t err = cudaFree(const_cast<std::remove_cv_t<T> *>(ptr));
+                    if (err != cudaSuccess)
+                        on_error(err, "cudaFree", "", "", 0);
                 }
             };
 

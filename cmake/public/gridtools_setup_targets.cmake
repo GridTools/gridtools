@@ -161,10 +161,15 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         set(_gt_namespace ${GT_NAMESPACE})
         set(_gt_imported "IMPORTED")
     else()
-        if((GT_CUDA_TYPE STREQUAL NVCC-CUDA) AND (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
+        if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
             # Do not enable the language if we are included from a super-project.
-            # It is up to the super-project to enable CUDA.
-            enable_language(CUDA)
+            # It is up to the super-project to enable CUDA/HIP.
+            if(GT_CUDA_TYPE STREQUAL NVCC-CUDA)
+                enable_language(CUDA)
+            endif()
+            if(GT_CUDA_TYPE STREQUAL HIPCC-AMDGPU)
+                enable_language(HIP)
+            endif()
         endif()
     endif()
 
@@ -212,15 +217,10 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
             set(_gt_setup_root_dir ${CUDAToolkit_BIN_DIR}/..)
             target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-xcuda --cuda-path=${_gt_setup_root_dir}>)
             target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
-            if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0.0)
-                # Workaround for problem seen with Clang 10.0.1 in CUDA mode (havogt):
-                # The default std in Clang 10 is c++14, however in CUDA mode the compiler falls back to pre-c++11.
-                # Hypothesis: CMake tries to be smart and only puts `-std=c++14` if needed, but isn't aware of the CUDA problem...
-                # TODO check if fixed in Clang 11
-                target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>)
-            endif()
         elseif(type STREQUAL HIPCC-AMDGPU)
+            find_package(hip REQUIRED)
             target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-xhip>)
+            target_link_libraries(_gridtools_cuda INTERFACE hip::host)
         endif()
     endfunction()
 

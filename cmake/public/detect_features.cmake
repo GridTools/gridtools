@@ -27,6 +27,16 @@ function(try_nvcc_cuda gt_result)
     set(${gt_result} NOTFOUND PARENT_SCOPE)
 endfunction()
 
+function(try_hip gt_result)
+    include(CheckLanguage)
+    check_language(HIP)
+    if(CMAKE_HIP_COMPILER)
+        set(${gt_result} HIPCC-AMDGPU PARENT_SCOPE)
+        return()
+    endif()
+    set(${gt_result} NOTFOUND PARENT_SCOPE)
+endfunction()
+
 # detect_cuda_type()
 # Parameters:
 #    - cuda_type: result variable is set to one of HIPCC-AMDGPU/NVCC-CUDA/Clang-CUDA/NOTFOUND
@@ -35,16 +45,10 @@ endfunction()
 #       - Clang-CUDA: Try Clang-CUDA or fail.
 #       - NVCC-CUDA: Try NVCC-CUDA or fail.
 function(detect_cuda_type cuda_type clang_mode)
-    get_filename_component(cxx_name ${CMAKE_CXX_COMPILER} NAME)
-    if(cxx_name STREQUAL "hipcc")
-        include(try_compile_hip)
-        try_compile_hip(GT_HIP_WORKS) #TODO use cache variable to avoid compiling each cmake run
-        if(GT_HIP_WORKS)
-            set(${cuda_type} HIPCC-AMDGPU PARENT_SCOPE)
-            return()
-        else()
-            message(FATAL_ERROR "${cxx_name} wasn't able to compile a simple HIP program.")
-        endif()
+    try_hip(gt_result)
+    if(gt_result)
+        set(${cuda_type} HIPCC-AMDGPU PARENT_SCOPE)
+        return()
     endif()
 
     if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
