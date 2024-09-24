@@ -11,6 +11,7 @@
 
 #include <type_traits>
 
+#include "../common/ldg_ptr.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta/logical.hpp"
 
@@ -56,7 +57,7 @@ namespace gridtools::fn::neighbor_table {
 
         template <class T, std::enable_if_t<is_neighbor_list<T>::value, int> = 0>
         GT_FUNCTION T const &neighbor_table_neighbors(T const *table, int index) {
-            return table[index];
+            return *as_ldg_ptr(&table[index]);
         }
 
         template <class NeighborTable>
