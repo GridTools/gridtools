@@ -47,10 +47,11 @@ endfunction()
 #       - NVCC-CUDA: Try NVCC-CUDA or fail.
 function(detect_cuda_type cuda_type mode)
     if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        # not Clang, therefore the only option is NVCC
         try_nvcc_cuda(gt_result)
         set(${cuda_type} ${gt_result} PARENT_SCOPE)
         return()
-    else()
+    else() # Clang
         string(TOLOWER "${mode}" _lower_case_mode)
         if(_lower_case_mode STREQUAL "clang-cuda")
             try_clang_cuda(gt_result)
