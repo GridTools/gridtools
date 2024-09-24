@@ -29,12 +29,13 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/public" "${CMAKE_
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE BOOL "")
 mark_as_advanced(CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
 
-# User setting GT_CLANG_CUDA_MODE: decide if Clang-CUDA or NVCC
+# User setting GT_CLANG_CUDA_MODE: decide if Clang-CUDA, NVCC or HIP
+# TODO(havogt): rename variable to GT_CLANG_MODE in backwards compatible way
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(GT_CLANG_CUDA_MODE "AUTO" CACHE STRING
-        "AUTO, Clang-CUDA or NVCC-CUDA; \
-        AUTO = Use NVCC if language CUDA is enabled, else prefer Clang-CUDA.")
-    set_property(CACHE GT_CLANG_CUDA_MODE PROPERTY STRINGS "AUTO;Clang-CUDA;NVCC-CUDA")
+        "AUTO, Clang-CUDA, NVCC-CUDA or HIP; \
+        AUTO = Use NVCC if language CUDA is enabled, else prefer Clang-CUDA, else prefer HIP.")
+    set_property(CACHE GT_CLANG_CUDA_MODE PROPERTY STRINGS "AUTO;Clang-CUDA;NVCC-CUDA;HIP")
 endif()
 
 # User setting GT_INSTALL_EXAMPLES:

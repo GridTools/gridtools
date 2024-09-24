@@ -40,64 +40,70 @@ endfunction()
 # detect_cuda_type()
 # Parameters:
 #    - cuda_type: result variable is set to one of HIPCC-AMDGPU/NVCC-CUDA/Clang-CUDA/NOTFOUND
-#    - clang_mode: AUTO, Clang-CUDA, NVCC-CUDA
-#       - AUTO: Prefer NVCC-CUDA if the CUDA language is enabled, else try Clang-CUDA
+#    - mode: AUTO, HIP, Clang-CUDA, NVCC-CUDA
+#       - AUTO: Prefer NVCC-CUDA if the CUDA language is enabled, prefer HIP if the HIP langauge is enabled, else try Clang-CUDA, else try HIP.
+#       - HIP: Try HIP or fail.
 #       - Clang-CUDA: Try Clang-CUDA or fail.
 #       - NVCC-CUDA: Try NVCC-CUDA or fail.
-function(detect_cuda_type cuda_type clang_mode)
-    try_hip(gt_result)
-    if(gt_result)
-        set(${cuda_type} HIPCC-AMDGPU PARENT_SCOPE)
-        return()
-    endif()
-
-    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+function(detect_cuda_type cuda_type mode)
+    string(TOLOWER "${mode}" _lower_case_mode)
+    if(_lower_case_mode STREQUAL "clang-cuda")
+        try_clang_cuda(gt_result)
+        if(gt_result)
+            set(${cuda_type} ${gt_result} PARENT_SCOPE)
+            return()
+        else()
+            message(FATAL_ERROR "Clang-CUDA mode was selected, but doesn't work.")
+        endif()
+    elseif(_lower_case_mode STREQUAL "nvcc-cuda")
         try_nvcc_cuda(gt_result)
-        set(${cuda_type} ${gt_result} PARENT_SCOPE)
-        return()
-    else() # Clang
-        string(TOLOWER "${clang_mode}" _lower_case_clang_cuda)
-        if(_lower_case_clang_cuda STREQUAL "clang-cuda")
+        if(gt_result)
+            set(${cuda_type} ${gt_result} PARENT_SCOPE)
+            return()
+        else()
+            message(FATAL_ERROR "NVCC-CUDA mode was selected, but doesn't work.")
+        endif()
+    elseif(_lower_case_mode STREQUAL "hip")
+        try_hip(gt_result)
+        if(gt_result)
+            set(${cuda_type} ${gt_result} PARENT_SCOPE)
+            return()
+        else()
+            message(FATAL_ERROR "HIP mode was selected, but doesn't work.")
+        endif()
+    elseif(_lower_case_mode STREQUAL "auto") # AUTO
+        get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+        if("CUDA" IN_LIST languages) # CUDA language is already enabled, prefer it
+            set(${cuda_type} NVCC-CUDA PARENT_SCOPE)
+            return()
+        elseif("HIP" IN_LIST languages) # HIP language is already enabled, prefer it
+            set(${cuda_type} HIPCC-AMDGPU PARENT_SCOPE)
+            return()
+        else()
+            # Prefer Clang-CUDA
             try_clang_cuda(gt_result)
             if(gt_result)
                 set(${cuda_type} ${gt_result} PARENT_SCOPE)
                 return()
-            else()
-                message(FATAL_ERROR "Clang-CUDA mode was selected, but doesn't work.")
             endif()
-        elseif(_lower_case_clang_cuda STREQUAL "nvcc-cuda")
+
+            # Clang-CUDA doesn't work, try NVCC
             try_nvcc_cuda(gt_result)
             if(gt_result)
                 set(${cuda_type} ${gt_result} PARENT_SCOPE)
                 return()
-            else()
-                message(FATAL_ERROR "NVCC-CUDA mode was selected, but doesn't work.")
             endif()
-        elseif(_lower_case_clang_cuda STREQUAL "auto") # AUTO
-            get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
-            if("CUDA" IN_LIST languages) # CUDA language is already enabled, prefer it
-                set(${cuda_type} NVCC-CUDA PARENT_SCOPE)
+
+            # No CUDA variant works, try HIP
+            try_hip(gt_result)
+            if(gt_result)
+                set(${cuda_type} ${gt_result} PARENT_SCOPE)
                 return()
-            else()
-                # Prefer Clang-CUDA
-                try_clang_cuda(gt_result)
-                if(gt_result)
-                    set(${cuda_type} ${gt_result} PARENT_SCOPE)
-                    return()
-                endif()
-
-                # Clang-CUDA doesn't work, try NVCC
-                try_nvcc_cuda(gt_result)
-                if(gt_result)
-                    set(${cuda_type} ${gt_result} PARENT_SCOPE)
-                    return()
-                endif()
-
-                set(${cuda_type} NOTFOUND PARENT_SCOPE)
             endif()
-        else()
-            message(FATAL_ERROR "Clang CUDA mode set to invalid value ${clang_mode}")
+
+            set(${cuda_type} NOTFOUND PARENT_SCOPE)
         endif()
+    else()
+        message(FATAL_ERROR "CUDA/HIP mode set to invalid value ${mode}")
     endif()
-    set(${cuda_type} NOTFOUND PARENT_SCOPE)
 endfunction()
