@@ -46,6 +46,9 @@ endfunction()
 #       - Clang-CUDA: Try Clang-CUDA or fail.
 #       - NVCC-CUDA: Try NVCC-CUDA or fail.
 function(detect_cuda_type cuda_type mode)
+    if(NOT DEFINED mode)
+        set(mode AUTO)
+    endif()
     string(TOLOWER "${mode}" _lower_case_mode)
     if(_lower_case_mode STREQUAL "clang-cuda")
         try_clang_cuda(gt_result)
