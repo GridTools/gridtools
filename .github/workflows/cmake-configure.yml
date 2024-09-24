@@ -102,3 +102,21 @@ jobs:
         && cmake .. > out.log
         && cat out.log
         && grep "GPU mode: NVCC-CUDA" out.log > /dev/null
+
+  hip:
+    runs-on: ubuntu-latest
+    container: ghcr.io/gridtools/gridtools-base:base-hip
+    strategy:
+        matrix:
+            cuda-mode: [AUTO, HIP]
+    steps:
+    - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
+    - name: CMake configure expect success
+      run: >
+        mkdir build && cd build
+        && cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
+        && cat out.log
+        && grep "GPU mode: HIPCC-AMD" out.log > /dev/null
