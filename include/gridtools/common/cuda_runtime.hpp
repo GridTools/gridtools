@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#if defined(__HIP__)
+#if defined(__HIP__) || defined(GT_HIP_RUNTIME)
 #include <hip/hip_runtime.h>
 #ifdef NDEBUG
 #undef assert
