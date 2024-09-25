@@ -638,20 +638,25 @@ namespace gridtools {
             return {};
         }
 
-        template <class Key, int UnrollFactor, class NumSteps, class Step = integral_constant<int, 1>>
+        template <class Key,
+            int UnrollFactor,
+            class NumSteps,
+            class Step = integral_constant<int, 1>,
+            std::enable_if_t<(UnrollFactor > 1), int> = 0>
         constexpr GT_FUNCTION auto make_unrolled_loop(NumSteps num_steps, Step step = {}) {
             using u = integral_constant<int, UnrollFactor>;
             return [step,
                        unrolled = make_loop<Key>(num_steps / u(), step * u()),
                        epilogue = make_loop<Key>(num_steps % u(), step),
                        epilogue_start = step * ((num_steps / u()) * u())](auto &&fun) {
-                return [unrolled = unrolled([step, fun=std::forward<decltype(fun)>(fun)](auto &&ptr, auto const strides) {
-                    ::gridtools::host_device::for_each<meta::make_indices_c<UnrollFactor>>([&](auto) {
-                        fun(std::forward<decltype(ptr)>(ptr), strides);
-                        shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), step);
-                    });
-                    shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), -step * u());
-                }),
+                return [unrolled =
+                               unrolled([step, fun = std::forward<decltype(fun)>(fun)](auto &&ptr, auto const strides) {
+                                   ::gridtools::host_device::for_each<meta::make_indices_c<UnrollFactor>>([&](auto) {
+                                       fun(std::forward<decltype(ptr)>(ptr), strides);
+                                       shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), step);
+                                   });
+                                   shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), -step * u());
+                               }),
                            epilogue = epilogue(std::forward<decltype(fun)>(fun)),
                            epilogue_start](auto &&ptr, auto const &strides) {
                     unrolled(std::forward<decltype(ptr)>(ptr), strides);
@@ -660,6 +665,15 @@ namespace gridtools {
                     shift(std::forward<decltype(ptr)>(ptr), get_stride<Key>(strides), -epilogue_start);
                 };
             };
+        }
+
+        template <class Key,
+            int UnrollFactor,
+            class NumSteps,
+            class Step = integral_constant<int, 1>,
+            std::enable_if_t<(UnrollFactor == 1), int> = 0>
+        constexpr GT_FUNCTION auto make_unrolled_loop(NumSteps num_steps, Step step = {}) {
+            return make_loop<Key>(num_steps, step);
         }
 
         /**
