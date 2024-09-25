@@ -35,8 +35,7 @@ namespace gridtools::fn::backend {
         constexpr GT_FUNCTION auto make_unrolled_loops(Sizes const &sizes, UnrollFactors) {
             return tuple_util::host_device::fold(
                 [&](auto outer, auto dim) {
-                    using unroll_factor = std::remove_reference_t<decltype(host_device::at_key<decltype(dim)>(
-                        std::declval<UnrollFactors const &>()))>;
+                    using unroll_factor = element_at<decltype(dim), UnrollFactors>;
                     return [outer = std::move(outer),
                                inner = sid::make_unrolled_loop<decltype(dim), unroll_factor::value>(
                                    host_device::at_key<decltype(dim)>(sizes))](
