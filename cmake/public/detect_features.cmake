@@ -41,7 +41,7 @@ endfunction()
 # Parameters:
 #    - cuda_type: result variable is set to one of HIPCC-AMDGPU/NVCC-CUDA/Clang-CUDA/NOTFOUND
 #    - mode: AUTO, HIP, Clang-CUDA, NVCC-CUDA
-#       - AUTO: Prefer NVCC-CUDA if the CUDA language is enabled, prefer HIP if the HIP langauge is enabled, else try Clang-CUDA, else try HIP.
+#       - AUTO: Prefer NVCC-CUDA if the CUDA language is enabled, prefer HIP if the HIP language is enabled, else try Clang-CUDA, else try HIP.
 #       - HIP: Try HIP or fail.
 #       - Clang-CUDA: Try Clang-CUDA or fail.
 #       - NVCC-CUDA: Try NVCC-CUDA or fail.

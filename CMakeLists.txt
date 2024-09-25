@@ -34,7 +34,7 @@ mark_as_advanced(CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(GT_CLANG_CUDA_MODE "AUTO" CACHE STRING
         "AUTO, Clang-CUDA, NVCC-CUDA or HIP; \
-        AUTO = Use NVCC if language CUDA is enabled, else prefer Clang-CUDA, else prefer HIP.")
+AUTO = Use NVCC if language CUDA is enabled, else prefer Clang-CUDA, else prefer HIP.")
     set_property(CACHE GT_CLANG_CUDA_MODE PROPERTY STRINGS "AUTO;Clang-CUDA;NVCC-CUDA;HIP")
 endif()
 
