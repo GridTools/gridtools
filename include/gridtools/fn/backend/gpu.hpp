@@ -57,9 +57,7 @@ namespace gridtools::fn::backend {
         template <class BlockSizes>
         struct block_size_at_dim {
             template <class Dim>
-            using apply = std::conditional_t<std::is_void_v<meta::mp_find<BlockSizes, Dim, void>>,
-                meta::list<Dim, integral_constant<int, 1>>,
-                meta::mp_find<BlockSizes, Dim, void>>;
+            using apply = meta::mp_find<BlockSizes, Dim, meta::list<Dim, integral_constant<int, 1>>>;
         };
 
         template <class BlockSizes, class Sizes>
