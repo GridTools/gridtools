@@ -11,6 +11,7 @@
 
 #include <functional>
 
+#include "../common/ldg_ptr.hpp"
 #include "../common/tuple_util.hpp"
 #include "../sid/concept.hpp"
 #include "./common_interface.hpp"
@@ -44,7 +45,7 @@ namespace gridtools::fn {
 
         template <class Tag, class Ptr, class Strides>
         GT_FUNCTION auto deref(iterator<Tag, Ptr, Strides> const &it) {
-            return *it.m_ptr;
+            return *as_ldg_ptr(it.m_ptr);
         }
 
         template <class Tag, class Ptr, class Strides, class Dim, class Offset, class... Offsets>

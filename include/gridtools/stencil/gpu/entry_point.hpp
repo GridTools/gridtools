@@ -18,6 +18,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../common/ldg_ptr.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../../sid/allocator.hpp"
@@ -132,13 +133,11 @@ namespace gridtools {
 
             template <class Keys>
             struct deref_f {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
                 template <class Key, class T>
-                GT_FUNCTION std::enable_if_t<is_texture_type<T>::value && meta::st_contains<Keys, Key>::value, T>
-                operator()(Key, T const *ptr) const {
-                    return __ldg(ptr);
+                GT_FUNCTION std::enable_if_t<meta::st_contains<Keys, Key>::value, T> operator()(
+                    Key, T const *ptr) const {
+                    return *as_ldg_ptr(ptr);
                 }
-#endif
                 template <class Key, class Ptr>
                 GT_FUNCTION decltype(auto) operator()(Key, Ptr ptr) const {
                     return *ptr;

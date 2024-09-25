@@ -13,6 +13,7 @@
 #include <type_traits>
 
 #include "../common/array.hpp"
+#include "../common/ldg_ptr.hpp"
 #include "../fn/unstructured.hpp"
 #include "../sid/concept.hpp"
 
@@ -46,7 +47,7 @@ namespace gridtools::fn::sid_neighbor_table {
 
             sid::shift(ptr, sid::get_stride<IndexDimension>(table.strides), index);
             for (std::size_t element_idx = 0; element_idx < MaxNumNeighbors; ++element_idx) {
-                neighbors[element_idx] = *ptr;
+                neighbors[element_idx] = *as_ldg_ptr(ptr);
                 sid::shift(ptr, sid::get_stride<NeighborDimension>(table.strides), 1_c);
             }
             return neighbors;
