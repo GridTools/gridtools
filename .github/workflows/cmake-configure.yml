@@ -108,7 +108,7 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:base-${{ matrix.rocm_version }}
     strategy:
         matrix:
-            rocm_version: [hip, rocm-6.2] # "hip" is rocm-5.x
+            rocm_version: [hip] # "hip" is rocm-5.x
             cuda-mode: [AUTO, HIP]
     steps:
     - uses: actions/checkout@v2
