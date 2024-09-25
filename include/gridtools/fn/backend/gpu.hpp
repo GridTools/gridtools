@@ -120,7 +120,8 @@ namespace gridtools::fn::backend {
                 tuple_util::device::transform_index(global_thread_index_f{}, thread_block_sizes, loop_block_sizes);
             auto block_sizes =
                 tuple_util::device::transform_index(block_size_f{}, global_thread_indices, loop_block_sizes, sizes);
-            return std::make_tuple(std::move(global_thread_indices), std::move(block_sizes));
+            return std::make_tuple(
+                std::move(global_thread_indices), std::move(block_sizes), std::move(loop_block_sizes));
         }
 
         template <class Int, Int... i>
@@ -137,12 +138,13 @@ namespace gridtools::fn::backend {
             int NumThreads = iseq_product(meta::list_to_iseq<block_sizes_for_sizes<ThreadBlockSizes, Sizes>>())>
         __global__ void __launch_bounds__(NumThreads)
             kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
-            auto const [thread_idx, block_size] = global_thread_index<ThreadBlockSizes, LoopBlockSizes>(sizes);
+            auto const [thread_idx, block_size, max_block_size] =
+                global_thread_index<ThreadBlockSizes, LoopBlockSizes>(sizes);
             if (!tuple_util::device::all_of(std::less(), thread_idx, sizes))
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            common::make_loops(block_size)(std::move(fun))(ptr, strides);
+            common::make_unrolled_loops(block_size, max_block_size)(std::move(fun))(ptr, strides);
         }
 
         template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
@@ -179,7 +181,7 @@ namespace gridtools::fn::backend {
             MakeIterator m_make_iterator;
 
             template <class Ptr, class Strides>
-            GT_FUNCTION_DEVICE void operator()(Ptr &ptr, Strides const &strides) const {
+            GT_FUNCTION_DEVICE constexpr void operator()(Ptr &ptr, Strides const &strides) const {
                 StencilStage()(m_make_iterator(), ptr, strides);
             }
         };

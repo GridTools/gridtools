@@ -7,6 +7,7 @@ module switch cudatoolkit/11.2.0_3.39-2.1__gf93aa1c
 module switch cce/10.0.2
 
 export GTCMAKE_GT_CLANG_CUDA_MODE=NVCC-CUDA
+export GTCMAKE_CMAKE_CUDA_FLAGS_RELEASE='-O3 -DNDEBUG --use_fast_math'
 
 export CTEST_PARALLEL_LEVEL=1
 

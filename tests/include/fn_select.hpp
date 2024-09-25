@@ -68,6 +68,7 @@ namespace gridtools::fn::backend {
             return "naive";
         }
     } // namespace naive_impl_
+    using naive_impl_::naive_with_threadpool;
 
     namespace gpu_impl_ {
         template <class, class>
@@ -81,4 +82,5 @@ namespace gridtools::fn::backend {
             return "gpu";
         }
     } // namespace gpu_impl_
+    using gpu_impl_::gpu;
 } // namespace gridtools::fn::backend
