@@ -37,7 +37,7 @@ CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host 
 ##### Requirements
 - C++17 compiler (see also list of tested compilers)
 - Boost headers (1.73 or later)
-- CMake (3.18.1 or later)
+- CMake (3.21.0 or later)
 - CUDA Toolkit (11.0 or later, optional)
 - MPI (optional, CUDA-aware MPI for the GPU communication module `gcl_gpu`)
 
@@ -56,8 +56,8 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 ##### Known issues
 
-- Some tests are failing with ROCm3.8.0 (Clang 11).
 - CUDA 11.0.x has a severe issue, see https://github.com/GridTools/gridtools/issues/1522. Under certain conditions, GridTools code will not compile for this version of CUDA. CUDA 11.1.x and later should not be affected by this issue.
+- CUDA 12.1, 12.2, 12.3, 12.4 have various issues related to `constexpr`, see https://github.com/GridTools/gridtools/issues/1766. We recommend CUDA 12.5 or later.
 - Cray Clang version 11.0.0 has a problem with the `gridtools::tuple` conversion constructor, see https://github.com/GridTools/gridtools/issues/1615.
 
 ##### Partly supported (expected to work, but not tested regularly)
@@ -66,6 +66,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | --- | --- | --- | --- |
 | Intel 19.1.1.217 | all backends | 2021-09-30 | with `cmake . -DCMAKE_CXX_FLAGS=-qnextgen` |
 | NVHPC 23.3 | all backends | 2023-04-20 | only compilation is tested regularly in CI |
+| ROCm 6.0.3 | all backends | 2024-09-24 | tested on AMD MI250X (LUMI) |
 
 ### Contributing
 

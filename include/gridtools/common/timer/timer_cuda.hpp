@@ -21,7 +21,7 @@ namespace gridtools {
     class timer_cuda {
         struct destroy_event {
             using pointer = cudaEvent_t;
-            void operator()(cudaEvent_t event) const { cudaEventDestroy(event); }
+            void operator()(cudaEvent_t event) const { GT_CUDA_CHECK(cudaEventDestroy(event)); }
         };
 
         using event_holder = std::unique_ptr<void, destroy_event>;

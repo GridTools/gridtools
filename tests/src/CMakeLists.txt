@@ -16,5 +16,8 @@ if (TARGET gcl_gpu)
     target_link_libraries(mpi_gtest_main_gpu PUBLIC gridtools gtest MPI::MPI_CXX)
     if(TARGET CUDA::cudart) # doesn't exist if HIP mode
         target_link_libraries(mpi_gtest_main_gpu PUBLIC CUDA::cudart)
+    else() # HIP
+        target_link_libraries(mpi_gtest_main_gpu PRIVATE hip::host)
+        target_compile_definitions(mpi_gtest_main_gpu PRIVATE GT_HIP_RUNTIME)    
     endif()
 endif()

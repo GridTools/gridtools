@@ -27,9 +27,8 @@ namespace gridtools {
         cudaPointerAttributes ptrAttributes;
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
-
-#if defined(CUDART_VERSION) && CUDART_VERSION < 10000 or defined(__HIPCC__)
-            return ptrAttributes.memoryType == cudaMemoryTypeDevice; // deprecated in CUDA 10
+#if defined(HIP_VERSION) and HIP_VERSION < 60000000
+            return ptrAttributes.memoryType == cudaMemoryTypeDevice;
 #else
             return ptrAttributes.type == cudaMemoryTypeDevice || ptrAttributes.type == cudaMemoryTypeManaged;
 #endif
