@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#if defined(__HIP__)
+#if defined(__HIP__) || defined(GT_HIP_RUNTIME)
 #include <hip/hip_runtime.h>
 #ifdef NDEBUG
 #undef assert
@@ -41,6 +41,7 @@
 #define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
 #define cudaMemcpyHostToDevice hipMemcpyHostToDevice
 #define cudaMemoryTypeDevice hipMemoryTypeDevice
+#define cudaMemoryTypeManaged hipMemoryTypeManaged
 #define cudaPointerAttributes hipPointerAttribute_t
 #define cudaPointerGetAttributes hipPointerGetAttributes
 #define cudaSetDevice hipSetDevice
