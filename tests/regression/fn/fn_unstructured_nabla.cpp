@@ -184,6 +184,12 @@ namespace {
     static constexpr int vertex_field_id = 0;
     static constexpr int edge_field_id = 1;
 
+    using k_blocked_backend_t = meta::if_<meta::is_instantiation_of<backend::gpu, fn_backend_t>,
+        backend::gpu<meta::list<meta::list<integral_constant<int, 0>, integral_constant<int, 32>>,
+                         meta::list<integral_constant<int, 1>, integral_constant<int, 8>>>,
+            meta::list<meta::list<integral_constant<int, 1>, integral_constant<int, 5>>>>,
+        fn_backend_t>;
+
     constexpr inline auto make_comp = [](auto backend, auto const &mesh, auto &nabla) {
         using mesh_t = std::remove_reference_t<decltype(mesh)>;
         using float_t = typename mesh_t::float_t;
@@ -253,12 +259,12 @@ namespace {
         TypeParam::benchmark("fn_unstructured_nabla_field_of_tuples", comp);
     }
 
-    GT_REGRESSION_TEST(fn_unstructured_nabla_fused_field_of_tuples, test_environment<>, fn_backend_t) {
+    GT_REGRESSION_TEST(fn_unstructured_nabla_fused_field_of_tuples, test_environment<>, k_blocked_backend_t) {
         using float_t = typename TypeParam::float_t;
 
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla = mesh.template make_storage<tuple<float_t, float_t>>(mesh.nvertices(), mesh.nlevels());
-        auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
+        auto comp = make_comp_fused(k_blocked_backend_t(), mesh, nabla);
         comp();
         auto expected = make_expected(mesh);
         TypeParam::verify(expected, nabla);
@@ -266,6 +272,8 @@ namespace {
     }
 
     GT_REGRESSION_TEST(fn_unstructured_nabla_tuple_of_fields, test_environment<>, fn_backend_t) {
+        using float_t = typename TypeParam::float_t;
+
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla0 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
         auto nabla1 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
@@ -280,14 +288,16 @@ namespace {
         TypeParam::benchmark("fn_unstructured_nabla_tuple_of_fields", comp);
     }
 
-    GT_REGRESSION_TEST(fn_unstructured_nabla_fused_tuple_of_fields, test_environment<>, fn_backend_t) {
+    GT_REGRESSION_TEST(fn_unstructured_nabla_fused_tuple_of_fields, test_environment<>, k_blocked_backend_t) {
+        using float_t = typename TypeParam::float_t;
+
         auto mesh = TypeParam::fn_unstructured_mesh();
         auto nabla0 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
         auto nabla1 = mesh.template make_storage<float_t, vertex_field_id>(mesh.nvertices(), mesh.nlevels());
         auto nabla =
             sid::composite::keys<integral_constant<int, 0>, integral_constant<int, 1>>::make_values(nabla0, nabla1);
 
-        auto comp = make_comp_fused(fn_backend_t(), mesh, nabla);
+        auto comp = make_comp_fused(k_blocked_backend_t(), mesh, nabla);
         comp();
         auto expected = make_expected(mesh);
         TypeParam::verify([&](int vertex, int k) { return get<0>(expected(vertex, k)); }, nabla0);
