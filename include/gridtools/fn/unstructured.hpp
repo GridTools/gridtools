@@ -87,7 +87,10 @@ namespace gridtools::fn {
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>
         GT_FUNCTION constexpr auto horizontal_shift(iterator<Tag, Ptr, Strides, Domain> const &it, Conn, Offset) {
             auto const &table = host_device::at_key<Conn>(it.m_domain.m_tables);
-            auto new_index = it.m_index == -1 ? -1 : get<Offset::value>(neighbor_table::neighbors(table, it.m_index));
+            const auto* __restrict__ r_table = &table;
+            const auto* __restrict__ r_neighbors = neighbor_table::neighbors(*r_table, it.m_index).data();
+            // printf("r_neighbors: %p, &r_neighbors[Offset::value]: %p, Offset::value: %d\n", r_neighbors, &r_neighbors[Offset::value], Offset::value);
+            const auto new_index = r_neighbors[Offset::value];
             auto shifted = it;
             shifted.m_index = new_index;
             return shifted;
