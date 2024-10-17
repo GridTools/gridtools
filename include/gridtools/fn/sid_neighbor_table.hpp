@@ -40,7 +40,7 @@ namespace gridtools::fn::sid_neighbor_table {
 
             using namespace gridtools::literals;
 
-            const auto* __restrict__ ptr = table.origin();
+            const auto* ptr = table.origin();
             using element_type = std::decay_t<decltype(*ptr)>;
 
             gridtools::array<element_type, MaxNumNeighbors> neighbors;
