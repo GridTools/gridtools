@@ -90,7 +90,7 @@ namespace gridtools::fn {
             const auto* __restrict__ r_table = &table;
             const auto* __restrict__ r_neighbors = neighbor_table::neighbors(*r_table, it.m_index).data();
             // printf("r_neighbors: %p, &r_neighbors[Offset::value]: %p, Offset::value: %d\n", r_neighbors, &r_neighbors[Offset::value], Offset::value);
-            const auto new_index = r_neighbors[Offset::value];
+            const auto new_index = *as_ldg_ptr(&r_neighbors[Offset::value]);
             auto shifted = it;
             shifted.m_index = new_index;
             return shifted;
