@@ -68,17 +68,19 @@ namespace gridtools::fn::backend {
             return "naive";
         }
     } // namespace naive_impl_
+    using naive_impl_::naive_with_threadpool;
 
     namespace gpu_impl_ {
-        template <class>
+        template <class, class>
         struct gpu;
-        template <class BlockSizes>
-        storage::gpu backend_storage_traits(gpu<BlockSizes>);
-        template <class BlockSizes>
-        timer_cuda backend_timer_impl(gpu<BlockSizes>);
-        template <class BlockSizes>
-        inline char const *backend_name(gpu<BlockSizes> const &) {
+        template <class ThreadBlockSizes, class LoopBlockSizes>
+        storage::gpu backend_storage_traits(gpu<ThreadBlockSizes, LoopBlockSizes>);
+        template <class ThreadBlockSizes, class LoopBlockSizes>
+        timer_cuda backend_timer_impl(gpu<ThreadBlockSizes, LoopBlockSizes>);
+        template <class ThreadBlockSizes, class LoopBlockSizes>
+        inline char const *backend_name(gpu<ThreadBlockSizes, LoopBlockSizes> const &) {
             return "gpu";
         }
     } // namespace gpu_impl_
+    using gpu_impl_::gpu;
 } // namespace gridtools::fn::backend
