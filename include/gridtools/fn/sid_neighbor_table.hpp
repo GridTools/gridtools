@@ -15,6 +15,7 @@
 #include "../common/array.hpp"
 #include "../common/ldg_ptr.hpp"
 #include "../fn/unstructured.hpp"
+#include "../sid/as_const.hpp"
 #include "../sid/concept.hpp"
 
 namespace gridtools::fn::sid_neighbor_table {
@@ -40,7 +41,7 @@ namespace gridtools::fn::sid_neighbor_table {
 
             using namespace gridtools::literals;
 
-            const auto* ptr = table.origin();
+            auto ptr = table.origin();
             using element_type = std::decay_t<decltype(*ptr)>;
 
             gridtools::array<element_type, MaxNumNeighbors> neighbors;
@@ -61,13 +62,14 @@ namespace gridtools::fn::sid_neighbor_table {
             static_assert(!std::is_same_v<IndexDimension, NeighborDimension>,
                 "The index dimension and the neighbor dimension must be different.");
 
-            const auto origin = sid::get_origin(sid);
+            auto const_sid = sid::add_const(std::true_type{}, sid);
+            auto origin = get_origin(const_sid);
             const auto strides = sid::get_strides(sid);
 
             return sid_neighbor_table<IndexDimension,
                 NeighborDimension,
                 MaxNumNeighbors,
-                sid::ptr_holder_type<Sid>,
+                decltype(origin),
                 sid::strides_type<Sid>>{
                 origin, strides}; // Note: putting the return type into the function signature will crash nvcc 12.0
         }
