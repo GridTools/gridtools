@@ -18,6 +18,7 @@
 #include "../../common/array.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"
+#include "../../sid/as_const.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
 #include "../../sid/unknown_kind.hpp"
@@ -97,10 +98,22 @@ namespace gridtools {
                 .template set<property::lower_bounds>(gridtools::array<integral_constant<std::size_t, 0>, ndim>())
                 .template set<property::upper_bounds>(shape);
         }
+
+        template <class T,
+            array_size_t... Sizes,
+            class... Args,
+            class Strides = fully_dynamic_strides<sizeof...(Sizes)>,
+            class StridesKind = sid::unknown_kind>
+        auto as_const_sid(nanobind::ndarray<T, nanobind::shape<Sizes...>, Args...> ndarray,
+            Strides stride_spec_ = {},
+            StridesKind = {}) {
+            return sid::add_const(std::true_type{}, as_sid(ndarray, stride_spec_, StridesKind{}));
+        }
     } // namespace nanobind_sid_adapter_impl_
 
     namespace nanobind {
         using nanobind_sid_adapter_impl_::as_sid;
+        using nanobind_sid_adapter_impl_::as_const_sid;
         using nanobind_sid_adapter_impl_::dynamic_size;
         using nanobind_sid_adapter_impl_::fully_dynamic_strides;
         using nanobind_sid_adapter_impl_::stride_spec;
