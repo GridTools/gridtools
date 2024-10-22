@@ -153,7 +153,13 @@ namespace gridtools::fn::backend {
                 return;
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            common::make_unrolled_loops(block_size, max_block_size)(std::move(fun))(ptr, strides);
+            // note: This loop could be fully (or partially) unrolled. However, performance measurements on GH200 show
+            // best performance without unrolling due to reduced register usage. Before CUDA 12, full unrolling might be
+            // faster as the compiler is not able to apply loop hoisting of data loads.
+            using dont_unroll_t = meta::transform<meta::always<integral_constant<int, 1>>::template apply,
+                std::remove_const_t<decltype(max_block_size)>>;
+            auto const unroll_factors = dont_unroll_t();
+            common::make_unrolled_loops(block_size, unroll_factors)(std::move(fun))(ptr, strides);
         }
 
         template <class ThreadBlockSizes, class LoopBlockSizes, class Sizes>
