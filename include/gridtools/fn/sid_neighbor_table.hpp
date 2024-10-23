@@ -62,9 +62,9 @@ namespace gridtools::fn::sid_neighbor_table {
             static_assert(!std::is_same_v<IndexDimension, NeighborDimension>,
                 "The index dimension and the neighbor dimension must be different.");
 
-            const auto const_sid = sid::add_const(std::true_type{}, sid);
-            const auto origin = get_origin(const_sid);
-            const auto strides = sid::get_strides(sid);
+            const auto const_sid = sid::as_const(std::forward<Sid>(sid));
+            const auto origin = sid::get_origin(const_sid);
+            const auto strides = sid::get_strides(const_sid);
 
             return sid_neighbor_table<IndexDimension,
                 NeighborDimension,
