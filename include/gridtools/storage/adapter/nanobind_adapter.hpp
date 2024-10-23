@@ -91,29 +91,20 @@ namespace gridtools {
             std::copy_n(ndarray.stride_ptr(), ndim, strides.begin());
             const auto static_strides = select_static_strides(stride_spec, strides.data());
 
-            return sid::synthetic()
-                .template set<property::origin>(sid::host_device::simple_ptr_holder<T *>{ptr})
-                .template set<property::strides>(static_strides)
-                .template set<property::strides_kind, StridesKind>()
-                .template set<property::lower_bounds>(gridtools::array<integral_constant<std::size_t, 0>, ndim>())
-                .template set<property::upper_bounds>(shape);
-        }
-
-        template <class T,
-            array_size_t... Sizes,
-            class... Args,
-            class Strides = fully_dynamic_strides<sizeof...(Sizes)>,
-            class StridesKind = sid::unknown_kind>
-        auto as_const_sid(nanobind::ndarray<T, nanobind::shape<Sizes...>, Args...> ndarray,
-            Strides stride_spec = {},
-            StridesKind strides_kind = {}) {
-            return sid::as_const(as_sid(ndarray, stride_spec, strides_kind));
+            return sid::add_const(
+                    std::integral_constant<bool, ndarray.ReadOnly>{},
+                    sid::synthetic()
+                        .template set<property::origin>(sid::host_device::simple_ptr_holder<T *>{ptr})
+                        .template set<property::strides>(static_strides)
+                        .template set<property::strides_kind, StridesKind>()
+                        .template set<property::lower_bounds>(gridtools::array<integral_constant<std::size_t, 0>, ndim>())
+                        .template set<property::upper_bounds>(shape)
+                );
         }
     } // namespace nanobind_sid_adapter_impl_
 
     namespace nanobind {
         using nanobind_sid_adapter_impl_::as_sid;
-        using nanobind_sid_adapter_impl_::as_const_sid;
         using nanobind_sid_adapter_impl_::dynamic_size;
         using nanobind_sid_adapter_impl_::fully_dynamic_strides;
         using nanobind_sid_adapter_impl_::stride_spec;
