@@ -16,7 +16,6 @@
 #include "../common/ldg_ptr.hpp"
 #include "../meta/logical.hpp"
 #include "../sid/concept.hpp"
-#include "../stencil/positional.hpp"
 #include "./common_interface.hpp"
 #include "./executor.hpp"
 #include "./neighbor_table.hpp"
