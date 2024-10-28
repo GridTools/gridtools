@@ -35,7 +35,7 @@ namespace gridtools::fn {
 
     template <class D>
     constexpr auto index(D) {
-        return gridtools::stencil::positional<std::decay_t<D>>();
+        return gridtools::stencil::positional<D>();
     }
 
 } // namespace gridtools::fn
