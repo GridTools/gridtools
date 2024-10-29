@@ -17,11 +17,15 @@
 
 namespace gridtools {
 
-#if defined(GT_CUDACC) && defined(GT_CUDA_ARCH)
+#ifdef GT_CUDACC
 
     template <class T>
     GT_FUNCTION constexpr std::enable_if_t<is_texture_type<T>::value, T> const_ptr_deref(T const *ptr) {
+#ifdef GT_CUDA_ARCH
         return __ldg(ptr);
+#else
+        return *ptr;
+#endif
     }
 
 #endif
