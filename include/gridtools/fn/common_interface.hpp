@@ -9,8 +9,11 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
+#include "../stencil/positional.hpp"
 #include "./backend/common.hpp"
 
 namespace gridtools::fn {
@@ -28,6 +31,11 @@ namespace gridtools::fn {
     template <class... Args>
     GT_FUNCTION tuple<std::decay_t<Args>...> make_tuple(Args &&...args) {
         return {std::forward<Args>(args)...};
+    }
+
+    template <class D>
+    constexpr auto index(D) {
+        return gridtools::stencil::positional<D>();
     }
 
 } // namespace gridtools::fn
