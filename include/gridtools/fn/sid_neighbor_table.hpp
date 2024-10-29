@@ -70,7 +70,7 @@ namespace gridtools::fn::sid_neighbor_table {
                 NeighborDimension,
                 MaxNumNeighbors,
                 decltype(origin),
-                sid::strides_type<Sid>>{
+                decltype(strides)>{
                 origin, strides}; // Note: putting the return type into the function signature will crash nvcc 12.0
         }
     } // namespace sid_neighbor_table_impl_
