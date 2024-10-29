@@ -12,7 +12,7 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:${{ matrix.compiler }}
     strategy:
         matrix:
-            compiler: [gcc-8, gcc-9, gcc-10, gcc-11, gcc-12, gcc-13, clang-11, clang-12, clang-13, clang-14, clang-15, clang-16, clang-14-cuda-11, gcc-10-cuda-11.8, gcc-11-cuda-12.0, gcc-12-cuda-12.3, gcc-12-cuda-12.4, base-hip, gcc-10-hpx, nvhpc-23.3, nvhpc-23.9]
+            compiler: [gcc-8, gcc-9, gcc-10, gcc-11, gcc-12, gcc-13, clang-11, clang-12, clang-13, clang-14, clang-15, clang-16, clang-14-cuda-11, gcc-10-cuda-11.8, gcc-11-cuda-12.0, gcc-12-cuda-12.3, gcc-12-cuda-12.4, base-rocm-6.2.2, gcc-10-hpx, nvhpc-23.3, nvhpc-23.9]
             build_type: [debug, release]
             exclude:
               - compiler: gcc-8
@@ -41,6 +41,6 @@ jobs:
         python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
     - name: run tests
       # no GPUs available -> no tests (for nvhpc we could run cpu, but we currently don't expose that option in pyutils/driver.py)
-      if: (!contains(matrix.compiler, 'cuda') && !contains(matrix.compiler, 'hip') && !contains(matrix.compiler, 'nvhpc')) 
+      if: (!contains(matrix.compiler, 'cuda') && !contains(matrix.compiler, 'rocm') && !contains(matrix.compiler, 'nvhpc'))
       run: |
         $(pwd)/build/pyutils/driver.py -vv test --perftests-only
