@@ -18,7 +18,6 @@
 #include "../../common/array.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"
-#include "../../sid/as_const.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
 #include "../../sid/unknown_kind.hpp"
@@ -79,7 +78,7 @@ namespace gridtools {
             class Strides = fully_dynamic_strides<sizeof...(Sizes)>,
             class StridesKind = sid::unknown_kind>
         auto as_sid(nanobind::ndarray<T, nanobind::shape<Sizes...>, Args...> ndarray,
-            Strides stride_spec = {},
+            Strides stride_spec_ = {},
             StridesKind = {}) {
             using sid::property;
             const auto ptr = ndarray.data();
@@ -87,19 +86,16 @@ namespace gridtools {
             assert(ndim == ndarray.ndim());
             gridtools::array<std::size_t, ndim> shape;
             std::copy_n(ndarray.shape_ptr(), ndim, shape.begin());
-            gridtools::array<std::size_t, ndim> strides;
-            std::copy_n(ndarray.stride_ptr(), ndim, strides.begin());
-            const auto static_strides = select_static_strides(stride_spec, strides.data());
+            gridtools::array<std::size_t, ndim> strides_;
+            std::copy_n(ndarray.stride_ptr(), ndim, strides_.begin());
+            const auto strides = select_static_strides(stride_spec_, strides_.data());
 
-            return sid::add_const(
-                    std::integral_constant<bool, ndarray.ReadOnly>{},
-                    sid::synthetic()
-                        .template set<property::origin>(sid::host_device::simple_ptr_holder<T *>{ptr})
-                        .template set<property::strides>(static_strides)
-                        .template set<property::strides_kind, StridesKind>()
-                        .template set<property::lower_bounds>(gridtools::array<integral_constant<std::size_t, 0>, ndim>())
-                        .template set<property::upper_bounds>(shape)
-                );
+            return sid::synthetic()
+                .template set<property::origin>(sid::host_device::simple_ptr_holder<T *>{ptr})
+                .template set<property::strides>(strides)
+                .template set<property::strides_kind, StridesKind>()
+                .template set<property::lower_bounds>(gridtools::array<integral_constant<std::size_t, 0>, ndim>())
+                .template set<property::upper_bounds>(shape);
         }
     } // namespace nanobind_sid_adapter_impl_
 
