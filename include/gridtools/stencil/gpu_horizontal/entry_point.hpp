@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "../../common/const_ptr_deref.hpp"
 #include "../../common/cuda_type_traits.hpp"
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
@@ -20,7 +21,6 @@
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
-#include "../../common/ldg_ptr.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../../sid/as_const.hpp"
@@ -45,7 +45,7 @@ namespace gridtools {
                 template <class Key, class T>
                 GT_FUNCTION std::enable_if_t<meta::st_contains<Keys, Key>::value, T> operator()(
                     Key, T const *ptr) const {
-                    return *as_ldg_ptr(ptr);
+                    return const_ptr_deref(ptr);
                 }
                 template <class Key, class Ptr>
                 GT_FUNCTION decltype(auto) operator()(Key, Ptr ptr) const {

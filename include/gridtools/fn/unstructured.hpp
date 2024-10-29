@@ -11,9 +11,9 @@
 
 #include <functional>
 
+#include "../common/const_ptr_deref.hpp"
 #include "../common/defs.hpp"
 #include "../common/hymap.hpp"
-#include "../common/ldg_ptr.hpp"
 #include "../meta/logical.hpp"
 #include "../sid/concept.hpp"
 #include "./common_interface.hpp"
@@ -79,7 +79,7 @@ namespace gridtools::fn {
         GT_FUNCTION constexpr auto deref(iterator<Tag, Ptr, Strides, Domain> const &it) {
             GT_PROMISE(can_deref(it));
             decltype(auto) stride = host_device::at_key<Tag>(sid::get_stride<dim::horizontal>(it.m_strides));
-            return *as_ldg_ptr(sid::shifted(it.m_ptr, stride, it.m_index));
+            return const_ptr_deref(sid::shifted(it.m_ptr, stride, it.m_index));
         }
 
         template <class Tag, class Ptr, class Strides, class Domain, class Conn, class Offset>

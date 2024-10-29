@@ -16,7 +16,6 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
-#include "../common/ldg_ptr.hpp"
 
 #define GT_FILENAME <gridtools/sid/simple_ptr_holder.hpp>
 #include GT_ITERATE_ON_TARGETS()
@@ -39,7 +38,7 @@ namespace gridtools {
                 simple_ptr_holder() = default;
                 GT_TARGET GT_FORCE_INLINE constexpr simple_ptr_holder(T const &ptr) : m_val{ptr} {}
 #endif
-                GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) operator()() const { return as_ldg_ptr(m_val); }
+                GT_TARGET GT_FORCE_INLINE constexpr T const &operator()() const { return m_val; }
             };
 
             template <class T>
