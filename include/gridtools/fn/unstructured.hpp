@@ -16,7 +16,6 @@
 #include "../common/ldg_ptr.hpp"
 #include "../meta/logical.hpp"
 #include "../sid/concept.hpp"
-#include "../stencil/positional.hpp"
 #include "./common_interface.hpp"
 #include "./executor.hpp"
 #include "./neighbor_table.hpp"
@@ -28,7 +27,6 @@ namespace gridtools::fn {
     } // namespace unstructured::dim
 
     namespace unstructured_impl_ {
-        using gridtools::stencil::positional;
         namespace dim = unstructured::dim;
 
         template <class Tables, class Sizes>
@@ -145,13 +143,13 @@ namespace gridtools::fn {
             Domain m_domain;
             TmpAllocator m_allocator;
 
-            static constexpr auto index = positional<dim::horizontal>();
+            static constexpr auto horizontal_index = index(dim::horizontal{});
 
             auto stencil_executor() const {
                 return [&] {
                     return make_stencil_executor<1>(
                         m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
-                        .arg(index); // the horizontal index is passed as the first argument
+                        .arg(horizontal_index); // the horizontal index is passed as the first argument
                 };
             }
 
@@ -160,7 +158,7 @@ namespace gridtools::fn {
                 return [&] {
                     return make_vertical_executor<Vertical, 1>(
                         m_backend, m_domain.m_sizes, m_domain.m_offsets, make_iterator(m_domain.without_offsets()))
-                        .arg(index); // the horizontal index is passed as the first argument
+                        .arg(horizontal_index); // the horizontal index is passed as the first argument
                 };
             }
         };
