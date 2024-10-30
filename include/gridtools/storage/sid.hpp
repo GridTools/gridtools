@@ -18,7 +18,6 @@
 #include "../common/hymap.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
-#include "../common/ldg_ptr.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
@@ -37,7 +36,7 @@ namespace gridtools {
             template <class T>
             struct ptr_holder {
                 T *m_val;
-                GT_FUNCTION constexpr auto operator()() const { return as_ldg_ptr(m_val); }
+                GT_FUNCTION constexpr T *operator()() const { return m_val; }
 
                 friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
                     return {obj.m_val + arg};

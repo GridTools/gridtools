@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "../common/const_ptr_deref.hpp"
 #include "../common/defs.hpp"
 #include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
@@ -211,7 +212,7 @@ namespace gridtools {
 #if defined(__clang__) || !defined(__GNUC__) || (__GNUC__ != 9 && __GNUC__ != 10)
                                                                GT_FORCE_INLINE_LAMBDA
 #endif
-                            -> decltype(auto) { return *ptr; },
+                            -> decltype(auto) { return const_ptr_deref(ptr); },
                             m_vals));
                 }
 
@@ -476,5 +477,5 @@ namespace gridtools {
                 friend values tuple_getter(values) { return {}; }
             };
         } // namespace composite
-    }     // namespace sid
+    } // namespace sid
 } // namespace gridtools
