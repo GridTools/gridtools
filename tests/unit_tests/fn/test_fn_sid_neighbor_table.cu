@@ -42,7 +42,10 @@ namespace gridtools::fn {
             using dim_hymap_t = hymap::keys<edge_dim_t, edge_to_cell_dim_t>;
             auto contents = sid::synthetic()
                                 .set<sid::property::origin>(sid::host_device::simple_ptr_holder(device_data.get()))
-                                .set<sid::property::strides>(dim_hymap_t::make_values(num_neighbors, 1));
+                                .set<sid::property::strides>(dim_hymap_t::make_values(num_neighbors, 1))
+                                // for whatever reason, setting strides_kind is required
+                                // by Clang-CUDA (tested Clang 17 + CUDA 12.4)
+                                .set<sid::property::strides_kind, sid::unknown_kind>();
 
             const auto table = as_neighbor_table<edge_dim_t, edge_to_cell_dim_t, num_neighbors>(contents);
             using table_t = std::decay_t<decltype(table)>;
