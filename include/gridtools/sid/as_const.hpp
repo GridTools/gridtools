@@ -51,14 +51,14 @@ namespace gridtools {
          *                 probably might we need the `host` and `device` variations as well
          */
         template <class Src,
-            class Ptr = sid::ptr_type<std::decay_t<Src>>,
+            class Ptr = sid::ptr_type<std::remove_cv_t<std::remove_reference_t<Src>>>,
             std::enable_if_t<std::is_pointer_v<Ptr> && !std::is_const_v<std::remove_pointer_t<Ptr>>, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(Src &&src) {
             return {std::forward<Src>(src)};
         }
 
         template <class Src,
-            class Ptr = sid::ptr_type<std::decay_t<Src>>,
+            class Ptr = sid::ptr_type<std::remove_cv_t<std::remove_reference_t<Src>>>,
             std::enable_if_t<!std::is_pointer_v<Ptr> || std::is_const_v<std::remove_pointer_t<Ptr>>, int> = 0>
         decltype(auto) as_const(Src &&src) {
             return std::forward<Src>(src);

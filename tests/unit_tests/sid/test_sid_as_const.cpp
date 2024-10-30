@@ -32,5 +32,15 @@ namespace gridtools {
             static_assert(std::is_same_v<sid::ptr_type<testee_t>, double const *>);
             EXPECT_EQ(sid::get_origin(src)(), sid::get_origin(testee)());
         }
+
+        TEST(as_const, c_array) {
+            int src[3][2] = {{0, 1}, {10, 11}, {20, 21}};
+            auto testee = sid::as_const(src);
+            using testee_t = decltype(testee);
+
+            static_assert(is_sid<testee_t>());
+            static_assert(std::is_same_v<sid::ptr_type<testee_t>, int const *>);
+            EXPECT_EQ(sid::get_origin(src)(), sid::get_origin(testee)());
+        }
     } // namespace
 } // namespace gridtools

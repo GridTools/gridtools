@@ -15,6 +15,7 @@
 #include "../common/array.hpp"
 #include "../common/const_ptr_deref.hpp"
 #include "../fn/unstructured.hpp"
+#include "../sid/as_const.hpp"
 #include "../sid/concept.hpp"
 
 namespace gridtools::fn::sid_neighbor_table {
@@ -61,14 +62,15 @@ namespace gridtools::fn::sid_neighbor_table {
             static_assert(!std::is_same_v<IndexDimension, NeighborDimension>,
                 "The index dimension and the neighbor dimension must be different.");
 
-            const auto origin = sid::get_origin(sid);
-            const auto strides = sid::get_strides(sid);
+            decltype(auto) const_sid = sid::as_const(std::forward<Sid>(sid));
+            const auto origin = sid::get_origin(const_sid);
+            const auto strides = sid::get_strides(const_sid);
 
             return sid_neighbor_table<IndexDimension,
                 NeighborDimension,
                 MaxNumNeighbors,
-                sid::ptr_holder_type<Sid>,
-                sid::strides_type<Sid>>{
+                decltype(origin),
+                decltype(strides)>{
                 origin, strides}; // Note: putting the return type into the function signature will crash nvcc 12.0
         }
     } // namespace sid_neighbor_table_impl_
