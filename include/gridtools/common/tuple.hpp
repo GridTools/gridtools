@@ -28,13 +28,20 @@ namespace gridtools {
 
             tuple_leaf(tuple_leaf const &) = default;
             tuple_leaf(tuple_leaf &&) = default;
-            tuple_leaf &operator=(tuple_leaf const &) = default;
-            tuple_leaf &operator=(tuple_leaf &&) = default;
 
             constexpr GT_FUNCTION tuple_leaf() noexcept : m_value() {}
 
             template <class Arg, std::enable_if_t<std::is_constructible_v<T, Arg &&>, int> = 0>
             constexpr GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
+
+            constexpr GT_FUNCTION tuple_leaf &operator=(tuple_leaf const &other) noexcept {
+                m_value = other.m_value;
+                return *this;
+            }
+            constexpr GT_FUNCTION tuple_leaf &operator=(tuple_leaf &&other) noexcept {
+                m_value = std::move(other.m_value);
+                return *this;
+            }
         };
 
         template <size_t I, class T>

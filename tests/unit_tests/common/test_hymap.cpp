@@ -222,5 +222,17 @@ namespace gridtools {
             EXPECT_EQ(88, at_key<b>(testee));
         }
 
+        TEST(assignment, references) {
+            double testee_a = 0.;
+            double testee_b = 0.;
+            hymap::keys<a, b>::values<double &, double &> testee{testee_a, testee_b};
+            double src_a = 3.5;
+            double src_b = 88;
+            hymap::keys<a, b>::values<double &, double &> src{src_a, src_b};
+            testee = src;
+            EXPECT_EQ(3.5, at_key<a>(testee));
+            EXPECT_EQ(88, at_key<b>(testee));
+        }
+
     } // namespace
 } // namespace gridtools
