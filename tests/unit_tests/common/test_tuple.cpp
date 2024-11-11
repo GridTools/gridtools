@@ -205,6 +205,18 @@ namespace gridtools {
             EXPECT_EQ(1.5, get<1>(testee));
         }
 
+        TEST(tuple, copy_assign_nested_ref) {
+            int src_int = 1;
+            double src_double = 1.5;
+            int dst_int = 0;
+            double dst_double = 0.;
+            tuple<tuple<int &, double &>> src = {{src_int, src_double}};
+            tuple<tuple<int &, double &>> testee = {{dst_int, dst_double}};
+            testee = src;
+            EXPECT_EQ(1, get<0>(get<0>(testee)));
+            EXPECT_EQ(1.5, get<1>(get<0>(testee)));
+        }
+
         TEST(one_tuple, copy_assign) {
             tuple<int> src = {1};
             tuple<int> testee;
