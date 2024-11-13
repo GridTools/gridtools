@@ -235,8 +235,6 @@ namespace gridtools {
 
         tuple(tuple const &) = default;
         tuple(tuple &&) = default;
-        tuple &operator=(tuple const &) = default;
-        tuple &operator=(tuple &&) = default;
 
         constexpr GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
 
@@ -258,6 +256,15 @@ namespace gridtools {
         GT_FORCE_INLINE void swap(tuple &other) noexcept {
             using std::swap;
             swap(m_value, other.m_value);
+        }
+
+        constexpr GT_FUNCTION tuple &operator=(tuple const &other) noexcept {
+            m_value = other.m_value;
+            return *this;
+        }
+        constexpr GT_FUNCTION tuple &operator=(tuple &&other) noexcept {
+            m_value = std::move(other.m_value);
+            return *this;
         }
 
         template <class Arg, std::enable_if_t<std::is_assignable_v<T &, Arg const &>, int> = 0>
