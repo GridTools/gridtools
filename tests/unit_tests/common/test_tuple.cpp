@@ -226,6 +226,15 @@ namespace gridtools {
             EXPECT_EQ(1, get<0>(testee));
         }
 
+        TEST(onetuple, copy_assign_nested_ref) {
+            int src_int = 1;
+            int dst_int = 0;
+            tuple<tuple<int &>> src = {{src_int}};
+            tuple<tuple<int &>> testee = {{dst_int}};
+            testee = src;
+            EXPECT_EQ(1, get<0>(get<0>(testee)));
+        }
+
         TEST(tuple, move_assign) {
             tuple<move_only, move_only> testee;
             auto &res = testee = tuple<move_only, move_only>{move_only{47}, move_only{2}};
