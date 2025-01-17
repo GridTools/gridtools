@@ -13,7 +13,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <boost/preprocessor/punctuation/remove_parens.hpp>
+#include <gridtools/preprocessor/punctuation/remove_parens.hpp>
 
 #include "always.hpp"
 #include "curry.hpp"
@@ -24,7 +24,7 @@
 #include "make_indices.hpp"
 #include "transform.hpp"
 
-#define GT_META_INTERNAL_LAZY_PARAM(fun) ::gridtools::meta::force<BOOST_PP_REMOVE_PARENS(fun)>::template apply
+#define GT_META_INTERNAL_LAZY_PARAM(fun) ::gridtools::meta::force<GT_PP_REMOVE_PARENS(fun)>::template apply
 
 namespace gridtools {
     namespace meta {

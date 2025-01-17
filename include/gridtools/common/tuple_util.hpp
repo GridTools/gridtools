@@ -105,12 +105,12 @@
 #include <type_traits>
 #include <utility>
 
-#include <boost/preprocessor/seq/enum.hpp>
-#include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/preprocessor/seq/for_each_i.hpp>
-#include <boost/preprocessor/seq/transform.hpp>
-#include <boost/preprocessor/tuple/elem.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
+#include <gridtools/preprocessor/seq/enum.hpp>
+#include <gridtools/preprocessor/seq/for_each.hpp>
+#include <gridtools/preprocessor/seq/for_each_i.hpp>
+#include <gridtools/preprocessor/seq/transform.hpp>
+#include <gridtools/preprocessor/tuple/elem.hpp>
+#include <gridtools/preprocessor/variadic/to_seq.hpp>
 
 #include "../meta.hpp"
 #include "defs.hpp"
@@ -135,28 +135,28 @@
     friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; }      \
     static_assert(1)
 
-#define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) BOOST_PP_TUPLE_ELEM(0, elem) BOOST_PP_TUPLE_ELEM(1, elem);
-#define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) BOOST_PP_TUPLE_ELEM(0, elem)
+#define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) GT_PP_TUPLE_ELEM(0, elem) GT_PP_TUPLE_ELEM(1, elem);
+#define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) GT_PP_TUPLE_ELEM(0, elem)
 #define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                                                        \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = GT_PP_TUPLE_ELEM(0, elem)> \
     static constexpr GT_FUNCTION T const &get(name const &obj) {                                            \
-        return obj.BOOST_PP_TUPLE_ELEM(1, elem);                                                            \
+        return obj.GT_PP_TUPLE_ELEM(1, elem);                                                            \
     }                                                                                                       \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = GT_PP_TUPLE_ELEM(0, elem)> \
     static constexpr GT_FUNCTION T &get(name &obj) {                                                        \
-        return obj.BOOST_PP_TUPLE_ELEM(1, elem);                                                            \
+        return obj.GT_PP_TUPLE_ELEM(1, elem);                                                            \
     }                                                                                                       \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = GT_PP_TUPLE_ELEM(0, elem)> \
     static constexpr GT_FUNCTION T &&get(name &&obj) {                                                      \
-        return static_cast<T &&>(obj.BOOST_PP_TUPLE_ELEM(1, elem));                                         \
+        return static_cast<T &&>(obj.GT_PP_TUPLE_ELEM(1, elem));                                         \
     }
 #define GT_STRUCT_TUPLE_IMPL_(name, members)                                                                          \
-    BOOST_PP_SEQ_FOR_EACH(GT_STRUCT_TUPLE_IMPL_DECL_, _, members)                                                     \
+    GT_PP_SEQ_FOR_EACH(GT_STRUCT_TUPLE_IMPL_DECL_, _, members)                                                     \
     struct gt_##name##_tuple_getter {                                                                                 \
-        BOOST_PP_SEQ_FOR_EACH_I(GT_STRUCT_TUPLE_IMPL_GETS_, name, members)                                            \
+        GT_PP_SEQ_FOR_EACH_I(GT_STRUCT_TUPLE_IMPL_GETS_, name, members)                                            \
     };                                                                                                                \
     friend gt_##name##_tuple_getter tuple_getter(name);                                                               \
-    friend ::gridtools::meta::list<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_TRANSFORM(GT_STRUCT_TUPLE_IMPL_TYPE_, _, members))> \
+    friend ::gridtools::meta::list<GT_PP_SEQ_ENUM(GT_PP_SEQ_TRANSFORM(GT_STRUCT_TUPLE_IMPL_TYPE_, _, members))> \
         tuple_to_types(name);                                                                                         \
     friend ::gridtools::meta::always<name> tuple_from_types(name)
 
@@ -187,7 +187,7 @@
  *    assert(x.b == 5.);
  * ```
  */
-#define GT_STRUCT_TUPLE(name, ...) GT_STRUCT_TUPLE_IMPL_(name, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+#define GT_STRUCT_TUPLE(name, ...) GT_STRUCT_TUPLE_IMPL_(name, GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
 namespace gridtools {
     namespace tuple_util {

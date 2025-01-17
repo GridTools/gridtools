@@ -12,26 +12,26 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <boost/preprocessor/punctuation/remove_parens.hpp>
-#include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
+#include <gridtools/preprocessor/punctuation/remove_parens.hpp>
+#include <gridtools/preprocessor/seq/for_each.hpp>
+#include <gridtools/preprocessor/variadic/to_seq.hpp>
 
 #include "../../../common/integral_constant.hpp"
 
 #define GT_INTERNAL_DECLARE_TMP(r, type, name) \
-    constexpr ::gridtools::stencil::cartesian::tmp_arg<__COUNTER__, BOOST_PP_REMOVE_PARENS(type)> name = {};
+    constexpr ::gridtools::stencil::cartesian::tmp_arg<__COUNTER__, GT_PP_REMOVE_PARENS(type)> name = {};
 
 #define GT_DECLARE_TMP(type, ...)                                                               \
-    BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_TMP, type, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
+    GT_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_TMP, type, GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     static_assert(1)
 
 #define GT_INTERNAL_DECLARE_EXPANDABLE_TMP(r, type, name)                                    \
     constexpr ::gridtools::stencil::expandable<                                              \
-        ::gridtools::stencil::cartesian::tmp_arg<__COUNTER__, BOOST_PP_REMOVE_PARENS(type)>> \
+        ::gridtools::stencil::cartesian::tmp_arg<__COUNTER__, GT_PP_REMOVE_PARENS(type)>> \
         name = {};
 
 #define GT_DECLARE_EXPANDABLE_TMP(type, ...)                                                               \
-    BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_EXPANDABLE_TMP, type, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
+    GT_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_EXPANDABLE_TMP, type, GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     static_assert(1)
 
 namespace gridtools {
