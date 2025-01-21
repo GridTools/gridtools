@@ -11,6 +11,7 @@
 
 #include <type_traits>
 
+#include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
 #include "../stencil/positional.hpp"
@@ -29,13 +30,21 @@ namespace gridtools::fn {
     }
 
     template <class... Args>
-    GT_FUNCTION tuple<std::decay_t<Args>...> make_tuple(Args &&...args) {
+    GT_FUNCTION tuple<std::decay_t<Args>...> make_tuple(Args &&... args) {
         return {std::forward<Args>(args)...};
     }
 
     template <class D>
     constexpr auto index(D) {
         return gridtools::stencil::positional<D>();
+    }
+
+    // TODO(tehrengruber): `typename sid::lower_bounds_type<S>, typename sid::upper_bounds_type<S>`
+    // fails as type used for index calculations in gtfn differs
+    template <class S, class D>
+    GT_FUNCTION tuple<int, int> get_domain(S &&sid, D) {
+        return {host_device::at_key<D>(gridtools::sid::get_lower_bounds(sid)),
+            host_device::at_key<D>(gridtools::sid::get_upper_bounds(sid))};
     }
 
 } // namespace gridtools::fn
