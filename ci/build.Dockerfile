@@ -1,5 +1,5 @@
 ARG BASE_IMAGE
-ARG BUILD_TYPE=release
+ARG BUILD_TYPE="release"
 FROM $BASE_IMAGE
 
 COPY . /gridtools
