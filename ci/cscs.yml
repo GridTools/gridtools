@@ -37,7 +37,7 @@ build_baseimage_aarch64:
   variables:
     CUDA_VERSION: 12.6.2
     UBUNTU_VERSION: 22.04
-    SLURM_TIMELIMIT: 5
+    SLURM_TIMELIMIT: 10
 
 
 .build_image:
@@ -52,3 +52,5 @@ build_baseimage_aarch64:
 #   extends: [.container-builder-cscs-zen2, .build_image]
 build_image_aarch64:
   extends: [.container-builder-cscs-gh200, .build_image]
+  variables:
+    SLURM_TIMELIMIT: 20
