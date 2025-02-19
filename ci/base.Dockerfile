@@ -11,6 +11,7 @@ RUN apt-get update -qq && apt-get install -qq -y --no-install-recommends \
     tar \
     wget \
     curl \
+    cmake \
     ca-certificates \
     zlib1g-dev \
     libssl-dev \
