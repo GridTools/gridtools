@@ -38,3 +38,17 @@ build_baseimage_aarch64:
     CUDA_VERSION: 12.6.2
     UBUNTU_VERSION: 22.04
     SLURM_TIMELIMIT: 5
+
+
+.build_image:
+  stage: image
+  variables:
+    # make sure we use a unique name here, otherwise we could create a race condition, when multiple pipelines
+    # are running.
+    PERSIST_IMAGE_NAME: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA-$PYVERSION
+    DOCKERFILE: ci/build.Dockerfile
+    DOCKER_BUILD_ARGS: '["BASE_IMAGE=${BASE_IMAGE}"]'
+# .build_image_x86_64:
+#   extends: [.container-builder-cscs-zen2, .build_image]
+build_image_aarch64:
+  extends: [.container-builder-cscs-gh200, .build_image]
