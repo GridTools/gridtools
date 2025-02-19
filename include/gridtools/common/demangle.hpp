@@ -21,7 +21,7 @@
 
 namespace gridtools {
 
-    namespace core {
+    namespace common {
 
         inline char const *demangle_alloc(char const *name) noexcept;
         inline void demangle_free(char const *name) noexcept;
@@ -69,7 +69,7 @@ namespace gridtools {
 
 #endif
 
-    } // namespace core
+    } // namespace common
 
 } // namespace gridtools
 
