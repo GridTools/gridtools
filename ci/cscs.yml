@@ -41,7 +41,7 @@ build_baseimage_aarch64:
 
 
 .build_image:
-  stage: image
+  stage: build
   variables:
     # make sure we use a unique name here, otherwise we could create a race condition, when multiple pipelines
     # are running.
