@@ -47,7 +47,7 @@ build_baseimage_aarch64:
     # are running.
     PERSIST_IMAGE_NAME: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA-$PYVERSION
     DOCKERFILE: ci/build.Dockerfile
-    DOCKER_BUILD_ARGS: '["BASE_IMAGE=${BASE_IMAGE}"]'
+    DOCKER_BUILD_ARGS: '["BASE_IMAGE=${BASE_IMAGE}", "BUILD_TYPE=release"]'
 # .build_image_x86_64:
 #   extends: [.container-builder-cscs-zen2, .build_image]
 build_image_aarch64:
