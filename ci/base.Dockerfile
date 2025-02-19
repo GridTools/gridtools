@@ -25,6 +25,7 @@ RUN apt-get update -qq && apt-get install -qq -y --no-install-recommends \
     liblzma-dev \
     libreadline-dev \
     python3 \
+    python3-pip \
     git \
     rustc \
     htop && \
