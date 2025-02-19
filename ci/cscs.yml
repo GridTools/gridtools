@@ -37,3 +37,4 @@ build_baseimage_aarch64:
   variables:
     CUDA_VERSION: 12.6.2
     UBUNTU_VERSION: 22.04
+    SLURM_TIMELIMIT: 5
