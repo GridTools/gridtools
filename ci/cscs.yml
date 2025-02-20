@@ -67,6 +67,6 @@ build_image_aarch64:
     SLURM_JOB_NUM_NODES: 1
     SLURM_TIMELIMIT: 15
 
-.test_aarch64:
+test_aarch64:
   extends: [.container-runner-daint-gh200, .test_helper]
 
