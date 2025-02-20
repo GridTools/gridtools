@@ -3,8 +3,6 @@ FROM $BASE_IMAGE
 
 COPY . /gridtools
 
-RUN pip install --user -r /gridtools/pyutils/requirements.txt
-
 ARG BUILD_TYPE
 
 ENV GTRUN_BUILD_COMMAND='make -j 32'
