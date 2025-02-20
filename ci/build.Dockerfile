@@ -9,4 +9,6 @@ ARG BUILD_TYPE
 
 ENV GTRUN_BUILD_COMMAND='make -j 32'
 
-RUN /gridtools/pyutils/driver.py -v build -b ${BUILD_TYPE} -o build -i install -t install || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+RUN uv run /gridtools/pyutils/driver.py -v build -b ${BUILD_TYPE} -o build -i install -t install || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
