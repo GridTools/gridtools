@@ -1,16 +1,15 @@
 ARG CUDA_VERSION=12.6.2
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=24.04
 FROM docker.io/nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && \
-    add-apt-repository ppa:ubuntu-toolchain-r/test && \
     apt-get install -qq -y --no-install-recommends \
-    g++-13 \
-    gcc-13 \
-    gfortran-13 \
+    gfortran \
+    g++ \
+    gcc \
     strace \
     build-essential \
     tar \
