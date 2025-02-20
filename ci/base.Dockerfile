@@ -25,9 +25,10 @@ RUN apt-get update -qq && apt-get install -qq -y --no-install-recommends \
     libffi-dev \
     liblzma-dev \
     libreadline-dev \
-    python3 \
+    python3-dev \
     python3-pip \
     git \
+    gfortran \
     rustc \
     htop && \
     rm -rf /var/lib/apt/lists/*
@@ -41,3 +42,5 @@ RUN wget --quiet https://archives.boost.io/release/1.85.0/source/boost_1_85_0.ta
 
 ENV BOOST_ROOT /usr/local/
 ENV CUDA_HOME /usr/local/cuda
+ENV CUDA_ARCH=${CUDA_ARCH}
+
