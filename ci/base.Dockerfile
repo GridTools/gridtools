@@ -5,7 +5,12 @@ ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -qq && apt-get install -qq -y --no-install-recommends \
+RUN apt-get update -qq && \
+    add-apt-repository ppa:ubuntu-toolchain-r/test && \
+    apt-get install -qq -y --no-install-recommends \
+    g++-13 \
+    gcc-13 \
+    gfortran-13 \
     strace \
     build-essential \
     tar \
@@ -28,7 +33,6 @@ RUN apt-get update -qq && apt-get install -qq -y --no-install-recommends \
     python3-dev \
     python3-pip \
     git \
-    gfortran \
     rustc \
     htop && \
     rm -rf /var/lib/apt/lists/*
