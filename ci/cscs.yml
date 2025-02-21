@@ -46,7 +46,7 @@ build_baseimage_aarch64:
   variables:
     # make sure we use a unique name here, otherwise we could create a race condition, when multiple pipelines
     # are running.
-    PERSIST_IMAGE_NAME: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA-$BUILD_TYPE
+    PERSIST_IMAGE_NAME: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA
     DOCKERFILE: ci/build.Dockerfile
     DOCKER_BUILD_ARGS: '["BASE_IMAGE=${BASE_IMAGE}", "BUILD_TYPE=release"]'
 # .build_image_x86_64:
