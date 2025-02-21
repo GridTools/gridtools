@@ -61,7 +61,7 @@ build_image_aarch64:
   image: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA
   script:
   # TODO $run_mpi_tests_flag $build_examples_flag
-  - uv run /build/pyutils/driver.py -v test| { echo 'Tests failed'; rm -rf $tmpdir; exit 2; }
+  - cd /build && ctest -LE mpi
   variables:
     CRAY_CUDA_MPS: 1
     SLURM_JOB_NUM_NODES: 1
