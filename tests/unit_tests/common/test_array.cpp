@@ -19,6 +19,7 @@ TEST(array, test_copyctr) {
     auto mod_a(a);
     EXPECT_EQ(mod_a, a);
     EXPECT_EQ(mod_a[0], 4);
+    EXPECT_FALSE(true); // test ci failur
 }
 
 TEST(array, iterate_empty) {
