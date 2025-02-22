@@ -24,7 +24,7 @@ RUN apt-get update -qq && \
     llvm \
     libncurses5-dev \
     libncursesw5-dev \
-    mpich \
+    mpich-dev \
     xz-utils \
     tk-dev \
     libffi-dev \
