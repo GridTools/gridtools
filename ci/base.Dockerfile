@@ -37,7 +37,7 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists/*
 
 ARG MPICH_VERSION=3.3.2
-ARG MPICH_PATH=/usr/local/mpich
+ARG MPICH_PATH=/usr/local
 RUN wget -q https://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz && \
     tar -xzf mpich-${MPICH_VERSION}.tar.gz && \
     cd mpich-${MPICH_VERSION} && \
@@ -47,6 +47,9 @@ RUN wget -q https://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPIC
     make install -j32 && \
     rm -rf /root/mpich-${MPICH_VERSION}.tar.gz /root/mpich-${MPICH_VERSION}
 RUN echo "${MPICH_PATH}/lib" >> /etc/ld.so.conf.d/cscs.conf && ldconfig
+
+ENV CXX=/usr/local/mpich/bin/mpicxx
+ENV CC=/usr/local/mpich/bin/mpicc
 
 RUN wget --quiet https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.gz && \
     echo be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b boost_1_85_0.tar.gz > boost_hash.txt && \
