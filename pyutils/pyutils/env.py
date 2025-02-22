@@ -10,20 +10,37 @@ from pyutils import log, runtools
 env = os.environ.copy()
 
 
+def env_flag_to_bool(name: str, default: bool) -> bool:
+    """Recognize true or false signaling string values."""
+    flag_value = None
+    if name in env:
+        flag_value = env[name].lower()
+    match flag_value:
+        case None:
+            return default
+        case "0" | "false" | "off":
+            return False
+        case "1" | "true" | "on":
+            return True
+        case _:
+            raise ValueError(
+                "Invalid environment flag value: use '0 | false | off' or '1 | true | on'."
+            )
+
+
 def load(envfile):
     if not os.path.exists(envfile):
         raise FileNotFoundError(f'Could find environment file "{envfile}"')
-    env['GTCMAKE_PYUTILS_ENVFILE'] = os.path.abspath(envfile)
+    env["GTCMAKE_PYUTILS_ENVFILE"] = os.path.abspath(envfile)
 
     envdir, envfile = os.path.split(envfile)
     output = runtools.run(
-        ['bash', '-c', f'set -e && source {envfile} && env -0'],
-        cwd=envdir).strip('\0')
-    env.update(line.split('=', 1) for line in output.split('\0'))
+        ["bash", "-c", f"set -e && source {envfile} && env -0"], cwd=envdir
+    ).strip("\0")
+    env.update(line.split("=", 1) for line in output.split("\0"))
 
-    log.info(f'Loaded environment from {os.path.join(envdir, envfile)}')
-    log.debug(f'New environment',
-              '\n'.join(f'{k}={v}' for k, v in sorted(env.items())))
+    log.info(f"Loaded environment from {os.path.join(envdir, envfile)}")
+    log.debug(f"New environment", "\n".join(f"{k}={v}" for k, v in sorted(env.items())))
 
 
 try:
@@ -36,39 +53,43 @@ else:
 
 
 def _items_with_tag(tag):
-    return {k[len(tag):]: v for k, v in env.items() if k.startswith(tag)}
+    return {k[len(tag) :]: v for k, v in env.items() if k.startswith(tag)}
 
 
 def cmake_args():
     args = []
-    for k, v in _items_with_tag('GTCMAKE_').items():
-        if v.strip().upper() in ('ON', 'OFF'):
-            k += ':BOOL'
+    for k, v in _items_with_tag("GTCMAKE_").items():
+        if v.strip().upper() in ("ON", "OFF"):
+            k += ":BOOL"
         else:
-            k += ':STRING'
-        args.append(f'-D{k}={v}')
+            k += ":STRING"
+        args.append(f"-D{k}={v}")
     return args
 
 
 def set_cmake_arg(arg, value):
     if isinstance(value, bool):
-        value = 'ON' if value else 'OFF'
-    env['GTCMAKE_' + arg] = value
+        value = "ON" if value else "OFF"
+    env["GTCMAKE_" + arg] = value
 
 
 def sbatch_options(mpi):
-    options = _items_with_tag('GTRUN_SBATCH_')
+    options = _items_with_tag("GTRUN_SBATCH_")
     if mpi:
-        options.update(_items_with_tag('GTRUNMPI_SBATCH_'))
+        options.update(_items_with_tag("GTRUNMPI_SBATCH_"))
 
     return [
-        '--' + k.lower().replace('_', '-') + ('=' + v if v else '')
+        "--" + k.lower().replace("_", "-") + ("=" + v if v else "")
         for k, v in options.items()
     ]
 
 
 def build_command():
-    return env.get('GTRUN_BUILD_COMMAND', 'make').split()
+    return env.get("GTRUN_BUILD_COMMAND", "make").split()
+
+
+def run_with_slurm() -> bool:
+    return env_flag_to_bool("GTRUN_WITH_SLURM", True)
 
 
 def hostname():
@@ -90,9 +111,10 @@ def clustername():
         'kesch'
     """
     try:
-        output = runtools.run(['scontrol', 'show', 'config'])
-        m = re.compile(r'.*ClusterName\s*=\s*(\S*).*',
-                       re.MULTILINE | re.DOTALL).match(output)
+        output = runtools.run(["scontrol", "show", "config"])
+        m = re.compile(r".*ClusterName\s*=\s*(\S*).*", re.MULTILINE | re.DOTALL).match(
+            output
+        )
         if m:
             return m.group(1)
     except FileNotFoundError:
