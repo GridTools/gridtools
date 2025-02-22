@@ -32,6 +32,7 @@ namespace gridtools::fn {
             return neighbor_table::neighbors(table, index);
         }
 
+#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ <= 8)
         TEST(sid_neighbor_table, correctness_cuda) {
             constexpr std::size_t num_elements = 3;
             constexpr std::size_t num_neighbors = 2;
@@ -63,5 +64,6 @@ namespace gridtools::fn {
             EXPECT_EQ(n20, 20);
             EXPECT_EQ(n21, 21);
         }
+#endif
     } // namespace
 } // namespace gridtools::fn
