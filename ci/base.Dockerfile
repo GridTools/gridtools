@@ -24,6 +24,7 @@ RUN apt-get update -qq && \
     llvm \
     libncurses5-dev \
     libncursesw5-dev \
+    mpich \
     xz-utils \
     tk-dev \
     libffi-dev \
@@ -46,4 +47,3 @@ RUN wget --quiet https://archives.boost.io/release/1.85.0/source/boost_1_85_0.ta
 ENV BOOST_ROOT /usr/local/
 ENV CUDA_HOME /usr/local/cuda
 ENV CUDA_ARCH=${CUDA_ARCH}
-
