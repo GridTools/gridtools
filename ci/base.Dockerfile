@@ -24,8 +24,6 @@ RUN apt-get update -qq && \
     llvm \
     libncurses5-dev \
     libncursesw5-dev \
-    libmpich-dev \
-    mpich \
     xz-utils \
     tk-dev \
     libffi-dev \
@@ -37,6 +35,7 @@ RUN apt-get update -qq && \
     rustc \
     htop && \
     rm -rf /var/lib/apt/lists/*
+
 
 RUN wget --quiet https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.gz && \
     echo be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b boost_1_85_0.tar.gz > boost_hash.txt && \
