@@ -68,14 +68,14 @@ def _slurm_available():
 
 
 def srun(command, use_mpi_config=False, **kwargs):
-    if _slurm_available() and env.run_with_slurm():
+    if env.run_with_slurm() and _slurm_available():
         command = ["srun"] + env.sbatch_options(use_mpi_config) + command
 
     return run(command, **kwargs)
 
 
 def salloc(command, use_mpi_config=False, **kwargs):
-    if _slurm_available() and env.run_with_slurm():
+    if env.run_with_slurm() and _slurm_available():
         command = ["salloc"] + env.sbatch_options(use_mpi_config) + command
 
     return run(command, **kwargs)
