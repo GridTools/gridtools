@@ -63,7 +63,7 @@ build_image_aarch64:
     GTRUN_WITH_SLURM: False # since we are already in a SLURM job
     SLURM_JOB_NUM_NODES: 1
     SLURM_TIMELIMIT: 10
-    CSCS_CUDA_MPS: 1
+    CSCS_CUDA_MPS: 0
 
 test_aarch64:
   extends: [.container-runner-daint-gh200, .test_helper]
@@ -79,6 +79,7 @@ test_aarch64_mpi:
   - export LD_PRELOAD=/usr/lib64/libmpi_gtl_cuda.so
   - cd /build && ctest -L mpi --output-on-failure
   variables:
+    NVIDIA_VISIBLE_DEVICES: all
     SLURM_NTASKS: 4
     USE_MPI: "YES"
     SLURM_MPI_TYPE: cray_shasta
