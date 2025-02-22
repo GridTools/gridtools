@@ -59,20 +59,27 @@ build_image_aarch64:
 .test_helper:
   stage: test
   image: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA
-  script:
-  # TODO $run_mpi_tests_flag $build_examples_flag
-  - export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
-  - export LD_PRELOAD=/usr/lib64/libmpi_gtl_cuda.so
-  - uv run /build/pyutils/driver.py -v test --run-mpi-tests --build-examples
   variables:
-    CSCS_CUDA_MPS: 1
-    SLURM_JOB_NUM_NODES: 1
-    SLURM_NTASKS: 4
-    SLURM_TIMELIMIT: 10
-    USE_MPI: "YES"
     GTRUN_WITH_SLURM: False # since we are already in a SLURM job
-    SLURM_MPI_TYPE: cray_shasta
-    CSCS_ADDITIONAL_MOUNTS: '["/opt/cray/pe/mpich/8.1.28/ofi/gnu/12.3/lib/libmpi.so:/usr/local/mpich/lib/libmpi.so.12.1.8", "/opt/cray/pe/lib64/libpmi.so.0:/usr/lib64/libpmi.so.0", "/opt/cray/pe/lib64/libpmi2.so.0:/usr/lib64/libpmi2.so.0",  "/opt/cray/pals/1.4/lib/libpals.so.0:/usr/lib64/libpals.so.0",  "/usr/lib64/libgfortran.so.5:/usr/lib64/libgfortran.so.5", "/opt/cray/pe/mpich/8.1.28/gtl/lib/libmpi_gtl_cuda.so:/usr/lib64/libmpi_gtl_cuda.so"]'
+    SLURM_JOB_NUM_NODES: 1
+    SLURM_TIMELIMIT: 10
+    CSCS_CUDA_MPS: 1
 
 test_aarch64:
   extends: [.container-runner-daint-gh200, .test_helper]
+  script:
+  - uv run /build/pyutils/driver.py -v test --build-examples
+  variables:
+    SLURM_NTASKS: 1
+
+test_aarch64_mpi:
+  extends: [.container-runner-daint-gh200, .test_helper]
+  script:
+  - export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
+  - export LD_PRELOAD=/usr/lib64/libmpi_gtl_cuda.so
+  - uv run /build/pyutils/driver.py -v test --run-mpi-tests
+  variables:
+    SLURM_NTASKS: 4
+    USE_MPI: "YES"
+    SLURM_MPI_TYPE: cray_shasta
+    CSCS_ADDITIONAL_MOUNTS: '["/opt/cray/pe/mpich/8.1.28/ofi/gnu/12.3/lib/libmpi.so:/usr/local/mpich/lib/libmpi.so.12.1.8", "/opt/cray/pe/lib64/libpmi.so.0:/usr/lib64/libpmi.so.0", "/opt/cray/pe/lib64/libpmi2.so.0:/usr/lib64/libpmi2.so.0",  "/opt/cray/pals/1.4/lib/libpals.so.0:/usr/lib64/libpals.so.0",  "/usr/lib64/libgfortran.so.5:/usr/lib64/libgfortran.so.5", "/opt/cray/pe/mpich/8.1.28/gtl/lib/libmpi_gtl_cuda.so:/usr/lib64/libmpi_gtl_cuda.so"]'
