@@ -48,8 +48,8 @@ RUN wget -q https://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPIC
     rm -rf /root/mpich-${MPICH_VERSION}.tar.gz /root/mpich-${MPICH_VERSION}
 RUN echo "${MPICH_PATH}/lib" >> /etc/ld.so.conf.d/cscs.conf && ldconfig
 
-ENV CXX=/usr/local/mpich/bin/mpicxx
-ENV CC=/usr/local/mpich/bin/mpicc
+ENV CXX=${MPICH_PATH}/bin/mpicxx
+ENV CC=${MPICH_PATH}/bin/mpicc
 
 RUN wget --quiet https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.gz && \
     echo be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b boost_1_85_0.tar.gz > boost_hash.txt && \
