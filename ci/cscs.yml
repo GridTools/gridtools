@@ -54,19 +54,19 @@ build_baseimage_aarch64:
 build_image_aarch64:
   extends: [.container-builder-cscs-gh200, .build_image]
   variables:
-    SLURM_TIMELIMIT: 40
+    SLURM_TIMELIMIT: 10
 
 .test_helper:
   stage: test
   image: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA
   script:
   # TODO $run_mpi_tests_flag $build_examples_flag
-  - uv run /build/pyutils/driver.py -v test
+  - uv run /build/pyutils/driver.py -v test --run-mpi-tests --build-examples
   variables:
-    CRAY_CUDA_MPS: 1
+    CSCS_CUDA_MPS: 1
     SLURM_JOB_NUM_NODES: 1
-    SLURM_TIMELIMIT: 15
-    GTRUN_WITH_SLURM: False
+    SLURM_TIMELIMIT: 10
+    GTRUN_WITH_SLURM: False # since we are already in a SLURM job
 
 test_aarch64:
   extends: [.container-runner-daint-gh200, .test_helper]
