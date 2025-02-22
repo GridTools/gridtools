@@ -36,17 +36,6 @@ if(GT_INSTALL_EXAMPLES)
 
     install_example(DIRECTORY boundaries SOURCES boundaries boundaries_provided)
 
-    configure_file(c_bindings/CMakeLists.txt.in
-        ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt
-        DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/c_bindings)
-    install(
-        DIRECTORY c_bindings
-        DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
-        PATTERN "CMakeLists.txt.in" EXCLUDE
-        )
-    list(APPEND enabled_examples c_bindings)
-
     configure_file(cmake_skeletons/CMakeLists.txt.driver.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt @ONLY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH})
 
