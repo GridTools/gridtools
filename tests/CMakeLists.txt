@@ -94,7 +94,7 @@ function(gridtools_add_mpi_test arch tgt)
     # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
     add_test(
             NAME ${tgt}
-            COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} ${nproc} ${MPITEST_PREFLAGS} $<TARGET_FILE:${tgt}> ${MPITEST_POSTFLAGS}
+            COMMAND $<TARGET_FILE:${tgt}>
     )
     set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
     set_tests_properties(${tgt} PROPERTIES PROCESSORS ${nproc})
