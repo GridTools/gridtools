@@ -1,3 +1,5 @@
+TODO: Remove? Or are the instructions still valid for using cpp_bindgen separately?
+
 Interfacing to other programming languages
 ============================================
 
@@ -215,6 +217,8 @@ Data types need to be `fortran_array_wrappable` in order to be compatible with t
 C arrays and ``fortran_array_adapter`` are `fortran_array_wrappable`. The latter is an adapter between
 Fortran arrays and |GT| storages, such that the user can pass a Fortran array to a C++ function,
 which then can be transformed into a |GT| storage.
+
+TODO: fortran_array_adapter.hpp is removed
 
 .. code-block:: gridtools
 
