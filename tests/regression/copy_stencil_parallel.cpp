@@ -65,6 +65,7 @@ TEST(copy_stencil_parallel, test) {
     MPI_Comm CartComm;
     array<int, 3> dimensions{0, 0, 1};
     int period[3] = {1, 1, 1};
+    printf("nprocs: %d\n", gcl::procs());
     MPI_Dims_create(gcl::procs(), 2, &dimensions[0]);
     assert(dimensions[2] == 1);
 

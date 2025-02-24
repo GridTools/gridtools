@@ -78,7 +78,8 @@ test_aarch64_mpi:
   - export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
   - export LD_PRELOAD=/usr/lib64/libmpi_gtl_cuda.so
   - nvidia-smi
-  - cd /build && ctest -L mpi --output-on-failure
+  - echo "Running tests with $SLURM_NTASKS tasks"
+  - cd /build && ctest -L mpi --verbose
   variables:
     NVIDIA_VISIBLE_DEVICES: all
     SLURM_NTASKS: 4
