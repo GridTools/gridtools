@@ -130,7 +130,6 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
         for (int i = 0; i != num_dims; ++i)
             mpi_dims[i] = GetParam().mpi_dims[i];
         MPI_Dims_create(gcl::procs(), num_dims, mpi_dims);
-        printf("nprocs: %d", gcl::procs());
         int period[num_dims] = {1, 1, 1};
         MPI_Cart_create(MPI_COMM_WORLD, 3, mpi_dims, period, false, &CartComm);
         MPI_Cart_get(CartComm, 3, mpi_dims, period, coords);
