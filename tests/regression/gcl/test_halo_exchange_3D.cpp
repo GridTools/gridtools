@@ -7,7 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "gridtools/gcl/GCL.hpp"
 #include <gridtools/gcl/halo_exchange.hpp>
 
 #include <type_traits>
@@ -127,9 +126,11 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
     MPI_Comm CartComm;
 
     halo_exchange_3D_test() {
+        int nprocs;
+        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
         for (int i = 0; i != num_dims; ++i)
             mpi_dims[i] = GetParam().mpi_dims[i];
-        MPI_Dims_create(gcl::procs(), num_dims, mpi_dims);
+        MPI_Dims_create(nprocs, num_dims, mpi_dims);
         int period[num_dims] = {1, 1, 1};
         MPI_Cart_create(MPI_COMM_WORLD, 3, mpi_dims, period, false, &CartComm);
         MPI_Cart_get(CartComm, 3, mpi_dims, period, coords);

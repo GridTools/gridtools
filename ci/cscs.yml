@@ -68,7 +68,7 @@ build_image_aarch64:
 test_aarch64:
   extends: [.container-runner-daint-gh200, .test_helper]
   script:
-  - uv run /build/pyutils/driver.py -v test --build-examples
+  - cd /build && ctest -LE mpi --output-on-failure
   variables:
     SLURM_NTASKS: 1
 
@@ -77,10 +77,7 @@ test_aarch64_mpi:
   script:
   - export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
   - export LD_PRELOAD=/usr/lib64/libmpi_gtl_cuda.so
-  - nvidia-smi
-  - echo "Running tests with $SLURM_NTASKS tasks"
-  - cd /gridtools && ./a.out
-  - cd /build && ctest -L mpi --verbose
+  - cd /build && ctest -L mpi --output-on-failure
   variables:
     NVIDIA_VISIBLE_DEVICES: all
     SLURM_NTASKS: 4

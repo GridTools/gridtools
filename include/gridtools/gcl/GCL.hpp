@@ -29,12 +29,10 @@ namespace gridtools {
             inline void init(int *argc, char ***argv) {
                 int ready;
                 MPI_Initialized(&ready);
-                printf("MPI_Initialized: %d\n", ready);
                 if (!ready)
                     MPI_Init(argc, argv);
                 MPI_Comm_rank(world(), &pid_holder());
                 MPI_Comm_size(world(), &procs_holder());
-                printf("Process ID: %d, Total Processes: %d\n", pid_holder(), procs_holder());
             }
         } // namespace impl_
 
