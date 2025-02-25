@@ -81,6 +81,7 @@ target_link_libraries(GridToolsTest INTERFACE Threads::Threads gtest)
 
 add_subdirectory(src)
 
+option(GT_TESTS_MPI_WITH_MPI_EXECUTABLE "Use MPI executable for MPI tests" ON)
 function(gridtools_add_mpi_test arch tgt)
     set(options)
     set(one_value_args)
@@ -91,11 +92,18 @@ function(gridtools_add_mpi_test arch tgt)
             LIBRARIES ${ARGS_LIBRARIES} mpi_gtest_main_${arch} gcl_${arch})
     set(nproc 4)
     set(labels ${ARGS_LABELS} mpi gcl ${arch})
-    # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
-    add_test(
-            NAME ${tgt}
-            COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} ${nproc} ${MPITEST_PREFLAGS} $<TARGET_FILE:${tgt}> ${MPITEST_POSTFLAGS}
-    )
+    if(GT_TESTS_MPI_WITH_MPI_EXECUTABLE)
+        # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
+        add_test(
+                NAME ${tgt}
+                COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} ${nproc} ${MPITEST_PREFLAGS} $<TARGET_FILE:${tgt}> ${MPITEST_POSTFLAGS}
+        )
+    else()
+        add_test(
+                NAME ${tgt}
+                COMMAND $<TARGET_FILE:${tgt}>
+        )
+    endif()
     set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
     set_tests_properties(${tgt} PROPERTIES PROCESSORS ${nproc})
 endfunction()
