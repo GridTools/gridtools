@@ -15,17 +15,16 @@ def env_flag_to_bool(name: str, default: bool) -> bool:
     flag_value = None
     if name in env:
         flag_value = env[name].lower()
-    match flag_value:
-        case None:
-            return default
-        case "0" | "false" | "off":
-            return False
-        case "1" | "true" | "on":
-            return True
-        case _:
-            raise ValueError(
-                "Invalid environment flag value: use '0 | false | off' or '1 | true | on'."
-            )
+    if flag_value is None:
+        return default
+    elif flag_value in ("0", "false", "off"):
+        return False
+    elif flag_value in ("1", "true", "on"):
+        return True
+    else:
+        raise ValueError(
+            "Invalid environment flag value: use '0 | false | off' or '1 | true | on'."
+        )
 
 
 def load(envfile):
