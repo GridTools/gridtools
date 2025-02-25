@@ -7,7 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <cstdio>
 #include <gtest/gtest.h>
 #include <mpi.h>
 
@@ -48,7 +47,6 @@ int main(int argc, char **argv) {
 #endif
 
     gridtools::gcl::init(argc, argv);
-    printf("nprocs = %d, pid = %d\n", gridtools::gcl::procs(), gridtools::gcl::pid());
 
     // initialize google test environment
     testing::InitGoogleTest(&argc, argv);
