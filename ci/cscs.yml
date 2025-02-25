@@ -87,4 +87,4 @@ test_aarch64_mpi:
     SLURM_GPUS_PER_TASK: 1
     USE_MPI: "YES"
     SLURM_MPI_TYPE: cray_shasta
-    CSCS_ADDITIONAL_MOUNTS: '["/opt/cray/pe/mpich/8.1.28/ofi/gnu/12.3/lib/libmpi.so:/usr/local/mpich/lib/libmpi.so.12.1.8", "/opt/cray/pe/lib64/libpmi.so.0:/usr/lib64/libpmi.so.0", "/opt/cray/pe/lib64/libpmi2.so.0:/usr/lib64/libpmi2.so.0",  "/opt/cray/pals/1.4/lib/libpals.so.0:/usr/lib64/libpals.so.0",  "/usr/lib64/libgfortran.so.5:/usr/lib64/libgfortran.so.5", "/opt/cray/pe/mpich/8.1.28/gtl/lib/libmpi_gtl_cuda.so:/usr/lib64/libmpi_gtl_cuda.so"]'
+    CSCS_ADDITIONAL_MOUNTS: '["/opt/cray/pe/mpich/8.1.28/ofi/gnu/12.3/lib/libmpi.so:/usr/local/lib/libmpi.so.12.1.8", "/opt/cray/pe/lib64/libpmi.so.0:/usr/lib64/libpmi.so.0", "/opt/cray/pe/lib64/libpmi2.so.0:/usr/lib64/libpmi2.so.0",  "/opt/cray/pals/1.4/lib/libpals.so.0:/usr/lib64/libpals.so.0",  "/usr/lib64/libgfortran.so.5:/usr/lib64/libgfortran.so.5", "/opt/cray/pe/mpich/8.1.28/gtl/lib/libmpi_gtl_cuda.so:/usr/lib64/libmpi_gtl_cuda.so"]'
