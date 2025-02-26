@@ -172,7 +172,6 @@ if(TARGET stencil_dump)
 endif()
 
 add_subdirectory(icosahedral)
-# add_subdirectory(c_bindings)
 add_subdirectory(py_bindings)
 add_subdirectory(gcl)
 add_subdirectory(fn)
