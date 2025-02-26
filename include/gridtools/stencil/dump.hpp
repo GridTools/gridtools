@@ -34,7 +34,7 @@ namespace gridtools {
 
             template <class T>
             auto get_type_name() {
-                return gridtools::core::demangle(typeid(T).name());
+                return common::demangle(typeid(T).name());
             }
 
             inline auto from(core::parallel) { return "parallel"; }
