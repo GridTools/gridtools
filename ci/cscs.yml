@@ -27,11 +27,6 @@ stages:
     # change to 'always' if you want to rebuild, even if target tag exists already (if-not-exists is the default, i.e. we could also skip the variable)
     CSCS_REBUILD_POLICY: if-not-exists
     DOCKER_BUILD_ARGS: '["CUDA_VERSION=$CUDA_VERSION", "UBUNTU_VERSION=$UBUNTU_VERSION"]'
-# build_baseimage_x86_64:
-#   extends: [.container-builder-cscs-zen2, .build_baseimage]
-#   variables:
-#     CUDA_VERSION: 12.6.2
-#     UBUNTU_VERSION: 22.04  
 build_baseimage_aarch64:
   extends: [.container-builder-cscs-gh200, .build_baseimage]
   variables:
@@ -49,8 +44,6 @@ build_baseimage_aarch64:
     PERSIST_IMAGE_NAME: $CSCS_REGISTRY_PATH/public/$ARCH/gridtools/gridtools-ci:$CI_COMMIT_SHA
     DOCKERFILE: ci/build.Dockerfile
     DOCKER_BUILD_ARGS: '["BASE_IMAGE=${BASE_IMAGE}", "BUILD_TYPE=release"]'
-# .build_image_x86_64:
-#   extends: [.container-builder-cscs-zen2, .build_image]
 build_image_aarch64:
   extends: [.container-builder-cscs-gh200, .build_image]
   variables:
