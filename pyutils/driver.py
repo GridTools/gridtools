@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "matplotlib",
+#   "numpy",
+#   "python-dateutil",
+# ]
+# ///
+
 import json
 import os
 

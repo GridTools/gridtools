@@ -25,6 +25,7 @@ __pycache__
 /*
 
 # except
+!ci
 !cmake
 !docs
 !docs_src
