@@ -9,7 +9,7 @@ copies only the required headers.
 
 ## First vendoring
 
-When the vendoring the first time, the first step requires finding direct
+When vendoring the first time, the first step requires finding direct
 includes of Boost.Preprocessor. This can be done e.g. with:
 
 ``` shell
