@@ -51,13 +51,5 @@ RUN echo "${MPICH_PATH}/lib" >> /etc/ld.so.conf.d/cscs.conf && ldconfig
 ENV CXX=${MPICH_PATH}/bin/mpicxx
 ENV CC=${MPICH_PATH}/bin/mpicc
 
-RUN wget --quiet https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.gz && \
-    echo be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b boost_1_85_0.tar.gz > boost_hash.txt && \
-    sha256sum -c boost_hash.txt && \
-    tar xzf boost_1_85_0.tar.gz && \
-    mv boost_1_85_0/boost /usr/local/include/ && \
-    rm boost_1_85_0.tar.gz boost_hash.txt
-ENV BOOST_ROOT /usr/local/
-
 ENV CUDA_HOME /usr/local/cuda
 ENV CUDA_ARCH=${CUDA_ARCH}

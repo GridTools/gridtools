@@ -36,7 +36,6 @@ CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host 
 
 ##### Requirements
 - C++17 compiler (see also list of tested compilers)
-- Boost headers (1.73 or later)
 - CMake (3.21.0 or later)
 - CUDA Toolkit (11.0 or later, optional)
 - MPI (optional, CUDA-aware MPI for the GPU communication module `gcl_gpu`)

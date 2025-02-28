@@ -7,42 +7,42 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#if !BOOST_PP_IS_ITERATING
+#if !GT_PP_IS_ITERATING
 
 #ifndef GCL_NON_VECT_INTERFACE_H_
 #define GCL_NON_VECT_INTERFACE_H_
 
-#include <boost/preprocessor/arithmetic/inc.hpp>
-#include <boost/preprocessor/iteration/iterate.hpp>
-#include <boost/preprocessor/repetition/enum_binary_params.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <gridtools/preprocessor/arithmetic/inc.hpp>
+#include <gridtools/preprocessor/iteration/iterate.hpp>
+#include <gridtools/preprocessor/repetition/enum_binary_params.hpp>
+#include <gridtools/preprocessor/repetition/enum_params.hpp>
 
 #include "gcl_parameters.hpp"
 
-#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, "gridtools/gcl/high_level/non_vect_interface.hpp"))
-#include BOOST_PP_ITERATE()
+#define GT_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, "gridtools/gcl/high_level/non_vect_interface.hpp"))
+#include GT_PP_ITERATE()
 
 #endif
 #else
 
-#define GCL_NOI BOOST_PP_ITERATION()
+#define GCL_NOI GT_PP_ITERATION()
 
 // #define _GCL_TRIM_FIELDS(z, m, s) field ## m
-// #define GCL_TRIM_FIELDS(m, s) BOOST_PP_REPEAT(m, _GCL_TRIM_FIELDS, s)
+// #define GCL_TRIM_FIELDS(m, s) GT_PP_REPEAT(m, _GCL_TRIM_FIELDS, s)
 
 #define _GCL_PRINT_FIELDS(z, m, s) (*filep) << _field##m << "\n" << sizeof(FIELD##m) << std::endl;
 // std::cout << fields[ m ] << " is equal to (input) " << _field ## m << std::endl;
-#define GCL_PRINT_FIELDS(m) BOOST_PP_REPEAT(m, _GCL_PRINT_FIELDS, nil)
+#define GCL_PRINT_FIELDS(m) GT_PP_REPEAT(m, _GCL_PRINT_FIELDS, nil)
 
 #define _GCL_COPY_FIELDS(z, m, s) fields[m] = (_field##m.template copy<typename FIELD0::value_type>());
 // std::cout << fields[ m ] << " is equal to (input) " << _field ## m << std::endl;
-#define GCL_COPY_FIELDS(m) BOOST_PP_REPEAT(m, _GCL_COPY_FIELDS, nil)
+#define GCL_COPY_FIELDS(m) GT_PP_REPEAT(m, _GCL_COPY_FIELDS, nil)
 
 #define _GCL_COPY_BACK(z, m, s) FIELD##m &new_field##m = fields[m].template retarget<typename FIELD##m::value_type>();
-#define GCL_COPY_BACK(m) BOOST_PP_REPEAT(m, _GCL_COPY_BACK, nil)
+#define GCL_COPY_BACK(m) GT_PP_REPEAT(m, _GCL_COPY_BACK, nil)
 
-template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FIELD)>
-void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
+template <GT_PP_ENUM_PARAMS(GCL_NOI, typename FIELD)>
+void pack(GT_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     ////////////////////////////////// Only FIELD0 is taken for layout... all should have the same
     using map_type = layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>;
 
@@ -156,27 +156,27 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
 
     if (send_size[translate()(0, 0, -1)]) {
         m_packZL_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
     }
     if (send_size[translate()(0, 0, 1)]) {
         m_packZU_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
     }
     if (send_size[translate()(0, -1, 0)]) {
         m_packYL_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
     }
     if (send_size[translate()(0, 1, 0)]) {
         m_packYU_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
     }
     if (send_size[translate()(-1, 0, 0)]) {
         m_packXL_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
     }
     if (send_size[translate()(1, 0, 0)]) {
         m_packXU_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
     }
 
     GT_CUDA_CHECK(cudaDeviceSynchronize());
@@ -187,8 +187,8 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
 
    \param[in] fields vector with data fields pointers to be unpacked into
 */
-template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FIELD)>
-void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
+template <GT_PP_ENUM_PARAMS(GCL_NOI, typename FIELD)>
+void unpack(GT_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     ////////////////////////////////// Only FIELD0 is taken for layout... all should have the same
     using map_type = layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>;
 
@@ -291,27 +291,27 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
 
     if (recv_size[translate()(0, 0, -1)]) {
         m_unpackZL_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
     }
     if (recv_size[translate()(0, 0, 1)]) {
         m_unpackZU_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
     }
     if (recv_size[translate()(0, -1, 0)]) {
         m_unpackYL_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
     }
     if (recv_size[translate()(0, 1, 0)]) {
         m_unpackYU_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
     }
     if (recv_size[translate()(-1, 0, 0)]) {
         m_unpackXL_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
     }
     if (recv_size[translate()(1, 0, 0)]) {
         m_unpackXU_generic_nv(
-            BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
+            GT_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);
     }
 }
 

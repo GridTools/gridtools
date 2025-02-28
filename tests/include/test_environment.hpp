@@ -14,13 +14,13 @@
 #include <type_traits>
 #include <typeinfo>
 
-#include <boost/preprocessor/punctuation/remove_parens.hpp>
-#include <boost/preprocessor/seq/fold_left.hpp>
-#include <boost/preprocessor/seq/transform.hpp>
-#include <boost/preprocessor/tuple/elem.hpp>
-#include <boost/preprocessor/tuple/enum.hpp>
-#include <boost/preprocessor/tuple/pop_front.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
+#include <gridtools/preprocessor/punctuation/remove_parens.hpp>
+#include <gridtools/preprocessor/seq/fold_left.hpp>
+#include <gridtools/preprocessor/seq/transform.hpp>
+#include <gridtools/preprocessor/tuple/elem.hpp>
+#include <gridtools/preprocessor/tuple/enum.hpp>
+#include <gridtools/preprocessor/tuple/pop_front.hpp>
+#include <gridtools/preprocessor/variadic/to_seq.hpp>
 
 #include <gtest/gtest.h>
 
@@ -37,24 +37,24 @@
 #include "timer_select.hpp"
 #include "verifier.hpp"
 
-#define GT_ENVIRONMENT_TEST_CONCAT_TUPLES_(s, state, x) (BOOST_PP_TUPLE_ENUM(state), BOOST_PP_TUPLE_ENUM(x))
+#define GT_ENVIRONMENT_TEST_CONCAT_TUPLES_(s, state, x) (GT_PP_TUPLE_ENUM(state), GT_PP_TUPLE_ENUM(x))
 
 #define GT_ENVIRONMENT_TEST_ENUM_(seq) \
-    BOOST_PP_TUPLE_ENUM(               \
-        BOOST_PP_TUPLE_POP_FRONT(BOOST_PP_SEQ_FOLD_LEFT(GT_ENVIRONMENT_TEST_CONCAT_TUPLES_, (dummy), seq)))
+    GT_PP_TUPLE_ENUM(               \
+        GT_PP_TUPLE_POP_FRONT(GT_PP_SEQ_FOLD_LEFT(GT_ENVIRONMENT_TEST_CONCAT_TUPLES_, (dummy), seq)))
 
 #define GT_ENVIRONMENT_TEST_MAKE_TEST_PARAM_(_, data, params)                                                          \
-    (BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(0, data))::apply<BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(1, data)), \
-        BOOST_PP_TUPLE_ELEM(0, params),                                                                                \
-        ::gridtools::test_environment_impl_::BOOST_PP_TUPLE_ENUM(BOOST_PP_TUPLE_POP_FRONT(params))>)
+    (GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(0, data))::apply<GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(1, data)), \
+        GT_PP_TUPLE_ELEM(0, params),                                                                                \
+        ::gridtools::test_environment_impl_::GT_PP_TUPLE_ENUM(GT_PP_TUPLE_POP_FRONT(params))>)
 
 #define GT_ENVIRONMENT_TEST_BODY_(case, test) case##_##test##_test_body
 
 #define GT_ENVIRONMENT_TEST_SUITE(name, env, backend, ...)                                              \
     template <class T>                                                                                  \
     using name = ::gridtools::test_environment_impl_::regression_test<T>;                               \
-    using name##_types_t = ::testing::Types<GT_ENVIRONMENT_TEST_ENUM_(BOOST_PP_SEQ_TRANSFORM(           \
-        GT_ENVIRONMENT_TEST_MAKE_TEST_PARAM_, (env, backend), BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)))>; \
+    using name##_types_t = ::testing::Types<GT_ENVIRONMENT_TEST_ENUM_(GT_PP_SEQ_TRANSFORM(           \
+        GT_ENVIRONMENT_TEST_MAKE_TEST_PARAM_, (env, backend), GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)))>; \
     TYPED_TEST_SUITE(name, name##_types_t, ::gridtools::test_environment_impl_::test_environment_names)
 
 #define GT_ENVIRONMENT_TYPED_TEST(case, test)                                                          \

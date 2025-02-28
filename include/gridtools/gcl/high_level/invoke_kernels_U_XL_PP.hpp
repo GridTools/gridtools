@@ -37,5 +37,5 @@
         }                                                                                                              \
     }
 
-BOOST_PP_REPEAT(GCL_NOI, GCL_MACRO_IMPL, all)
+GT_PP_REPEAT(GCL_NOI, GCL_MACRO_IMPL, all)
 #undef GCL_MACRO_IMPL

@@ -89,7 +89,7 @@
 /**
  *   A helper to implement a family of functions which are different from each other only by target specifies.
  *
- *   It uses the same design pattern as `BOOST_PP_ITERATE` does.
+ *   It uses the same design pattern as `GT_PP_ITERATE` does.
  *   For example if one wants to define a function with any possible combination of `__host__` and `__device__`
  *   specifiers he needs to write the following code:
  *

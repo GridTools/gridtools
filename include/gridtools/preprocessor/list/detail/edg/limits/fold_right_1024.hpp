@@ -1,0 +1,1557 @@
+# /* Copyright (C) 2001
+#  * Housemarque Oy
+#  * http://www.housemarque.com
+#  *
+#  * Distributed under the Boost Software License, Version 1.0. (See
+#  * accompanying file LICENSE_1_0.txt or copy at
+#  * http://www.boost.org/LICENSE_1_0.txt)
+#  */
+#
+# /* Revised by Paul Mensonides (2002) */
+# /* Revised by Edward Diener (2020) */
+#
+# /* See http://www.boost.org for most recent version. */
+#
+# ifndef GT_PREPROCESSOR_LIST_DETAIL_EDG_FOLD_RIGHT_1024_HPP
+# define GT_PREPROCESSOR_LIST_DETAIL_EDG_FOLD_RIGHT_1024_HPP
+#
+# define GT_PP_LIST_FOLD_RIGHT_513(o, s, l) GT_PP_LIST_FOLD_RIGHT_513_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_514(o, s, l) GT_PP_LIST_FOLD_RIGHT_514_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_515(o, s, l) GT_PP_LIST_FOLD_RIGHT_515_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_516(o, s, l) GT_PP_LIST_FOLD_RIGHT_516_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_517(o, s, l) GT_PP_LIST_FOLD_RIGHT_517_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_518(o, s, l) GT_PP_LIST_FOLD_RIGHT_518_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_519(o, s, l) GT_PP_LIST_FOLD_RIGHT_519_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_520(o, s, l) GT_PP_LIST_FOLD_RIGHT_520_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_521(o, s, l) GT_PP_LIST_FOLD_RIGHT_521_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_522(o, s, l) GT_PP_LIST_FOLD_RIGHT_522_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_523(o, s, l) GT_PP_LIST_FOLD_RIGHT_523_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_524(o, s, l) GT_PP_LIST_FOLD_RIGHT_524_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_525(o, s, l) GT_PP_LIST_FOLD_RIGHT_525_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_526(o, s, l) GT_PP_LIST_FOLD_RIGHT_526_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_527(o, s, l) GT_PP_LIST_FOLD_RIGHT_527_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_528(o, s, l) GT_PP_LIST_FOLD_RIGHT_528_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_529(o, s, l) GT_PP_LIST_FOLD_RIGHT_529_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_530(o, s, l) GT_PP_LIST_FOLD_RIGHT_530_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_531(o, s, l) GT_PP_LIST_FOLD_RIGHT_531_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_532(o, s, l) GT_PP_LIST_FOLD_RIGHT_532_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_533(o, s, l) GT_PP_LIST_FOLD_RIGHT_533_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_534(o, s, l) GT_PP_LIST_FOLD_RIGHT_534_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_535(o, s, l) GT_PP_LIST_FOLD_RIGHT_535_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_536(o, s, l) GT_PP_LIST_FOLD_RIGHT_536_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_537(o, s, l) GT_PP_LIST_FOLD_RIGHT_537_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_538(o, s, l) GT_PP_LIST_FOLD_RIGHT_538_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_539(o, s, l) GT_PP_LIST_FOLD_RIGHT_539_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_540(o, s, l) GT_PP_LIST_FOLD_RIGHT_540_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_541(o, s, l) GT_PP_LIST_FOLD_RIGHT_541_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_542(o, s, l) GT_PP_LIST_FOLD_RIGHT_542_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_543(o, s, l) GT_PP_LIST_FOLD_RIGHT_543_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_544(o, s, l) GT_PP_LIST_FOLD_RIGHT_544_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_545(o, s, l) GT_PP_LIST_FOLD_RIGHT_545_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_546(o, s, l) GT_PP_LIST_FOLD_RIGHT_546_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_547(o, s, l) GT_PP_LIST_FOLD_RIGHT_547_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_548(o, s, l) GT_PP_LIST_FOLD_RIGHT_548_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_549(o, s, l) GT_PP_LIST_FOLD_RIGHT_549_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_550(o, s, l) GT_PP_LIST_FOLD_RIGHT_550_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_551(o, s, l) GT_PP_LIST_FOLD_RIGHT_551_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_552(o, s, l) GT_PP_LIST_FOLD_RIGHT_552_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_553(o, s, l) GT_PP_LIST_FOLD_RIGHT_553_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_554(o, s, l) GT_PP_LIST_FOLD_RIGHT_554_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_555(o, s, l) GT_PP_LIST_FOLD_RIGHT_555_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_556(o, s, l) GT_PP_LIST_FOLD_RIGHT_556_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_557(o, s, l) GT_PP_LIST_FOLD_RIGHT_557_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_558(o, s, l) GT_PP_LIST_FOLD_RIGHT_558_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_559(o, s, l) GT_PP_LIST_FOLD_RIGHT_559_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_560(o, s, l) GT_PP_LIST_FOLD_RIGHT_560_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_561(o, s, l) GT_PP_LIST_FOLD_RIGHT_561_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_562(o, s, l) GT_PP_LIST_FOLD_RIGHT_562_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_563(o, s, l) GT_PP_LIST_FOLD_RIGHT_563_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_564(o, s, l) GT_PP_LIST_FOLD_RIGHT_564_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_565(o, s, l) GT_PP_LIST_FOLD_RIGHT_565_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_566(o, s, l) GT_PP_LIST_FOLD_RIGHT_566_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_567(o, s, l) GT_PP_LIST_FOLD_RIGHT_567_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_568(o, s, l) GT_PP_LIST_FOLD_RIGHT_568_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_569(o, s, l) GT_PP_LIST_FOLD_RIGHT_569_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_570(o, s, l) GT_PP_LIST_FOLD_RIGHT_570_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_571(o, s, l) GT_PP_LIST_FOLD_RIGHT_571_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_572(o, s, l) GT_PP_LIST_FOLD_RIGHT_572_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_573(o, s, l) GT_PP_LIST_FOLD_RIGHT_573_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_574(o, s, l) GT_PP_LIST_FOLD_RIGHT_574_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_575(o, s, l) GT_PP_LIST_FOLD_RIGHT_575_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_576(o, s, l) GT_PP_LIST_FOLD_RIGHT_576_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_577(o, s, l) GT_PP_LIST_FOLD_RIGHT_577_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_578(o, s, l) GT_PP_LIST_FOLD_RIGHT_578_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_579(o, s, l) GT_PP_LIST_FOLD_RIGHT_579_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_580(o, s, l) GT_PP_LIST_FOLD_RIGHT_580_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_581(o, s, l) GT_PP_LIST_FOLD_RIGHT_581_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_582(o, s, l) GT_PP_LIST_FOLD_RIGHT_582_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_583(o, s, l) GT_PP_LIST_FOLD_RIGHT_583_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_584(o, s, l) GT_PP_LIST_FOLD_RIGHT_584_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_585(o, s, l) GT_PP_LIST_FOLD_RIGHT_585_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_586(o, s, l) GT_PP_LIST_FOLD_RIGHT_586_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_587(o, s, l) GT_PP_LIST_FOLD_RIGHT_587_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_588(o, s, l) GT_PP_LIST_FOLD_RIGHT_588_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_589(o, s, l) GT_PP_LIST_FOLD_RIGHT_589_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_590(o, s, l) GT_PP_LIST_FOLD_RIGHT_590_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_591(o, s, l) GT_PP_LIST_FOLD_RIGHT_591_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_592(o, s, l) GT_PP_LIST_FOLD_RIGHT_592_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_593(o, s, l) GT_PP_LIST_FOLD_RIGHT_593_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_594(o, s, l) GT_PP_LIST_FOLD_RIGHT_594_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_595(o, s, l) GT_PP_LIST_FOLD_RIGHT_595_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_596(o, s, l) GT_PP_LIST_FOLD_RIGHT_596_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_597(o, s, l) GT_PP_LIST_FOLD_RIGHT_597_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_598(o, s, l) GT_PP_LIST_FOLD_RIGHT_598_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_599(o, s, l) GT_PP_LIST_FOLD_RIGHT_599_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_600(o, s, l) GT_PP_LIST_FOLD_RIGHT_600_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_601(o, s, l) GT_PP_LIST_FOLD_RIGHT_601_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_602(o, s, l) GT_PP_LIST_FOLD_RIGHT_602_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_603(o, s, l) GT_PP_LIST_FOLD_RIGHT_603_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_604(o, s, l) GT_PP_LIST_FOLD_RIGHT_604_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_605(o, s, l) GT_PP_LIST_FOLD_RIGHT_605_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_606(o, s, l) GT_PP_LIST_FOLD_RIGHT_606_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_607(o, s, l) GT_PP_LIST_FOLD_RIGHT_607_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_608(o, s, l) GT_PP_LIST_FOLD_RIGHT_608_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_609(o, s, l) GT_PP_LIST_FOLD_RIGHT_609_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_610(o, s, l) GT_PP_LIST_FOLD_RIGHT_610_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_611(o, s, l) GT_PP_LIST_FOLD_RIGHT_611_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_612(o, s, l) GT_PP_LIST_FOLD_RIGHT_612_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_613(o, s, l) GT_PP_LIST_FOLD_RIGHT_613_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_614(o, s, l) GT_PP_LIST_FOLD_RIGHT_614_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_615(o, s, l) GT_PP_LIST_FOLD_RIGHT_615_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_616(o, s, l) GT_PP_LIST_FOLD_RIGHT_616_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_617(o, s, l) GT_PP_LIST_FOLD_RIGHT_617_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_618(o, s, l) GT_PP_LIST_FOLD_RIGHT_618_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_619(o, s, l) GT_PP_LIST_FOLD_RIGHT_619_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_620(o, s, l) GT_PP_LIST_FOLD_RIGHT_620_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_621(o, s, l) GT_PP_LIST_FOLD_RIGHT_621_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_622(o, s, l) GT_PP_LIST_FOLD_RIGHT_622_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_623(o, s, l) GT_PP_LIST_FOLD_RIGHT_623_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_624(o, s, l) GT_PP_LIST_FOLD_RIGHT_624_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_625(o, s, l) GT_PP_LIST_FOLD_RIGHT_625_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_626(o, s, l) GT_PP_LIST_FOLD_RIGHT_626_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_627(o, s, l) GT_PP_LIST_FOLD_RIGHT_627_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_628(o, s, l) GT_PP_LIST_FOLD_RIGHT_628_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_629(o, s, l) GT_PP_LIST_FOLD_RIGHT_629_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_630(o, s, l) GT_PP_LIST_FOLD_RIGHT_630_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_631(o, s, l) GT_PP_LIST_FOLD_RIGHT_631_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_632(o, s, l) GT_PP_LIST_FOLD_RIGHT_632_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_633(o, s, l) GT_PP_LIST_FOLD_RIGHT_633_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_634(o, s, l) GT_PP_LIST_FOLD_RIGHT_634_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_635(o, s, l) GT_PP_LIST_FOLD_RIGHT_635_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_636(o, s, l) GT_PP_LIST_FOLD_RIGHT_636_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_637(o, s, l) GT_PP_LIST_FOLD_RIGHT_637_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_638(o, s, l) GT_PP_LIST_FOLD_RIGHT_638_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_639(o, s, l) GT_PP_LIST_FOLD_RIGHT_639_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_640(o, s, l) GT_PP_LIST_FOLD_RIGHT_640_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_641(o, s, l) GT_PP_LIST_FOLD_RIGHT_641_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_642(o, s, l) GT_PP_LIST_FOLD_RIGHT_642_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_643(o, s, l) GT_PP_LIST_FOLD_RIGHT_643_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_644(o, s, l) GT_PP_LIST_FOLD_RIGHT_644_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_645(o, s, l) GT_PP_LIST_FOLD_RIGHT_645_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_646(o, s, l) GT_PP_LIST_FOLD_RIGHT_646_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_647(o, s, l) GT_PP_LIST_FOLD_RIGHT_647_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_648(o, s, l) GT_PP_LIST_FOLD_RIGHT_648_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_649(o, s, l) GT_PP_LIST_FOLD_RIGHT_649_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_650(o, s, l) GT_PP_LIST_FOLD_RIGHT_650_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_651(o, s, l) GT_PP_LIST_FOLD_RIGHT_651_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_652(o, s, l) GT_PP_LIST_FOLD_RIGHT_652_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_653(o, s, l) GT_PP_LIST_FOLD_RIGHT_653_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_654(o, s, l) GT_PP_LIST_FOLD_RIGHT_654_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_655(o, s, l) GT_PP_LIST_FOLD_RIGHT_655_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_656(o, s, l) GT_PP_LIST_FOLD_RIGHT_656_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_657(o, s, l) GT_PP_LIST_FOLD_RIGHT_657_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_658(o, s, l) GT_PP_LIST_FOLD_RIGHT_658_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_659(o, s, l) GT_PP_LIST_FOLD_RIGHT_659_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_660(o, s, l) GT_PP_LIST_FOLD_RIGHT_660_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_661(o, s, l) GT_PP_LIST_FOLD_RIGHT_661_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_662(o, s, l) GT_PP_LIST_FOLD_RIGHT_662_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_663(o, s, l) GT_PP_LIST_FOLD_RIGHT_663_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_664(o, s, l) GT_PP_LIST_FOLD_RIGHT_664_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_665(o, s, l) GT_PP_LIST_FOLD_RIGHT_665_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_666(o, s, l) GT_PP_LIST_FOLD_RIGHT_666_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_667(o, s, l) GT_PP_LIST_FOLD_RIGHT_667_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_668(o, s, l) GT_PP_LIST_FOLD_RIGHT_668_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_669(o, s, l) GT_PP_LIST_FOLD_RIGHT_669_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_670(o, s, l) GT_PP_LIST_FOLD_RIGHT_670_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_671(o, s, l) GT_PP_LIST_FOLD_RIGHT_671_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_672(o, s, l) GT_PP_LIST_FOLD_RIGHT_672_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_673(o, s, l) GT_PP_LIST_FOLD_RIGHT_673_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_674(o, s, l) GT_PP_LIST_FOLD_RIGHT_674_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_675(o, s, l) GT_PP_LIST_FOLD_RIGHT_675_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_676(o, s, l) GT_PP_LIST_FOLD_RIGHT_676_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_677(o, s, l) GT_PP_LIST_FOLD_RIGHT_677_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_678(o, s, l) GT_PP_LIST_FOLD_RIGHT_678_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_679(o, s, l) GT_PP_LIST_FOLD_RIGHT_679_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_680(o, s, l) GT_PP_LIST_FOLD_RIGHT_680_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_681(o, s, l) GT_PP_LIST_FOLD_RIGHT_681_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_682(o, s, l) GT_PP_LIST_FOLD_RIGHT_682_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_683(o, s, l) GT_PP_LIST_FOLD_RIGHT_683_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_684(o, s, l) GT_PP_LIST_FOLD_RIGHT_684_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_685(o, s, l) GT_PP_LIST_FOLD_RIGHT_685_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_686(o, s, l) GT_PP_LIST_FOLD_RIGHT_686_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_687(o, s, l) GT_PP_LIST_FOLD_RIGHT_687_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_688(o, s, l) GT_PP_LIST_FOLD_RIGHT_688_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_689(o, s, l) GT_PP_LIST_FOLD_RIGHT_689_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_690(o, s, l) GT_PP_LIST_FOLD_RIGHT_690_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_691(o, s, l) GT_PP_LIST_FOLD_RIGHT_691_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_692(o, s, l) GT_PP_LIST_FOLD_RIGHT_692_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_693(o, s, l) GT_PP_LIST_FOLD_RIGHT_693_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_694(o, s, l) GT_PP_LIST_FOLD_RIGHT_694_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_695(o, s, l) GT_PP_LIST_FOLD_RIGHT_695_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_696(o, s, l) GT_PP_LIST_FOLD_RIGHT_696_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_697(o, s, l) GT_PP_LIST_FOLD_RIGHT_697_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_698(o, s, l) GT_PP_LIST_FOLD_RIGHT_698_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_699(o, s, l) GT_PP_LIST_FOLD_RIGHT_699_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_700(o, s, l) GT_PP_LIST_FOLD_RIGHT_700_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_701(o, s, l) GT_PP_LIST_FOLD_RIGHT_701_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_702(o, s, l) GT_PP_LIST_FOLD_RIGHT_702_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_703(o, s, l) GT_PP_LIST_FOLD_RIGHT_703_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_704(o, s, l) GT_PP_LIST_FOLD_RIGHT_704_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_705(o, s, l) GT_PP_LIST_FOLD_RIGHT_705_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_706(o, s, l) GT_PP_LIST_FOLD_RIGHT_706_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_707(o, s, l) GT_PP_LIST_FOLD_RIGHT_707_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_708(o, s, l) GT_PP_LIST_FOLD_RIGHT_708_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_709(o, s, l) GT_PP_LIST_FOLD_RIGHT_709_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_710(o, s, l) GT_PP_LIST_FOLD_RIGHT_710_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_711(o, s, l) GT_PP_LIST_FOLD_RIGHT_711_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_712(o, s, l) GT_PP_LIST_FOLD_RIGHT_712_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_713(o, s, l) GT_PP_LIST_FOLD_RIGHT_713_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_714(o, s, l) GT_PP_LIST_FOLD_RIGHT_714_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_715(o, s, l) GT_PP_LIST_FOLD_RIGHT_715_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_716(o, s, l) GT_PP_LIST_FOLD_RIGHT_716_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_717(o, s, l) GT_PP_LIST_FOLD_RIGHT_717_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_718(o, s, l) GT_PP_LIST_FOLD_RIGHT_718_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_719(o, s, l) GT_PP_LIST_FOLD_RIGHT_719_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_720(o, s, l) GT_PP_LIST_FOLD_RIGHT_720_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_721(o, s, l) GT_PP_LIST_FOLD_RIGHT_721_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_722(o, s, l) GT_PP_LIST_FOLD_RIGHT_722_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_723(o, s, l) GT_PP_LIST_FOLD_RIGHT_723_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_724(o, s, l) GT_PP_LIST_FOLD_RIGHT_724_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_725(o, s, l) GT_PP_LIST_FOLD_RIGHT_725_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_726(o, s, l) GT_PP_LIST_FOLD_RIGHT_726_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_727(o, s, l) GT_PP_LIST_FOLD_RIGHT_727_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_728(o, s, l) GT_PP_LIST_FOLD_RIGHT_728_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_729(o, s, l) GT_PP_LIST_FOLD_RIGHT_729_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_730(o, s, l) GT_PP_LIST_FOLD_RIGHT_730_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_731(o, s, l) GT_PP_LIST_FOLD_RIGHT_731_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_732(o, s, l) GT_PP_LIST_FOLD_RIGHT_732_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_733(o, s, l) GT_PP_LIST_FOLD_RIGHT_733_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_734(o, s, l) GT_PP_LIST_FOLD_RIGHT_734_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_735(o, s, l) GT_PP_LIST_FOLD_RIGHT_735_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_736(o, s, l) GT_PP_LIST_FOLD_RIGHT_736_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_737(o, s, l) GT_PP_LIST_FOLD_RIGHT_737_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_738(o, s, l) GT_PP_LIST_FOLD_RIGHT_738_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_739(o, s, l) GT_PP_LIST_FOLD_RIGHT_739_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_740(o, s, l) GT_PP_LIST_FOLD_RIGHT_740_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_741(o, s, l) GT_PP_LIST_FOLD_RIGHT_741_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_742(o, s, l) GT_PP_LIST_FOLD_RIGHT_742_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_743(o, s, l) GT_PP_LIST_FOLD_RIGHT_743_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_744(o, s, l) GT_PP_LIST_FOLD_RIGHT_744_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_745(o, s, l) GT_PP_LIST_FOLD_RIGHT_745_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_746(o, s, l) GT_PP_LIST_FOLD_RIGHT_746_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_747(o, s, l) GT_PP_LIST_FOLD_RIGHT_747_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_748(o, s, l) GT_PP_LIST_FOLD_RIGHT_748_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_749(o, s, l) GT_PP_LIST_FOLD_RIGHT_749_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_750(o, s, l) GT_PP_LIST_FOLD_RIGHT_750_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_751(o, s, l) GT_PP_LIST_FOLD_RIGHT_751_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_752(o, s, l) GT_PP_LIST_FOLD_RIGHT_752_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_753(o, s, l) GT_PP_LIST_FOLD_RIGHT_753_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_754(o, s, l) GT_PP_LIST_FOLD_RIGHT_754_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_755(o, s, l) GT_PP_LIST_FOLD_RIGHT_755_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_756(o, s, l) GT_PP_LIST_FOLD_RIGHT_756_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_757(o, s, l) GT_PP_LIST_FOLD_RIGHT_757_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_758(o, s, l) GT_PP_LIST_FOLD_RIGHT_758_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_759(o, s, l) GT_PP_LIST_FOLD_RIGHT_759_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_760(o, s, l) GT_PP_LIST_FOLD_RIGHT_760_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_761(o, s, l) GT_PP_LIST_FOLD_RIGHT_761_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_762(o, s, l) GT_PP_LIST_FOLD_RIGHT_762_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_763(o, s, l) GT_PP_LIST_FOLD_RIGHT_763_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_764(o, s, l) GT_PP_LIST_FOLD_RIGHT_764_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_765(o, s, l) GT_PP_LIST_FOLD_RIGHT_765_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_766(o, s, l) GT_PP_LIST_FOLD_RIGHT_766_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_767(o, s, l) GT_PP_LIST_FOLD_RIGHT_767_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_768(o, s, l) GT_PP_LIST_FOLD_RIGHT_768_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_769(o, s, l) GT_PP_LIST_FOLD_RIGHT_769_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_770(o, s, l) GT_PP_LIST_FOLD_RIGHT_770_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_771(o, s, l) GT_PP_LIST_FOLD_RIGHT_771_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_772(o, s, l) GT_PP_LIST_FOLD_RIGHT_772_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_773(o, s, l) GT_PP_LIST_FOLD_RIGHT_773_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_774(o, s, l) GT_PP_LIST_FOLD_RIGHT_774_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_775(o, s, l) GT_PP_LIST_FOLD_RIGHT_775_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_776(o, s, l) GT_PP_LIST_FOLD_RIGHT_776_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_777(o, s, l) GT_PP_LIST_FOLD_RIGHT_777_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_778(o, s, l) GT_PP_LIST_FOLD_RIGHT_778_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_779(o, s, l) GT_PP_LIST_FOLD_RIGHT_779_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_780(o, s, l) GT_PP_LIST_FOLD_RIGHT_780_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_781(o, s, l) GT_PP_LIST_FOLD_RIGHT_781_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_782(o, s, l) GT_PP_LIST_FOLD_RIGHT_782_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_783(o, s, l) GT_PP_LIST_FOLD_RIGHT_783_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_784(o, s, l) GT_PP_LIST_FOLD_RIGHT_784_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_785(o, s, l) GT_PP_LIST_FOLD_RIGHT_785_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_786(o, s, l) GT_PP_LIST_FOLD_RIGHT_786_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_787(o, s, l) GT_PP_LIST_FOLD_RIGHT_787_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_788(o, s, l) GT_PP_LIST_FOLD_RIGHT_788_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_789(o, s, l) GT_PP_LIST_FOLD_RIGHT_789_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_790(o, s, l) GT_PP_LIST_FOLD_RIGHT_790_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_791(o, s, l) GT_PP_LIST_FOLD_RIGHT_791_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_792(o, s, l) GT_PP_LIST_FOLD_RIGHT_792_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_793(o, s, l) GT_PP_LIST_FOLD_RIGHT_793_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_794(o, s, l) GT_PP_LIST_FOLD_RIGHT_794_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_795(o, s, l) GT_PP_LIST_FOLD_RIGHT_795_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_796(o, s, l) GT_PP_LIST_FOLD_RIGHT_796_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_797(o, s, l) GT_PP_LIST_FOLD_RIGHT_797_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_798(o, s, l) GT_PP_LIST_FOLD_RIGHT_798_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_799(o, s, l) GT_PP_LIST_FOLD_RIGHT_799_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_800(o, s, l) GT_PP_LIST_FOLD_RIGHT_800_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_801(o, s, l) GT_PP_LIST_FOLD_RIGHT_801_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_802(o, s, l) GT_PP_LIST_FOLD_RIGHT_802_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_803(o, s, l) GT_PP_LIST_FOLD_RIGHT_803_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_804(o, s, l) GT_PP_LIST_FOLD_RIGHT_804_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_805(o, s, l) GT_PP_LIST_FOLD_RIGHT_805_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_806(o, s, l) GT_PP_LIST_FOLD_RIGHT_806_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_807(o, s, l) GT_PP_LIST_FOLD_RIGHT_807_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_808(o, s, l) GT_PP_LIST_FOLD_RIGHT_808_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_809(o, s, l) GT_PP_LIST_FOLD_RIGHT_809_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_810(o, s, l) GT_PP_LIST_FOLD_RIGHT_810_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_811(o, s, l) GT_PP_LIST_FOLD_RIGHT_811_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_812(o, s, l) GT_PP_LIST_FOLD_RIGHT_812_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_813(o, s, l) GT_PP_LIST_FOLD_RIGHT_813_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_814(o, s, l) GT_PP_LIST_FOLD_RIGHT_814_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_815(o, s, l) GT_PP_LIST_FOLD_RIGHT_815_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_816(o, s, l) GT_PP_LIST_FOLD_RIGHT_816_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_817(o, s, l) GT_PP_LIST_FOLD_RIGHT_817_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_818(o, s, l) GT_PP_LIST_FOLD_RIGHT_818_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_819(o, s, l) GT_PP_LIST_FOLD_RIGHT_819_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_820(o, s, l) GT_PP_LIST_FOLD_RIGHT_820_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_821(o, s, l) GT_PP_LIST_FOLD_RIGHT_821_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_822(o, s, l) GT_PP_LIST_FOLD_RIGHT_822_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_823(o, s, l) GT_PP_LIST_FOLD_RIGHT_823_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_824(o, s, l) GT_PP_LIST_FOLD_RIGHT_824_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_825(o, s, l) GT_PP_LIST_FOLD_RIGHT_825_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_826(o, s, l) GT_PP_LIST_FOLD_RIGHT_826_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_827(o, s, l) GT_PP_LIST_FOLD_RIGHT_827_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_828(o, s, l) GT_PP_LIST_FOLD_RIGHT_828_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_829(o, s, l) GT_PP_LIST_FOLD_RIGHT_829_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_830(o, s, l) GT_PP_LIST_FOLD_RIGHT_830_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_831(o, s, l) GT_PP_LIST_FOLD_RIGHT_831_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_832(o, s, l) GT_PP_LIST_FOLD_RIGHT_832_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_833(o, s, l) GT_PP_LIST_FOLD_RIGHT_833_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_834(o, s, l) GT_PP_LIST_FOLD_RIGHT_834_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_835(o, s, l) GT_PP_LIST_FOLD_RIGHT_835_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_836(o, s, l) GT_PP_LIST_FOLD_RIGHT_836_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_837(o, s, l) GT_PP_LIST_FOLD_RIGHT_837_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_838(o, s, l) GT_PP_LIST_FOLD_RIGHT_838_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_839(o, s, l) GT_PP_LIST_FOLD_RIGHT_839_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_840(o, s, l) GT_PP_LIST_FOLD_RIGHT_840_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_841(o, s, l) GT_PP_LIST_FOLD_RIGHT_841_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_842(o, s, l) GT_PP_LIST_FOLD_RIGHT_842_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_843(o, s, l) GT_PP_LIST_FOLD_RIGHT_843_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_844(o, s, l) GT_PP_LIST_FOLD_RIGHT_844_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_845(o, s, l) GT_PP_LIST_FOLD_RIGHT_845_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_846(o, s, l) GT_PP_LIST_FOLD_RIGHT_846_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_847(o, s, l) GT_PP_LIST_FOLD_RIGHT_847_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_848(o, s, l) GT_PP_LIST_FOLD_RIGHT_848_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_849(o, s, l) GT_PP_LIST_FOLD_RIGHT_849_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_850(o, s, l) GT_PP_LIST_FOLD_RIGHT_850_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_851(o, s, l) GT_PP_LIST_FOLD_RIGHT_851_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_852(o, s, l) GT_PP_LIST_FOLD_RIGHT_852_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_853(o, s, l) GT_PP_LIST_FOLD_RIGHT_853_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_854(o, s, l) GT_PP_LIST_FOLD_RIGHT_854_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_855(o, s, l) GT_PP_LIST_FOLD_RIGHT_855_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_856(o, s, l) GT_PP_LIST_FOLD_RIGHT_856_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_857(o, s, l) GT_PP_LIST_FOLD_RIGHT_857_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_858(o, s, l) GT_PP_LIST_FOLD_RIGHT_858_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_859(o, s, l) GT_PP_LIST_FOLD_RIGHT_859_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_860(o, s, l) GT_PP_LIST_FOLD_RIGHT_860_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_861(o, s, l) GT_PP_LIST_FOLD_RIGHT_861_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_862(o, s, l) GT_PP_LIST_FOLD_RIGHT_862_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_863(o, s, l) GT_PP_LIST_FOLD_RIGHT_863_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_864(o, s, l) GT_PP_LIST_FOLD_RIGHT_864_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_865(o, s, l) GT_PP_LIST_FOLD_RIGHT_865_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_866(o, s, l) GT_PP_LIST_FOLD_RIGHT_866_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_867(o, s, l) GT_PP_LIST_FOLD_RIGHT_867_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_868(o, s, l) GT_PP_LIST_FOLD_RIGHT_868_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_869(o, s, l) GT_PP_LIST_FOLD_RIGHT_869_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_870(o, s, l) GT_PP_LIST_FOLD_RIGHT_870_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_871(o, s, l) GT_PP_LIST_FOLD_RIGHT_871_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_872(o, s, l) GT_PP_LIST_FOLD_RIGHT_872_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_873(o, s, l) GT_PP_LIST_FOLD_RIGHT_873_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_874(o, s, l) GT_PP_LIST_FOLD_RIGHT_874_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_875(o, s, l) GT_PP_LIST_FOLD_RIGHT_875_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_876(o, s, l) GT_PP_LIST_FOLD_RIGHT_876_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_877(o, s, l) GT_PP_LIST_FOLD_RIGHT_877_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_878(o, s, l) GT_PP_LIST_FOLD_RIGHT_878_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_879(o, s, l) GT_PP_LIST_FOLD_RIGHT_879_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_880(o, s, l) GT_PP_LIST_FOLD_RIGHT_880_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_881(o, s, l) GT_PP_LIST_FOLD_RIGHT_881_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_882(o, s, l) GT_PP_LIST_FOLD_RIGHT_882_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_883(o, s, l) GT_PP_LIST_FOLD_RIGHT_883_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_884(o, s, l) GT_PP_LIST_FOLD_RIGHT_884_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_885(o, s, l) GT_PP_LIST_FOLD_RIGHT_885_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_886(o, s, l) GT_PP_LIST_FOLD_RIGHT_886_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_887(o, s, l) GT_PP_LIST_FOLD_RIGHT_887_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_888(o, s, l) GT_PP_LIST_FOLD_RIGHT_888_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_889(o, s, l) GT_PP_LIST_FOLD_RIGHT_889_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_890(o, s, l) GT_PP_LIST_FOLD_RIGHT_890_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_891(o, s, l) GT_PP_LIST_FOLD_RIGHT_891_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_892(o, s, l) GT_PP_LIST_FOLD_RIGHT_892_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_893(o, s, l) GT_PP_LIST_FOLD_RIGHT_893_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_894(o, s, l) GT_PP_LIST_FOLD_RIGHT_894_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_895(o, s, l) GT_PP_LIST_FOLD_RIGHT_895_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_896(o, s, l) GT_PP_LIST_FOLD_RIGHT_896_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_897(o, s, l) GT_PP_LIST_FOLD_RIGHT_897_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_898(o, s, l) GT_PP_LIST_FOLD_RIGHT_898_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_899(o, s, l) GT_PP_LIST_FOLD_RIGHT_899_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_900(o, s, l) GT_PP_LIST_FOLD_RIGHT_900_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_901(o, s, l) GT_PP_LIST_FOLD_RIGHT_901_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_902(o, s, l) GT_PP_LIST_FOLD_RIGHT_902_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_903(o, s, l) GT_PP_LIST_FOLD_RIGHT_903_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_904(o, s, l) GT_PP_LIST_FOLD_RIGHT_904_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_905(o, s, l) GT_PP_LIST_FOLD_RIGHT_905_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_906(o, s, l) GT_PP_LIST_FOLD_RIGHT_906_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_907(o, s, l) GT_PP_LIST_FOLD_RIGHT_907_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_908(o, s, l) GT_PP_LIST_FOLD_RIGHT_908_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_909(o, s, l) GT_PP_LIST_FOLD_RIGHT_909_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_910(o, s, l) GT_PP_LIST_FOLD_RIGHT_910_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_911(o, s, l) GT_PP_LIST_FOLD_RIGHT_911_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_912(o, s, l) GT_PP_LIST_FOLD_RIGHT_912_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_913(o, s, l) GT_PP_LIST_FOLD_RIGHT_913_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_914(o, s, l) GT_PP_LIST_FOLD_RIGHT_914_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_915(o, s, l) GT_PP_LIST_FOLD_RIGHT_915_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_916(o, s, l) GT_PP_LIST_FOLD_RIGHT_916_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_917(o, s, l) GT_PP_LIST_FOLD_RIGHT_917_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_918(o, s, l) GT_PP_LIST_FOLD_RIGHT_918_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_919(o, s, l) GT_PP_LIST_FOLD_RIGHT_919_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_920(o, s, l) GT_PP_LIST_FOLD_RIGHT_920_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_921(o, s, l) GT_PP_LIST_FOLD_RIGHT_921_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_922(o, s, l) GT_PP_LIST_FOLD_RIGHT_922_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_923(o, s, l) GT_PP_LIST_FOLD_RIGHT_923_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_924(o, s, l) GT_PP_LIST_FOLD_RIGHT_924_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_925(o, s, l) GT_PP_LIST_FOLD_RIGHT_925_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_926(o, s, l) GT_PP_LIST_FOLD_RIGHT_926_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_927(o, s, l) GT_PP_LIST_FOLD_RIGHT_927_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_928(o, s, l) GT_PP_LIST_FOLD_RIGHT_928_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_929(o, s, l) GT_PP_LIST_FOLD_RIGHT_929_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_930(o, s, l) GT_PP_LIST_FOLD_RIGHT_930_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_931(o, s, l) GT_PP_LIST_FOLD_RIGHT_931_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_932(o, s, l) GT_PP_LIST_FOLD_RIGHT_932_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_933(o, s, l) GT_PP_LIST_FOLD_RIGHT_933_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_934(o, s, l) GT_PP_LIST_FOLD_RIGHT_934_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_935(o, s, l) GT_PP_LIST_FOLD_RIGHT_935_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_936(o, s, l) GT_PP_LIST_FOLD_RIGHT_936_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_937(o, s, l) GT_PP_LIST_FOLD_RIGHT_937_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_938(o, s, l) GT_PP_LIST_FOLD_RIGHT_938_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_939(o, s, l) GT_PP_LIST_FOLD_RIGHT_939_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_940(o, s, l) GT_PP_LIST_FOLD_RIGHT_940_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_941(o, s, l) GT_PP_LIST_FOLD_RIGHT_941_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_942(o, s, l) GT_PP_LIST_FOLD_RIGHT_942_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_943(o, s, l) GT_PP_LIST_FOLD_RIGHT_943_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_944(o, s, l) GT_PP_LIST_FOLD_RIGHT_944_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_945(o, s, l) GT_PP_LIST_FOLD_RIGHT_945_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_946(o, s, l) GT_PP_LIST_FOLD_RIGHT_946_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_947(o, s, l) GT_PP_LIST_FOLD_RIGHT_947_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_948(o, s, l) GT_PP_LIST_FOLD_RIGHT_948_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_949(o, s, l) GT_PP_LIST_FOLD_RIGHT_949_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_950(o, s, l) GT_PP_LIST_FOLD_RIGHT_950_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_951(o, s, l) GT_PP_LIST_FOLD_RIGHT_951_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_952(o, s, l) GT_PP_LIST_FOLD_RIGHT_952_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_953(o, s, l) GT_PP_LIST_FOLD_RIGHT_953_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_954(o, s, l) GT_PP_LIST_FOLD_RIGHT_954_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_955(o, s, l) GT_PP_LIST_FOLD_RIGHT_955_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_956(o, s, l) GT_PP_LIST_FOLD_RIGHT_956_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_957(o, s, l) GT_PP_LIST_FOLD_RIGHT_957_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_958(o, s, l) GT_PP_LIST_FOLD_RIGHT_958_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_959(o, s, l) GT_PP_LIST_FOLD_RIGHT_959_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_960(o, s, l) GT_PP_LIST_FOLD_RIGHT_960_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_961(o, s, l) GT_PP_LIST_FOLD_RIGHT_961_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_962(o, s, l) GT_PP_LIST_FOLD_RIGHT_962_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_963(o, s, l) GT_PP_LIST_FOLD_RIGHT_963_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_964(o, s, l) GT_PP_LIST_FOLD_RIGHT_964_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_965(o, s, l) GT_PP_LIST_FOLD_RIGHT_965_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_966(o, s, l) GT_PP_LIST_FOLD_RIGHT_966_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_967(o, s, l) GT_PP_LIST_FOLD_RIGHT_967_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_968(o, s, l) GT_PP_LIST_FOLD_RIGHT_968_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_969(o, s, l) GT_PP_LIST_FOLD_RIGHT_969_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_970(o, s, l) GT_PP_LIST_FOLD_RIGHT_970_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_971(o, s, l) GT_PP_LIST_FOLD_RIGHT_971_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_972(o, s, l) GT_PP_LIST_FOLD_RIGHT_972_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_973(o, s, l) GT_PP_LIST_FOLD_RIGHT_973_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_974(o, s, l) GT_PP_LIST_FOLD_RIGHT_974_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_975(o, s, l) GT_PP_LIST_FOLD_RIGHT_975_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_976(o, s, l) GT_PP_LIST_FOLD_RIGHT_976_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_977(o, s, l) GT_PP_LIST_FOLD_RIGHT_977_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_978(o, s, l) GT_PP_LIST_FOLD_RIGHT_978_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_979(o, s, l) GT_PP_LIST_FOLD_RIGHT_979_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_980(o, s, l) GT_PP_LIST_FOLD_RIGHT_980_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_981(o, s, l) GT_PP_LIST_FOLD_RIGHT_981_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_982(o, s, l) GT_PP_LIST_FOLD_RIGHT_982_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_983(o, s, l) GT_PP_LIST_FOLD_RIGHT_983_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_984(o, s, l) GT_PP_LIST_FOLD_RIGHT_984_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_985(o, s, l) GT_PP_LIST_FOLD_RIGHT_985_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_986(o, s, l) GT_PP_LIST_FOLD_RIGHT_986_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_987(o, s, l) GT_PP_LIST_FOLD_RIGHT_987_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_988(o, s, l) GT_PP_LIST_FOLD_RIGHT_988_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_989(o, s, l) GT_PP_LIST_FOLD_RIGHT_989_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_990(o, s, l) GT_PP_LIST_FOLD_RIGHT_990_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_991(o, s, l) GT_PP_LIST_FOLD_RIGHT_991_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_992(o, s, l) GT_PP_LIST_FOLD_RIGHT_992_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_993(o, s, l) GT_PP_LIST_FOLD_RIGHT_993_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_994(o, s, l) GT_PP_LIST_FOLD_RIGHT_994_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_995(o, s, l) GT_PP_LIST_FOLD_RIGHT_995_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_996(o, s, l) GT_PP_LIST_FOLD_RIGHT_996_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_997(o, s, l) GT_PP_LIST_FOLD_RIGHT_997_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_998(o, s, l) GT_PP_LIST_FOLD_RIGHT_998_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_999(o, s, l) GT_PP_LIST_FOLD_RIGHT_999_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1000(o, s, l) GT_PP_LIST_FOLD_RIGHT_1000_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1001(o, s, l) GT_PP_LIST_FOLD_RIGHT_1001_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1002(o, s, l) GT_PP_LIST_FOLD_RIGHT_1002_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1003(o, s, l) GT_PP_LIST_FOLD_RIGHT_1003_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1004(o, s, l) GT_PP_LIST_FOLD_RIGHT_1004_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1005(o, s, l) GT_PP_LIST_FOLD_RIGHT_1005_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1006(o, s, l) GT_PP_LIST_FOLD_RIGHT_1006_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1007(o, s, l) GT_PP_LIST_FOLD_RIGHT_1007_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1008(o, s, l) GT_PP_LIST_FOLD_RIGHT_1008_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1009(o, s, l) GT_PP_LIST_FOLD_RIGHT_1009_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1010(o, s, l) GT_PP_LIST_FOLD_RIGHT_1010_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1011(o, s, l) GT_PP_LIST_FOLD_RIGHT_1011_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1012(o, s, l) GT_PP_LIST_FOLD_RIGHT_1012_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1013(o, s, l) GT_PP_LIST_FOLD_RIGHT_1013_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1014(o, s, l) GT_PP_LIST_FOLD_RIGHT_1014_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1015(o, s, l) GT_PP_LIST_FOLD_RIGHT_1015_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1016(o, s, l) GT_PP_LIST_FOLD_RIGHT_1016_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1017(o, s, l) GT_PP_LIST_FOLD_RIGHT_1017_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1018(o, s, l) GT_PP_LIST_FOLD_RIGHT_1018_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1019(o, s, l) GT_PP_LIST_FOLD_RIGHT_1019_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1020(o, s, l) GT_PP_LIST_FOLD_RIGHT_1020_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1021(o, s, l) GT_PP_LIST_FOLD_RIGHT_1021_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1022(o, s, l) GT_PP_LIST_FOLD_RIGHT_1022_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1023(o, s, l) GT_PP_LIST_FOLD_RIGHT_1023_D(o, s, l)
+# define GT_PP_LIST_FOLD_RIGHT_1024(o, s, l) GT_PP_LIST_FOLD_RIGHT_1024_D(o, s, l)
+#
+# define GT_PP_LIST_FOLD_RIGHT_513_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(514, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_514, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_514_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(515, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_515, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_515_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(516, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_516, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_516_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(517, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_517, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_517_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(518, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_518, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_518_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(519, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_519, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_519_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(520, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_520, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_520_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(521, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_521, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_521_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(522, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_522, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_522_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(523, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_523, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_523_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(524, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_524, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_524_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(525, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_525, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_525_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(526, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_526, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_526_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(527, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_527, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_527_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(528, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_528, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_528_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(529, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_529, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_529_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(530, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_530, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_530_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(531, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_531, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_531_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(532, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_532, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_532_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(533, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_533, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_533_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(534, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_534, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_534_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(535, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_535, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_535_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(536, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_536, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_536_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(537, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_537, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_537_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(538, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_538, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_538_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(539, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_539, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_539_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(540, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_540, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_540_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(541, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_541, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_541_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(542, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_542, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_542_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(543, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_543, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_543_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(544, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_544, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_544_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(545, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_545, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_545_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(546, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_546, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_546_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(547, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_547, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_547_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(548, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_548, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_548_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(549, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_549, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_549_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(550, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_550, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_550_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(551, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_551, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_551_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(552, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_552, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_552_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(553, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_553, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_553_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(554, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_554, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_554_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(555, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_555, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_555_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(556, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_556, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_556_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(557, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_557, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_557_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(558, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_558, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_558_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(559, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_559, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_559_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(560, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_560, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_560_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(561, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_561, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_561_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(562, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_562, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_562_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(563, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_563, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_563_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(564, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_564, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_564_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(565, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_565, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_565_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(566, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_566, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_566_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(567, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_567, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_567_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(568, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_568, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_568_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(569, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_569, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_569_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(570, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_570, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_570_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(571, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_571, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_571_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(572, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_572, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_572_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(573, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_573, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_573_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(574, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_574, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_574_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(575, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_575, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_575_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(576, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_576, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_576_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(577, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_577, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_577_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(578, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_578, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_578_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(579, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_579, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_579_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(580, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_580, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_580_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(581, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_581, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_581_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(582, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_582, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_582_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(583, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_583, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_583_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(584, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_584, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_584_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(585, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_585, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_585_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(586, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_586, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_586_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(587, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_587, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_587_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(588, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_588, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_588_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(589, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_589, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_589_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(590, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_590, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_590_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(591, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_591, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_591_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(592, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_592, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_592_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(593, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_593, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_593_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(594, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_594, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_594_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(595, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_595, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_595_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(596, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_596, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_596_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(597, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_597, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_597_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(598, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_598, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_598_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(599, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_599, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_599_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(600, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_600, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_600_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(601, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_601, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_601_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(602, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_602, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_602_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(603, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_603, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_603_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(604, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_604, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_604_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(605, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_605, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_605_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(606, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_606, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_606_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(607, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_607, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_607_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(608, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_608, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_608_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(609, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_609, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_609_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(610, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_610, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_610_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(611, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_611, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_611_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(612, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_612, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_612_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(613, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_613, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_613_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(614, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_614, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_614_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(615, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_615, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_615_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(616, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_616, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_616_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(617, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_617, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_617_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(618, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_618, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_618_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(619, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_619, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_619_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(620, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_620, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_620_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(621, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_621, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_621_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(622, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_622, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_622_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(623, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_623, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_623_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(624, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_624, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_624_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(625, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_625, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_625_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(626, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_626, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_626_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(627, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_627, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_627_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(628, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_628, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_628_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(629, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_629, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_629_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(630, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_630, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_630_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(631, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_631, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_631_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(632, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_632, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_632_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(633, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_633, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_633_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(634, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_634, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_634_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(635, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_635, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_635_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(636, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_636, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_636_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(637, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_637, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_637_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(638, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_638, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_638_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(639, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_639, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_639_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(640, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_640, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_640_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(641, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_641, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_641_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(642, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_642, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_642_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(643, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_643, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_643_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(644, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_644, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_644_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(645, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_645, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_645_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(646, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_646, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_646_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(647, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_647, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_647_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(648, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_648, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_648_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(649, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_649, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_649_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(650, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_650, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_650_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(651, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_651, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_651_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(652, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_652, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_652_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(653, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_653, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_653_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(654, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_654, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_654_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(655, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_655, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_655_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(656, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_656, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_656_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(657, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_657, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_657_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(658, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_658, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_658_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(659, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_659, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_659_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(660, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_660, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_660_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(661, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_661, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_661_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(662, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_662, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_662_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(663, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_663, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_663_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(664, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_664, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_664_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(665, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_665, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_665_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(666, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_666, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_666_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(667, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_667, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_667_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(668, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_668, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_668_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(669, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_669, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_669_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(670, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_670, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_670_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(671, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_671, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_671_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(672, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_672, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_672_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(673, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_673, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_673_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(674, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_674, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_674_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(675, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_675, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_675_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(676, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_676, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_676_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(677, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_677, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_677_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(678, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_678, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_678_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(679, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_679, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_679_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(680, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_680, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_680_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(681, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_681, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_681_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(682, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_682, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_682_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(683, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_683, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_683_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(684, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_684, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_684_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(685, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_685, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_685_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(686, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_686, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_686_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(687, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_687, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_687_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(688, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_688, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_688_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(689, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_689, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_689_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(690, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_690, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_690_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(691, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_691, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_691_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(692, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_692, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_692_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(693, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_693, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_693_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(694, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_694, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_694_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(695, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_695, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_695_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(696, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_696, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_696_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(697, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_697, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_697_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(698, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_698, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_698_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(699, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_699, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_699_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(700, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_700, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_700_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(701, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_701, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_701_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(702, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_702, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_702_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(703, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_703, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_703_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(704, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_704, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_704_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(705, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_705, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_705_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(706, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_706, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_706_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(707, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_707, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_707_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(708, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_708, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_708_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(709, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_709, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_709_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(710, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_710, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_710_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(711, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_711, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_711_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(712, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_712, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_712_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(713, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_713, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_713_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(714, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_714, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_714_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(715, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_715, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_715_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(716, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_716, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_716_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(717, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_717, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_717_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(718, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_718, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_718_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(719, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_719, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_719_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(720, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_720, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_720_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(721, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_721, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_721_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(722, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_722, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_722_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(723, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_723, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_723_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(724, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_724, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_724_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(725, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_725, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_725_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(726, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_726, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_726_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(727, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_727, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_727_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(728, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_728, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_728_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(729, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_729, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_729_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(730, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_730, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_730_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(731, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_731, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_731_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(732, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_732, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_732_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(733, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_733, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_733_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(734, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_734, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_734_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(735, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_735, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_735_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(736, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_736, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_736_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(737, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_737, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_737_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(738, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_738, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_738_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(739, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_739, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_739_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(740, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_740, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_740_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(741, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_741, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_741_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(742, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_742, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_742_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(743, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_743, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_743_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(744, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_744, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_744_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(745, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_745, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_745_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(746, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_746, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_746_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(747, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_747, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_747_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(748, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_748, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_748_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(749, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_749, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_749_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(750, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_750, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_750_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(751, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_751, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_751_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(752, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_752, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_752_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(753, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_753, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_753_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(754, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_754, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_754_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(755, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_755, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_755_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(756, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_756, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_756_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(757, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_757, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_757_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(758, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_758, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_758_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(759, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_759, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_759_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(760, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_760, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_760_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(761, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_761, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_761_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(762, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_762, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_762_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(763, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_763, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_763_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(764, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_764, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_764_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(765, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_765, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_765_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(766, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_766, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_766_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(767, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_767, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_767_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(768, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_768, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_768_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(769, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_769, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_769_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(770, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_770, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_770_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(771, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_771, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_771_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(772, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_772, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_772_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(773, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_773, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_773_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(774, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_774, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_774_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(775, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_775, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_775_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(776, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_776, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_776_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(777, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_777, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_777_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(778, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_778, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_778_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(779, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_779, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_779_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(780, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_780, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_780_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(781, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_781, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_781_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(782, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_782, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_782_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(783, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_783, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_783_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(784, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_784, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_784_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(785, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_785, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_785_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(786, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_786, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_786_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(787, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_787, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_787_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(788, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_788, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_788_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(789, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_789, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_789_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(790, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_790, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_790_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(791, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_791, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_791_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(792, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_792, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_792_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(793, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_793, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_793_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(794, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_794, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_794_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(795, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_795, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_795_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(796, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_796, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_796_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(797, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_797, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_797_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(798, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_798, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_798_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(799, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_799, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_799_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(800, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_800, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_800_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(801, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_801, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_801_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(802, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_802, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_802_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(803, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_803, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_803_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(804, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_804, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_804_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(805, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_805, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_805_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(806, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_806, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_806_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(807, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_807, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_807_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(808, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_808, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_808_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(809, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_809, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_809_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(810, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_810, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_810_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(811, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_811, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_811_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(812, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_812, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_812_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(813, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_813, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_813_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(814, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_814, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_814_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(815, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_815, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_815_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(816, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_816, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_816_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(817, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_817, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_817_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(818, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_818, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_818_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(819, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_819, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_819_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(820, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_820, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_820_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(821, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_821, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_821_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(822, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_822, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_822_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(823, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_823, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_823_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(824, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_824, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_824_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(825, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_825, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_825_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(826, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_826, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_826_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(827, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_827, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_827_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(828, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_828, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_828_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(829, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_829, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_829_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(830, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_830, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_830_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(831, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_831, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_831_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(832, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_832, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_832_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(833, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_833, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_833_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(834, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_834, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_834_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(835, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_835, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_835_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(836, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_836, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_836_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(837, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_837, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_837_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(838, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_838, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_838_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(839, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_839, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_839_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(840, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_840, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_840_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(841, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_841, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_841_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(842, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_842, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_842_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(843, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_843, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_843_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(844, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_844, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_844_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(845, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_845, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_845_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(846, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_846, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_846_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(847, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_847, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_847_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(848, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_848, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_848_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(849, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_849, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_849_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(850, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_850, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_850_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(851, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_851, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_851_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(852, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_852, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_852_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(853, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_853, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_853_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(854, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_854, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_854_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(855, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_855, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_855_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(856, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_856, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_856_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(857, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_857, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_857_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(858, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_858, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_858_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(859, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_859, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_859_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(860, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_860, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_860_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(861, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_861, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_861_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(862, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_862, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_862_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(863, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_863, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_863_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(864, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_864, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_864_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(865, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_865, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_865_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(866, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_866, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_866_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(867, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_867, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_867_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(868, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_868, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_868_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(869, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_869, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_869_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(870, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_870, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_870_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(871, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_871, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_871_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(872, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_872, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_872_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(873, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_873, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_873_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(874, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_874, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_874_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(875, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_875, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_875_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(876, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_876, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_876_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(877, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_877, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_877_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(878, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_878, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_878_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(879, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_879, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_879_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(880, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_880, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_880_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(881, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_881, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_881_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(882, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_882, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_882_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(883, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_883, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_883_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(884, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_884, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_884_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(885, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_885, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_885_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(886, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_886, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_886_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(887, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_887, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_887_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(888, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_888, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_888_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(889, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_889, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_889_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(890, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_890, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_890_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(891, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_891, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_891_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(892, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_892, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_892_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(893, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_893, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_893_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(894, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_894, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_894_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(895, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_895, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_895_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(896, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_896, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_896_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(897, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_897, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_897_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(898, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_898, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_898_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(899, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_899, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_899_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(900, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_900, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_900_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(901, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_901, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_901_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(902, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_902, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_902_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(903, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_903, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_903_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(904, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_904, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_904_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(905, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_905, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_905_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(906, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_906, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_906_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(907, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_907, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_907_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(908, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_908, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_908_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(909, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_909, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_909_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(910, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_910, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_910_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(911, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_911, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_911_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(912, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_912, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_912_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(913, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_913, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_913_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(914, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_914, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_914_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(915, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_915, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_915_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(916, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_916, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_916_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(917, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_917, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_917_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(918, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_918, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_918_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(919, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_919, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_919_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(920, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_920, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_920_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(921, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_921, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_921_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(922, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_922, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_922_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(923, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_923, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_923_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(924, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_924, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_924_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(925, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_925, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_925_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(926, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_926, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_926_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(927, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_927, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_927_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(928, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_928, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_928_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(929, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_929, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_929_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(930, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_930, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_930_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(931, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_931, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_931_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(932, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_932, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_932_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(933, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_933, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_933_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(934, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_934, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_934_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(935, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_935, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_935_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(936, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_936, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_936_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(937, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_937, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_937_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(938, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_938, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_938_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(939, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_939, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_939_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(940, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_940, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_940_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(941, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_941, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_941_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(942, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_942, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_942_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(943, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_943, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_943_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(944, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_944, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_944_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(945, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_945, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_945_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(946, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_946, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_946_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(947, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_947, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_947_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(948, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_948, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_948_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(949, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_949, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_949_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(950, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_950, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_950_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(951, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_951, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_951_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(952, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_952, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_952_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(953, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_953, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_953_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(954, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_954, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_954_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(955, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_955, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_955_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(956, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_956, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_956_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(957, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_957, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_957_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(958, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_958, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_958_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(959, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_959, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_959_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(960, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_960, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_960_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(961, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_961, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_961_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(962, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_962, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_962_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(963, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_963, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_963_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(964, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_964, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_964_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(965, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_965, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_965_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(966, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_966, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_966_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(967, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_967, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_967_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(968, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_968, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_968_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(969, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_969, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_969_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(970, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_970, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_970_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(971, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_971, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_971_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(972, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_972, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_972_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(973, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_973, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_973_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(974, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_974, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_974_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(975, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_975, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_975_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(976, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_976, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_976_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(977, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_977, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_977_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(978, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_978, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_978_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(979, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_979, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_979_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(980, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_980, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_980_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(981, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_981, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_981_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(982, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_982, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_982_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(983, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_983, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_983_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(984, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_984, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_984_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(985, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_985, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_985_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(986, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_986, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_986_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(987, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_987, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_987_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(988, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_988, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_988_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(989, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_989, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_989_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(990, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_990, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_990_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(991, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_991, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_991_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(992, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_992, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_992_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(993, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_993, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_993_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(994, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_994, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_994_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(995, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_995, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_995_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(996, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_996, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_996_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(997, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_997, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_997_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(998, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_998, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_998_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(999, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_999, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_999_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1000, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1000, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1000_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1001, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1001, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1001_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1002, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1002, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1002_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1003, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1003, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1003_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1004, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1004, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1004_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1005, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1005, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1005_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1006, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1006, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1006_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1007, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1007, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1007_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1008, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1008, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1008_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1009, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1009, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1009_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1010, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1010, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1010_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1011, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1011, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1011_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1012, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1012, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1012_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1013, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1013, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1013_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1014, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1014, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1014_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1015, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1015, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1015_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1016, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1016, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1016_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1017, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1017, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1017_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1018, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1018, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1018_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1019, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1019, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1019_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1020, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1020, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1020_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1021, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1021, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1021_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1022, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1022, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1022_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1023, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1023, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1023_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1024, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1024, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+# define GT_PP_LIST_FOLD_RIGHT_1024_D(o, s, l) GT_PP_IIF(GT_PP_LIST_IS_CONS(l), o, s GT_PP_TUPLE_EAT_3)(1025, GT_PP_IIF(GT_PP_LIST_IS_CONS(l), GT_PP_LIST_FOLD_RIGHT_1025, GT_PP_NIL GT_PP_TUPLE_EAT_3)(o, s, GT_PP_LIST_REST(l)), GT_PP_LIST_FIRST(l))
+#
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_513(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_514(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_515(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_516(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_517(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_518(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_519(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_520(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_521(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_522(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_523(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_524(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_525(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_526(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_527(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_528(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_529(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_530(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_531(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_532(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_533(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_534(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_535(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_536(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_537(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_538(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_539(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_540(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_541(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_542(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_543(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_544(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_545(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_546(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_547(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_548(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_549(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_550(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_551(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_552(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_553(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_554(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_555(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_556(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_557(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_558(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_559(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_560(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_561(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_562(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_563(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_564(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_565(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_566(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_567(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_568(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_569(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_570(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_571(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_572(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_573(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_574(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_575(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_576(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_577(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_578(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_579(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_580(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_581(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_582(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_583(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_584(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_585(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_586(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_587(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_588(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_589(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_590(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_591(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_592(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_593(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_594(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_595(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_596(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_597(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_598(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_599(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_600(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_601(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_602(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_603(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_604(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_605(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_606(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_607(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_608(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_609(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_610(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_611(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_612(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_613(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_614(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_615(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_616(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_617(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_618(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_619(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_620(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_621(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_622(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_623(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_624(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_625(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_626(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_627(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_628(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_629(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_630(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_631(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_632(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_633(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_634(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_635(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_636(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_637(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_638(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_639(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_640(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_641(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_642(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_643(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_644(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_645(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_646(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_647(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_648(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_649(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_650(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_651(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_652(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_653(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_654(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_655(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_656(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_657(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_658(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_659(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_660(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_661(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_662(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_663(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_664(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_665(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_666(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_667(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_668(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_669(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_670(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_671(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_672(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_673(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_674(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_675(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_676(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_677(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_678(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_679(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_680(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_681(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_682(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_683(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_684(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_685(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_686(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_687(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_688(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_689(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_690(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_691(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_692(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_693(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_694(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_695(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_696(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_697(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_698(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_699(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_700(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_701(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_702(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_703(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_704(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_705(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_706(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_707(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_708(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_709(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_710(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_711(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_712(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_713(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_714(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_715(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_716(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_717(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_718(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_719(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_720(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_721(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_722(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_723(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_724(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_725(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_726(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_727(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_728(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_729(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_730(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_731(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_732(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_733(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_734(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_735(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_736(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_737(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_738(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_739(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_740(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_741(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_742(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_743(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_744(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_745(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_746(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_747(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_748(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_749(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_750(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_751(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_752(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_753(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_754(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_755(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_756(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_757(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_758(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_759(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_760(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_761(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_762(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_763(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_764(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_765(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_766(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_767(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_768(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_769(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_770(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_771(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_772(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_773(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_774(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_775(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_776(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_777(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_778(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_779(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_780(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_781(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_782(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_783(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_784(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_785(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_786(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_787(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_788(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_789(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_790(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_791(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_792(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_793(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_794(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_795(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_796(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_797(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_798(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_799(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_800(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_801(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_802(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_803(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_804(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_805(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_806(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_807(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_808(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_809(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_810(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_811(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_812(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_813(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_814(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_815(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_816(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_817(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_818(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_819(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_820(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_821(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_822(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_823(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_824(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_825(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_826(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_827(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_828(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_829(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_830(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_831(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_832(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_833(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_834(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_835(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_836(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_837(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_838(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_839(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_840(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_841(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_842(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_843(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_844(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_845(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_846(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_847(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_848(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_849(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_850(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_851(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_852(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_853(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_854(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_855(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_856(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_857(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_858(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_859(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_860(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_861(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_862(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_863(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_864(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_865(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_866(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_867(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_868(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_869(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_870(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_871(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_872(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_873(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_874(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_875(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_876(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_877(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_878(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_879(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_880(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_881(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_882(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_883(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_884(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_885(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_886(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_887(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_888(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_889(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_890(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_891(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_892(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_893(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_894(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_895(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_896(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_897(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_898(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_899(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_900(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_901(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_902(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_903(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_904(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_905(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_906(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_907(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_908(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_909(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_910(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_911(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_912(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_913(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_914(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_915(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_916(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_917(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_918(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_919(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_920(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_921(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_922(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_923(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_924(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_925(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_926(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_927(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_928(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_929(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_930(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_931(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_932(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_933(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_934(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_935(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_936(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_937(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_938(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_939(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_940(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_941(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_942(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_943(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_944(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_945(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_946(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_947(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_948(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_949(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_950(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_951(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_952(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_953(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_954(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_955(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_956(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_957(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_958(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_959(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_960(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_961(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_962(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_963(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_964(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_965(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_966(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_967(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_968(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_969(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_970(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_971(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_972(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_973(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_974(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_975(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_976(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_977(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_978(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_979(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_980(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_981(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_982(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_983(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_984(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_985(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_986(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_987(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_988(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_989(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_990(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_991(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_992(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_993(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_994(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_995(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_996(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_997(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_998(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_999(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1000(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1001(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1002(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1003(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1004(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1005(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1006(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1007(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1008(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1009(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1010(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1011(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1012(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1013(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1014(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1015(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1016(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1017(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1018(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1019(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1020(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1021(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1022(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1023(o, s, l) 0
+# define GT_PP_LIST_FOLD_RIGHT_CHECK_GT_PP_LIST_FOLD_RIGHT_1024(o, s, l) 0
+#
+# endif
