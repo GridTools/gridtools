@@ -50,10 +50,9 @@ computations in order to be optimal on the target hardware.
 Dependencies
 ^^^^^^^^^^^^
 
-|GT| requires a header-only installation of Boost_, a recent version of CMake_ and a modern compiler.
-The exact version requirements can be found on `GitHub <https://github.com/GridTools/gridtools>`_.
+|GT| requires a recent version of CMake_ and a modern compiler. The exact version requirements can be found on
+`GitHub <https://github.com/GridTools/gridtools>`_.
 
-.. _Boost: https://www.boost.org/
 .. _CMake: https://www.cmake.org/
 
 Addtionally |GT| requires the following optional dependencies.

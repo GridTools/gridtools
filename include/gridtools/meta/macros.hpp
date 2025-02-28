@@ -12,11 +12,11 @@
 
 #include <type_traits>
 
-#include <boost/preprocessor/punctuation/remove_parens.hpp>
+#include <gridtools/preprocessor/punctuation/remove_parens.hpp>
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
-    template <BOOST_PP_REMOVE_PARENS(signature)>       \
-    using fun = typename lazy::fun<BOOST_PP_REMOVE_PARENS(args)>::type
+    template <GT_PP_REMOVE_PARENS(signature)>       \
+    using fun = typename lazy::fun<GT_PP_REMOVE_PARENS(args)>::type
 
 /**
  *  NVCC bug workaround: sizeof... works incorrectly within template alias context.

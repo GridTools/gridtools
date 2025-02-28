@@ -13,10 +13,10 @@
 #include <string>
 #include <typeinfo>
 
-#include <boost/core/demangle.hpp>
 #include <nlohmann/json.hpp>
 
 #include "../common/defs.hpp"
+#include "../common/demangle.hpp"
 #include "../meta.hpp"
 #include "be_api.hpp"
 #include "common/caches.hpp"
@@ -34,7 +34,7 @@ namespace gridtools {
 
             template <class T>
             auto get_type_name() {
-                return boost::core::demangle(typeid(T).name());
+                return common::demangle(typeid(T).name());
             }
 
             inline auto from(core::parallel) { return "parallel"; }

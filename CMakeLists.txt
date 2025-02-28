@@ -56,15 +56,11 @@ else()
     endif()
 endif()
 
-set(REQUIRED_BOOST_VERSION 1.73)
-find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
-
 # setup main gridtools target
 add_library(gridtools INTERFACE)
 add_library(GridTools::gridtools ALIAS gridtools)
 target_compile_features(gridtools INTERFACE cxx_std_17)
-target_link_libraries(gridtools INTERFACE Boost::boost)
-target_compile_definitions(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:BOOST_PP_VARIADICS=1>)
+target_compile_definitions(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:GT_PP_VARIADICS=1>)
 target_include_directories(gridtools
         INTERFACE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/>
