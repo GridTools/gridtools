@@ -243,7 +243,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} fn_naive)
     target_link_libraries(${_gt_namespace}fn_naive INTERFACE ${_gt_namespace}gridtools)
 
-    set(_required_nlohmann_json_version "3.10.4")
+    set(_required_nlohmann_json_version "3.12.0")
     include(get_nlohmann_json)
     get_nlohmann_json(${_required_nlohmann_json_version})
 
