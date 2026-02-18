@@ -58,7 +58,7 @@ def build_wheel(session: nox.Session):
     prepare(session)
     dist_path = session.cache_dir.joinpath("dist").absolute()
     nox_workdir = pathlib.Path(".").absolute()
-    session.install("build[virtualenv]")
+    session.install("build[virtualenv]", "wheel")
     with session.chdir(session.cache_dir):
         session.run(
             "python",
