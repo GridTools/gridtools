@@ -228,5 +228,5 @@ namespace gridtools {
                 return "gpu_horizontal";
             }
         } // namespace gpu_horizontal_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

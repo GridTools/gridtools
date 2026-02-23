@@ -71,5 +71,5 @@ namespace gridtools {
 
             using launch_kernel_impl_::launch_kernel;
         } // namespace gpu_horizontal_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

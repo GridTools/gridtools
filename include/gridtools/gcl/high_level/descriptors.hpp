@@ -60,12 +60,12 @@ namespace gridtools {
             template <typename iterator_in, typename iterator_out>
             void pack(array<int, 3> const &eta, iterator_in const *field_ptr, iterator_out *&it) const {
                 for (int k = halos[2].loop_low_bound_inside(eta[2]); k <= halos[2].loop_high_bound_inside(eta[2]);
-                     ++k) {
+                    ++k) {
                     for (int j = halos[1].loop_low_bound_inside(eta[1]); j <= halos[1].loop_high_bound_inside(eta[1]);
-                         ++j) {
+                        ++j) {
                         for (int i = halos[0].loop_low_bound_inside(eta[0]);
-                             i <= halos[0].loop_high_bound_inside(eta[0]);
-                             ++i) {
+                            i <= halos[0].loop_high_bound_inside(eta[0]);
+                            ++i) {
                             *(reinterpret_cast<iterator_in *>(it)) =
                                 field_ptr[access(i, j, k, halos[0].total_length(), halos[1].total_length())];
                             reinterpret_cast<char *&>(it) += sizeof(iterator_in);
@@ -77,12 +77,12 @@ namespace gridtools {
             template <typename iterator_in, typename iterator_out>
             void unpack(array<int, 3> const &eta, iterator_in *field_ptr, iterator_out *&it) const {
                 for (int k = halos[2].loop_low_bound_outside(eta[2]); k <= halos[2].loop_high_bound_outside(eta[2]);
-                     ++k) {
+                    ++k) {
                     for (int j = halos[1].loop_low_bound_outside(eta[1]); j <= halos[1].loop_high_bound_outside(eta[1]);
-                         ++j) {
+                        ++j) {
                         for (int i = halos[0].loop_low_bound_outside(eta[0]);
-                             i <= halos[0].loop_high_bound_outside(eta[0]);
-                             ++i) {
+                            i <= halos[0].loop_high_bound_outside(eta[0]);
+                            ++i) {
                             field_ptr[access(i, j, k, halos[0].total_length(), halos[1].total_length())] =
                                 *(reinterpret_cast<iterator_in *>(it));
                             reinterpret_cast<char *&>(it) += sizeof(iterator_in);
@@ -420,8 +420,8 @@ namespace gridtools {
                \param[in] _pid Integer identifier of the process calling the constructor
              */
             explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid)
-                : halo(), base_type::m_haloexch(grid_type(c, _P, _pid)), send_buffer{nullptr},
-                  recv_buffer{nullptr}, send_size{0}, recv_size{0} {}
+                : halo(), base_type::m_haloexch(grid_type(c, _P, _pid)), send_buffer{nullptr}, recv_buffer{nullptr},
+                  send_size{0}, recv_size{0} {}
 
             /**
                Constructor
@@ -429,8 +429,8 @@ namespace gridtools {
                \param[in] g A processor grid that will execute the pattern
              */
             explicit hndlr_dynamic_ut(grid_type const &g)
-                : halo(), base_type::m_haloexch(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{
-                                                                                                                  0} {}
+                : halo(), base_type::m_haloexch(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0},
+                  recv_size{0} {}
 
             /**
                Function to setup internal data structures for data exchange and preparing eventual underlying layers

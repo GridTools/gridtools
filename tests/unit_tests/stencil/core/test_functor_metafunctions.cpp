@@ -134,6 +134,6 @@ namespace gridtools {
                 };
                 //                static_assert(check_valid_apply_overloads<bad_to_level, interval_t>::value);
             } // namespace
-        }     // namespace core
-    }         // namespace stencil
+        } // namespace core
+    } // namespace stencil
 } // namespace gridtools

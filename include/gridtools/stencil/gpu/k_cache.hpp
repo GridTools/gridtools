@@ -94,5 +94,5 @@ namespace gridtools {
             using k_cache_impl_::has_k_caches;
             using k_cache_impl_::k_caches_type;
         } // namespace gpu_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

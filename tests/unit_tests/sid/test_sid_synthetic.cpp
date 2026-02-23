@@ -75,5 +75,5 @@ namespace gridtools {
                 EXPECT_EQ(4, tuple_util::get<1>(sid::get_strides(the_testee)).val);
             }
         } // namespace custom
-    }     // namespace
+    } // namespace
 } // namespace gridtools

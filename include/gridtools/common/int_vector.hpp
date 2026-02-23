@@ -99,7 +99,7 @@ namespace gridtools {
          * The keys of the resulting `int_vector` are the union of the keys of the operands.
          */
         template <class... Vecs>
-        GT_FUNCTION constexpr auto plus(Vecs && ...vecs) {
+        GT_FUNCTION constexpr auto plus(Vecs &&...vecs) {
             using merged_meta_map_t = meta::mp_make<impl_::merger_t, meta::concat<hymap::to_meta_map<Vecs>...>>;
             using keys_t = meta::transform<meta::first, merged_meta_map_t>;
             using generators = meta::transform<impl_::add_f, keys_t>;
@@ -111,7 +111,7 @@ namespace gridtools {
          * @brief Returns `int_vector` with elements multiplied by an integral scalar
          */
         template <class Vec, class Scalar>
-        GT_FUNCTION constexpr auto multiply(Vec && vec, Scalar scalar) {
+        GT_FUNCTION constexpr auto multiply(Vec &&vec, Scalar scalar) {
             return tuple_util::host_device::transform([scalar](auto v) { return v * scalar; }, std::forward<Vec>(vec));
         }
 
@@ -119,7 +119,7 @@ namespace gridtools {
          * @brief Returns `int_vector` with elements removed that are `integral_constant<T, 0>`
          */
         template <class Vec>
-        GT_FUNCTION constexpr auto prune_zeros(Vec && vec) {
+        GT_FUNCTION constexpr auto prune_zeros(Vec &&vec) {
             using filtered_map_t = meta::filter<meta::not_<impl_::is_constant_zero>::apply, hymap::to_meta_map<Vec>>;
             using keys_t = meta::transform<meta::first, filtered_map_t>;
             using generators = meta::transform<impl_::at_key_f, keys_t>;
@@ -173,5 +173,5 @@ namespace gridtools {
             }
 
         } // namespace arithmetic
-    }     // namespace int_vector
+    } // namespace int_vector
 } // namespace gridtools

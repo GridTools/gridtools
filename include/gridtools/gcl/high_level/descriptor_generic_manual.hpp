@@ -794,5 +794,5 @@ namespace gridtools {
 #include "non_vect_interface.hpp"
         };
 #endif // cudacc
-    }  // namespace gcl
+    } // namespace gcl
 } // namespace gridtools

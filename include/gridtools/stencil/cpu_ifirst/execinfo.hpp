@@ -115,5 +115,5 @@ namespace gridtools {
                 GT_FORCE_INLINE int_t j_block_size() const { return m_j_block_size; }
             };
         } // namespace cpu_ifirst_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

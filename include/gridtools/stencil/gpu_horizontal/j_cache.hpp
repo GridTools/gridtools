@@ -124,5 +124,5 @@ namespace gridtools {
 
             using j_cache_impl_::j_caches_type;
         } // namespace gpu_horizontal_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

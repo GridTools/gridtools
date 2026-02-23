@@ -30,6 +30,6 @@ namespace gridtools {
                     return make_expr(pow_f<I>(), arg);
                 }
             } // namespace expressions
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

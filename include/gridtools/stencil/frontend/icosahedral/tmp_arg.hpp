@@ -19,22 +19,21 @@
 
 #define GT_INTERNAL_DECLARE_EXPANDABLE_ICO_TMP(r, type_location, name)                                 \
     constexpr ::gridtools::stencil::expandable<::gridtools::stencil::icosahedral::tmp_arg<__COUNTER__, \
-        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 1, type_location)),                              \
-        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 0, type_location))>>                             \
+        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 1, type_location)),                                    \
+        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 0, type_location))>>                                   \
         name = {};
 
-#define GT_DECLARE_EXPANDABLE_ICO_TMP(type, location, ...)                                               \
-    GT_PP_SEQ_FOR_EACH(                                                                               \
-        GT_INTERNAL_DECLARE_EXPANDABLE_ICO_TMP, (type, location), GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
+#define GT_DECLARE_EXPANDABLE_ICO_TMP(type, location, ...)                                                           \
+    GT_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_EXPANDABLE_ICO_TMP, (type, location), GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     static_assert(1)
 
-#define GT_INTERNAL_DECLARE_ICO_TMP(r, type_location, name)               \
-    constexpr ::gridtools::stencil::icosahedral::tmp_arg<__COUNTER__,     \
-        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 1, type_location)), \
-        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 0, type_location))> \
+#define GT_INTERNAL_DECLARE_ICO_TMP(r, type_location, name)           \
+    constexpr ::gridtools::stencil::icosahedral::tmp_arg<__COUNTER__, \
+        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 1, type_location)),   \
+        GT_PP_REMOVE_PARENS(GT_PP_TUPLE_ELEM(2, 0, type_location))>   \
         name = {};
 
-#define GT_DECLARE_ICO_TMP(type, location, ...)                                                                 \
+#define GT_DECLARE_ICO_TMP(type, location, ...)                                                           \
     GT_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_ICO_TMP, (type, location), GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     static_assert(1)
 
@@ -48,5 +47,5 @@ namespace gridtools {
                 using tmp_tag = std::true_type;
             };
         } // namespace icosahedral
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

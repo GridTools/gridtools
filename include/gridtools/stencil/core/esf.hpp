@@ -22,5 +22,5 @@ namespace gridtools {
                 using extent_t = Extent;
             };
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

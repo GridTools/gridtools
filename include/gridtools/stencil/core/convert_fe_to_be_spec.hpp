@@ -102,5 +102,5 @@ namespace gridtools {
             } // namespace convert_fe_to_be_spec_impl_
             using convert_fe_to_be_spec_impl_::convert_fe_to_be_spec;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

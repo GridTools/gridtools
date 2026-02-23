@@ -120,5 +120,5 @@ namespace gridtools {
             template <class... Ts>
             meta::curry<stage_impl_::stage> get_stage(Ts &&...);
         } // namespace icosahedral
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

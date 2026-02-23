@@ -30,6 +30,6 @@ namespace gridtools {
                     return make_expr(divide_f(), lhs, rhs);
                 }
             } // namespace expressions
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

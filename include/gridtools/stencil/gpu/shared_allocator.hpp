@@ -52,5 +52,5 @@ namespace gridtools {
                 size_t size() const { return m_offset; }
             };
         } // namespace gpu_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

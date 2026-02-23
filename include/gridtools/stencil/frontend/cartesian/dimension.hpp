@@ -33,5 +33,5 @@ namespace gridtools {
                 friend GT_FUNCTION constexpr dimension operator-(dimension, int_t offset) { return {-offset}; }
             };
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

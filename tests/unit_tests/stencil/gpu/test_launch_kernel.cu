@@ -113,5 +113,5 @@ namespace gridtools {
                 EXPECT_EQ(0, cuda_util::from_clone(failures));
             }
         } // namespace gpu_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

@@ -22,5 +22,5 @@ namespace gridtools {
 
             struct thread;
         } // namespace dim
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

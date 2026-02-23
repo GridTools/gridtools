@@ -96,6 +96,6 @@ namespace gridtools {
                     GT_CUDA_CHECK(cudaFree(result));
                 }
             } // namespace
-        }     // namespace gpu_backend
-    }         // namespace stencil
+        } // namespace gpu_backend
+    } // namespace stencil
 } // namespace gridtools

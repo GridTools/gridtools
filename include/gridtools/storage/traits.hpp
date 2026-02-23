@@ -107,5 +107,5 @@ namespace gridtools {
                 return storage_make_target_view(Traits(), ptr, info);
             }
         } // namespace traits
-    }     // namespace storage
+    } // namespace storage
 } // namespace gridtools

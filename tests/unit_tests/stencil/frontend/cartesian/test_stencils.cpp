@@ -136,6 +136,6 @@ namespace gridtools {
                     do_test(l<-1, -1, -1>, l<2, 0, 1>, [](int, int, int) { return i_max + j_max + k_max; });
                 }
             } // namespace
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

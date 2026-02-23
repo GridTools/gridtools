@@ -27,10 +27,9 @@
  *  Works also with parameter packs. I.e you can both `GT_META_PRINT_VALUE(SomeValue)` and
  * `GT_META_PRINT_VALUE(SomeValues...)`
  */
-#define GT_META_PRINT_VALUE(x)                                                                                \
-    static_assert(                                                                                            \
-        ::gridtools::meta::debug::value<decltype(::gridtools::meta::debug::first(GT_PP_REMOVE_PARENS(x))), \
-            GT_PP_REMOVE_PARENS(x)>::_)
+#define GT_META_PRINT_VALUE(x)                                                                                       \
+    static_assert(::gridtools::meta::debug::value<decltype(::gridtools::meta::debug::first(GT_PP_REMOVE_PARENS(x))), \
+        GT_PP_REMOVE_PARENS(x)>::_)
 
 namespace gridtools {
     namespace meta {
@@ -43,5 +42,5 @@ namespace gridtools {
             template <class T, T...>
             struct value {};
         } // namespace debug
-    }     // namespace meta
+    } // namespace meta
 } // namespace gridtools

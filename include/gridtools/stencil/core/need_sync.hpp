@@ -54,5 +54,5 @@ namespace gridtools {
                 class FinalState = meta::foldl<need_sync_impl_::folding_fun, InitialState, Esfs>>
             using need_sync = meta::replace_at_c<meta::first<FinalState>, 0, need_sync_impl_::has_ij_cache<CacheMap>>;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

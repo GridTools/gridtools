@@ -116,13 +116,13 @@ typedef p<9> in2;
 typedef p<10> in3;
 
 using mss_t = meta::first<decltype(execute_parallel()
-                                       .stage(functor0(), in0(), in1(), in2(), o0())
-                                       .stage(functor1(), in3(), o1(), in0(), o0())
-                                       .stage(functor2(), o0(), o1(), o2())
-                                       .stage(functor3(), in1(), in2(), o3(), o2())
-                                       .stage(functor4(), o0(), o1(), o3(), o4())
-                                       .stage(functor5(), in3(), o4(), in0(), o5())
-                                       .stage(functor6(), o6(), o5(), in1(), in2()))>;
+        .stage(functor0(), in0(), in1(), in2(), o0())
+        .stage(functor1(), in3(), o1(), in0(), o0())
+        .stage(functor2(), o0(), o1(), o2())
+        .stage(functor3(), in1(), in2(), o3(), o2())
+        .stage(functor4(), o0(), o1(), o3(), o4())
+        .stage(functor5(), in3(), o4(), in0(), o5())
+        .stage(functor6(), o6(), o5(), in1(), in2()))>;
 
 template <class Arg, int_t... ExpectedExtentValues>
 using testee = std::is_same<lookup_extent_map<get_extent_map_from_mss<mss_t>, Arg>, extent<ExpectedExtentValues...>>;

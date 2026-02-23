@@ -49,5 +49,5 @@ namespace gridtools {
 
             using ij_cache_impl_::make_ij_cache;
         } // namespace gpu_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

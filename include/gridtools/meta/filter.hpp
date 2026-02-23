@@ -44,5 +44,5 @@ namespace gridtools {
             struct filter<Pred, L<Ts...>> : concat<L<>, typename wrap_if_impl<Pred<Ts>::type::value, L, Ts>::type...> {
             };
         } // namespace lazy
-    }     // namespace meta
+    } // namespace meta
 } // namespace gridtools

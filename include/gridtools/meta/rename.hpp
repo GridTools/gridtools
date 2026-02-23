@@ -35,5 +35,5 @@ namespace gridtools {
                 using type = curry_fun<meta::rename, To>;
             };
         } // namespace lazy
-    }     // namespace meta
+    } // namespace meta
 } // namespace gridtools

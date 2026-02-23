@@ -23,5 +23,5 @@ namespace gridtools {
                     on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&test_with_parenthesis_accessors)), -3);
             }
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

@@ -230,6 +230,6 @@ namespace gridtools {
                     verify(out1, [](int, int, int) { return 1; });
                 }
             } // namespace
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

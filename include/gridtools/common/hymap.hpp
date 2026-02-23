@@ -305,7 +305,7 @@ namespace gridtools {
                 using apply = typename get_from_keys_values<meta::first<Maps>>::template apply<Keys, Values>;
             };
         } // namespace impl_
-    }     // namespace hymap
+    } // namespace hymap
 } // namespace gridtools
 
 #define GT_FILENAME <gridtools/common/hymap.hpp>
@@ -464,11 +464,11 @@ namespace gridtools {
 
                 template <size_t I>
                 GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) source() const {
-                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get < is_primary_index<I>::value ? 0 : 1 > (base());
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<is_primary_index<I>::value ? 0 : 1>(base());
                 }
                 template <size_t I>
                 GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) source() {
-                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get < is_primary_index<I>::value ? 0 : 1 > (base());
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<is_primary_index<I>::value ? 0 : 1>(base());
                 }
 
                 template <size_t I>

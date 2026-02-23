@@ -22,5 +22,5 @@ namespace gridtools {
                 return {i, j, k};
             }
         } // namespace cpu_ifirst_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

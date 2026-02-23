@@ -19,7 +19,7 @@ namespace gridtools {
                 struct meta_stage;
 
                 template <template <class...> class L, class... Ts>
-                struct meta_stage<L<Ts...>> : decltype(get_stage(std::declval<Ts>()...)) {};
+                struct meta_stage<L<Ts...>> : decltype(get_stage(std::declval<Ts>()...)){};
 
                 template <class Keys>
                 struct make_stage_f {
@@ -31,5 +31,5 @@ namespace gridtools {
             template <class Functors, class Keys>
             using make_stages = meta::transform<stage_impl_::make_stage_f<Keys>::template apply, Functors>;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

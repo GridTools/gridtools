@@ -37,8 +37,8 @@
 
 template <GT_PP_ENUM_PARAMS(GCL_NOI, typename FOTF_T)>
 void GCL_PACK_F_NAME(GCL_KERNEL_TYPE)(
-    GT_PP_ENUM_BINARY_PARAMS(GCL_NOI, FOTF_T, const &field), void **d_msgbufTab, const int *d_msgsize) {
-    // GCL_PRINT_FIELDS(GCL_NOI);
+    GT_PP_ENUM_BINARY_PARAMS(GCL_NOI, FOTF_T, const &field), void **d_msgbufTab, const int *d_msgsize){
+// GCL_PRINT_FIELDS(GCL_NOI);
 
 #define GCL_QUOTE(x) #x
 #define _GCL_QUOTE(x) GCL_QUOTE(x)

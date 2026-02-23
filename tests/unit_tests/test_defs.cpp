@@ -20,9 +20,8 @@
 #if !defined(GT_ASSUME)
 #error "GT_ASSUME is undefined"
 #else
-static_assert(std::string_view(GT_PP_STRINGIZE(GT_ASSUME(x))) ==
-    std::string_view(GT_PP_STRINGIZE(__builtin_assume(x))),
-        GT_PP_STRINGIZE(GT_ASSUME(x)) " != " GT_PP_STRINGIZE(__builtin_assume(x)));
+static_assert(std::string_view(GT_PP_STRINGIZE(GT_ASSUME(x))) == std::string_view(GT_PP_STRINGIZE(__builtin_assume(x))),
+    GT_PP_STRINGIZE(GT_ASSUME(x)) " != " GT_PP_STRINGIZE(__builtin_assume(x)));
 #endif
 
 #endif

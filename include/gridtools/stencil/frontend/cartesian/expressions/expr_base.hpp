@@ -75,7 +75,7 @@ namespace gridtools {
                         return Op()(apply_eval(eval, std::move(arg.m_lhs)), apply_eval(eval, std::move(arg.m_rhs)));
                     }
                 } // namespace evaluation
-            }     // namespace expressions
-        }         // namespace cartesian
-    }             // namespace stencil
+            } // namespace expressions
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

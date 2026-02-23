@@ -94,7 +94,7 @@ namespace gridtools {
                 }
             };
         } // namespace allocator_impl_
-    }     // namespace sid
+    } // namespace sid
 } // namespace gridtools
 
 #define GT_FILENAME <gridtools/sid/allocator.hpp>

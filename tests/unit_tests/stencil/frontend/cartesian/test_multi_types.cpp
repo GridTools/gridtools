@@ -197,6 +197,6 @@ namespace gridtools {
                 TEST(multitypes, procedure) { do_test<call_type::procedure>(); }
 
             } // namespace
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

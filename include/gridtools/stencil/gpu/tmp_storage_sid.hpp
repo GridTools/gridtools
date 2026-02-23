@@ -67,5 +67,5 @@ namespace gridtools {
                     tmp_impl_::origin_offset(extent));
             }
         } // namespace gpu_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

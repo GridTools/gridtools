@@ -30,5 +30,5 @@ namespace gridtools {
             template <>
             struct is_location_type<vertices> : std::true_type {};
         } // namespace icosahedral
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

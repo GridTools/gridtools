@@ -181,5 +181,5 @@ namespace gridtools {
                 }
             }
         } // namespace
-    }     // namespace storage
+    } // namespace storage
 } // namespace gridtools

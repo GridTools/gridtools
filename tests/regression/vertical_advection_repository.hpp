@@ -48,7 +48,9 @@ namespace gridtools {
                 auto column = m_fun(i, j);
                 double res = column[k];
 #pragma omp critical
-                { m_cache.insert({{i, j}, std::move(column)}); }
+                {
+                    m_cache.insert({{i, j}, std::move(column)});
+                }
                 return res;
             }
         };

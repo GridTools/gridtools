@@ -26,10 +26,8 @@ namespace gridtools {
             template <template <class T, T...> class ISec,
                 class Int,
                 Int... Is,
-                template <class...>
-                class L,
-                template <class T, T>
-                class C>
+                template <class...> class L,
+                template <class T, T> class C>
             struct iseq_to_list<ISec<Int, Is...>, L, C> {
                 using type = L<C<Int, Is>...>;
             };

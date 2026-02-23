@@ -33,5 +33,5 @@ namespace gridtools {
             template <class T>
             constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

@@ -164,5 +164,5 @@ namespace gridtools {
             using loops_impl_::make_loop;
             using loops_impl_::run_loops;
         } // namespace cpu_ifirst_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

@@ -80,5 +80,5 @@ namespace gridtools {
             timer_cuda backend_timer_impl(gpu);
             inline char const *backend_name(gpu const &) { return "gpu"; }
         } // namespace gpu_backend
-    }     // namespace reduction
+    } // namespace reduction
 } // namespace gridtools

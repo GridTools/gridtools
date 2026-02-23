@@ -21,5 +21,5 @@ namespace gridtools {
                 using cache_io_policies_t = CacheIOPolicies;
             };
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

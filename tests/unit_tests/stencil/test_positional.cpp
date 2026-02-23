@@ -46,5 +46,5 @@ namespace gridtools {
                 EXPECT_EQ(*ptr, -33);
             }
         } // namespace
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

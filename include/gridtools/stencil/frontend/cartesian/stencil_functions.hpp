@@ -241,5 +241,5 @@ namespace gridtools {
                 }
             };
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

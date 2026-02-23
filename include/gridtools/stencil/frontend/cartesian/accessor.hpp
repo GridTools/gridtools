@@ -197,5 +197,5 @@ namespace gridtools {
             template <uint_t ID, typename Extent = extent<>, size_t Number = accessor_impl_::minimal_dim<Extent>::value>
             using inout_accessor = accessor<ID, intent::inout, Extent, Number>;
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

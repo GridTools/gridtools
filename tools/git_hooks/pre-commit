@@ -19,7 +19,7 @@ CLANG_FORMAT=`which clang-format`
 
 ## parsing the clang format version from an output like
 ## Ubuntu clang-format version 3.7.1-2ubuntu2
-CLANG_FORMAT_VERSION=`${CLANG_FORMAT} --version | sed 's/.*clang-format version \([[:digit:]]\.[[:digit:]]\).*/\1/g'`
+CLANG_FORMAT_VERSION=`${CLANG_FORMAT} --version | sed 's/.*clang-format version \([[:digit:]]\+\.[[:digit:]]\+\).*/\1/g'`
 
 # remove any older patches from previous commits. Set to true or false.
 # DELETE_OLD_PATCHES=false
@@ -88,7 +88,7 @@ matches_extension() {
     return 1
 }
 
-if [[ "${CLANG_FORMAT_VERSION}" != "6.0" ]]; then
+if [[ "${CLANG_FORMAT_VERSION}" != "21.1" ]]; then
     echo "Clang format version ${CLANG_FORMAT_VERSION} not supported"
     exit 1
 fi

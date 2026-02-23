@@ -67,5 +67,5 @@ namespace gridtools {
                 level_impl_::get_offset_from_index(Index::value, Index::offset_limit),
                 Index::offset_limit>;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

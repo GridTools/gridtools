@@ -15,7 +15,7 @@
 #include <gridtools/preprocessor/punctuation/remove_parens.hpp>
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
-    template <GT_PP_REMOVE_PARENS(signature)>       \
+    template <GT_PP_REMOVE_PARENS(signature)>          \
     using fun = typename lazy::fun<GT_PP_REMOVE_PARENS(args)>::type
 
 /**

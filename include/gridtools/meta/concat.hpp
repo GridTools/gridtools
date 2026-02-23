@@ -40,5 +40,5 @@ namespace gridtools {
             template <class List, class... Lists>
             struct concat<List, Lists...> : foldl<meta::concat, List, list<Lists...>> {};
         } // namespace lazy
-    }     // namespace meta
+    } // namespace meta
 } // namespace gridtools

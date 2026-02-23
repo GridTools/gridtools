@@ -128,5 +128,5 @@ namespace gridtools {
                     strides2));
             }
         } // namespace gpu_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

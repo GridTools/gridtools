@@ -94,12 +94,12 @@ namespace gridtools {
             template <>
             struct synthetic<> {
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, T>> set() const &&noexcept {
+                constexpr synthetic<unique_mixin<Property, T>> set() const && noexcept {
                     return synthetic{};
                 }
 
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, std::decay_t<T>>> set(T &&val) const &&noexcept {
+                constexpr synthetic<unique_mixin<Property, std::decay_t<T>>> set(T &&val) const && noexcept {
                     return {std::forward<T>(val), synthetic{}};
                 }
             };
@@ -115,13 +115,13 @@ namespace gridtools {
 
                 template <property Property, class T>
                 constexpr synthetic<unique_mixin<Property, T>, Mixin, Mixins...> set(
-                    meta::lazy::id<T> = {}, property_constant<Property> = {}) const &&noexcept {
+                    meta::lazy::id<T> = {}, property_constant<Property> = {}) const && noexcept {
                     return {std::move(*this)};
                 }
 
                 template <property Property, class T>
                 constexpr synthetic<unique_mixin<Property, std::decay_t<T>>, Mixin, Mixins...> set(
-                    T &&val, property_constant<Property> = {}) const &&noexcept {
+                    T &&val, property_constant<Property> = {}) const && noexcept {
                     return {std::forward<T>(val), std::move(*this)};
                 }
             };

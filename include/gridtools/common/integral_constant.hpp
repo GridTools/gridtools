@@ -165,7 +165,7 @@ namespace gridtools {
 
         template <char... Chars>
         constexpr GT_FUNCTION integral_constant<literals_impl_::literal_int_t, literals_impl_::parser<Chars...>::value>
-        operator"" _c() {
+        operator""_c() {
             return {};
         }
     } // namespace literals

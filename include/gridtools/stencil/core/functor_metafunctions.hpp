@@ -239,5 +239,5 @@ namespace gridtools {
             using functor_metafunctions_impl_::check_valid_apply_overloads;
             using functor_metafunctions_impl_::make_functor_map;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

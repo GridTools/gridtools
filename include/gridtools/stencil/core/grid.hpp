@@ -130,5 +130,5 @@ namespace gridtools {
             template <class T>
             using is_grid = meta::is_instantiation_of<grid, T>;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

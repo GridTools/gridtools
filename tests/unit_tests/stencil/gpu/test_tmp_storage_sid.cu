@@ -44,7 +44,7 @@ namespace gridtools {
                 EXPECT_TRUE(on_device::exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));
             }
         } // namespace
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools
 
 #include "test_tmp_storage_sid.cpp"

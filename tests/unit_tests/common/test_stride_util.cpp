@@ -70,5 +70,5 @@ namespace gridtools {
                 EXPECT_EQ(24000, testee);
             }
         } // namespace
-    }     // namespace stride_util
+    } // namespace stride_util
 } // namespace gridtools

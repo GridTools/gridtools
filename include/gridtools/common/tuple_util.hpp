@@ -137,27 +137,27 @@
 
 #define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) GT_PP_TUPLE_ELEM(0, elem) GT_PP_TUPLE_ELEM(1, elem);
 #define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) GT_PP_TUPLE_ELEM(0, elem)
-#define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                                                        \
+#define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                                                     \
     template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = GT_PP_TUPLE_ELEM(0, elem)> \
-    static constexpr GT_FUNCTION T const &get(name const &obj) {                                            \
+    static constexpr GT_FUNCTION T const &get(name const &obj) {                                         \
         return obj.GT_PP_TUPLE_ELEM(1, elem);                                                            \
-    }                                                                                                       \
+    }                                                                                                    \
     template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = GT_PP_TUPLE_ELEM(0, elem)> \
-    static constexpr GT_FUNCTION T &get(name &obj) {                                                        \
+    static constexpr GT_FUNCTION T &get(name &obj) {                                                     \
         return obj.GT_PP_TUPLE_ELEM(1, elem);                                                            \
-    }                                                                                                       \
+    }                                                                                                    \
     template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = GT_PP_TUPLE_ELEM(0, elem)> \
-    static constexpr GT_FUNCTION T &&get(name &&obj) {                                                      \
+    static constexpr GT_FUNCTION T &&get(name &&obj) {                                                   \
         return static_cast<T &&>(obj.GT_PP_TUPLE_ELEM(1, elem));                                         \
     }
-#define GT_STRUCT_TUPLE_IMPL_(name, members)                                                                          \
-    GT_PP_SEQ_FOR_EACH(GT_STRUCT_TUPLE_IMPL_DECL_, _, members)                                                     \
-    struct gt_##name##_tuple_getter {                                                                                 \
-        GT_PP_SEQ_FOR_EACH_I(GT_STRUCT_TUPLE_IMPL_GETS_, name, members)                                            \
-    };                                                                                                                \
-    friend gt_##name##_tuple_getter tuple_getter(name);                                                               \
+#define GT_STRUCT_TUPLE_IMPL_(name, members)                                                                    \
+    GT_PP_SEQ_FOR_EACH(GT_STRUCT_TUPLE_IMPL_DECL_, _, members)                                                  \
+    struct gt_##name##_tuple_getter {                                                                           \
+        GT_PP_SEQ_FOR_EACH_I(GT_STRUCT_TUPLE_IMPL_GETS_, name, members)                                         \
+    };                                                                                                          \
+    friend gt_##name##_tuple_getter tuple_getter(name);                                                         \
     friend ::gridtools::meta::list<GT_PP_SEQ_ENUM(GT_PP_SEQ_TRANSFORM(GT_STRUCT_TUPLE_IMPL_TYPE_, _, members))> \
-        tuple_to_types(name);                                                                                         \
+        tuple_to_types(name);                                                                                   \
     friend ::gridtools::meta::always<name> tuple_from_types(name)
 
 /*
@@ -466,7 +466,8 @@ namespace gridtools {
         concept tuple_like = is_tuple_like<T>::value;
 
         template <class T, class... Ts>
-        concept tuple_like_of = tuple_like<T> &&
+        concept tuple_like_of =
+            tuple_like<T> &&
             std::is_same_v<meta::rename<meta::list, tuple_util::traits::to_types<T>>, meta::list<Ts...>>;
     } // namespace concepts
 #endif

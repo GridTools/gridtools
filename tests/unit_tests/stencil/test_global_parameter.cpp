@@ -32,5 +32,5 @@ namespace gridtools {
                 EXPECT_EQ(42., *sid::get_origin(testee)());
             }
         } // namespace
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

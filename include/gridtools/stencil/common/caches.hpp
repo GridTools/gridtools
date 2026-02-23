@@ -26,5 +26,5 @@ namespace gridtools {
             // and do not require synchronization. GPU backend uses registers.
             struct k {};
         } // namespace cache_type
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

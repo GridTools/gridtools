@@ -52,5 +52,5 @@ namespace gridtools {
             } // namespace backend_impl_
             using backend_impl_::call_entry_point_f;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

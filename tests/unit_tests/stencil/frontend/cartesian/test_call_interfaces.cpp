@@ -307,5 +307,5 @@ namespace gridtools {
                 do_test<call_with_offsets_call_with_offsets_copy_functor>();
             }
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

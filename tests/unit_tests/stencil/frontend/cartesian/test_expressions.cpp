@@ -96,6 +96,6 @@ namespace gridtools {
                     ASSERT_DOUBLE_EQ(result, 3);
                 }
             } // namespace
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

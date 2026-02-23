@@ -119,5 +119,5 @@ namespace gridtools {
             using compute_extents_metafunctions_impl_::lookup_extent_map;
             using compute_extents_metafunctions_impl_::lookup_extent_map_f;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

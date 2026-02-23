@@ -139,5 +139,5 @@ namespace gridtools {
                     .template set<sid::property::ptr_diff, int_t>();
             }
         } // namespace cpu_ifirst_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

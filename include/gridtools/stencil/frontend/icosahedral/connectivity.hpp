@@ -396,5 +396,5 @@ namespace gridtools {
             using connectivity_impl_::neighbors_extent;
 
         } // namespace icosahedral
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

@@ -82,5 +82,5 @@ namespace gridtools {
             template <class... Ts>
             meta::curry<stage_impl_::stage> get_stage(Ts &&...);
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

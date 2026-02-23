@@ -399,6 +399,6 @@ namespace gridtools {
                 using impl_::transform_spec;
                 using impl_::validate_k_bounds;
             } // namespace fill_flush
-        }     // namespace gpu_backend
-    }         // namespace stencil
+        } // namespace gpu_backend
+    } // namespace stencil
 } // namespace gridtools

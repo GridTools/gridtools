@@ -21,16 +21,16 @@
 #define GT_INTERNAL_DECLARE_TMP(r, type, name) \
     constexpr ::gridtools::stencil::cartesian::tmp_arg<__COUNTER__, GT_PP_REMOVE_PARENS(type)> name = {};
 
-#define GT_DECLARE_TMP(type, ...)                                                               \
+#define GT_DECLARE_TMP(type, ...)                                                         \
     GT_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_TMP, type, GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     static_assert(1)
 
-#define GT_INTERNAL_DECLARE_EXPANDABLE_TMP(r, type, name)                                    \
-    constexpr ::gridtools::stencil::expandable<                                              \
+#define GT_INTERNAL_DECLARE_EXPANDABLE_TMP(r, type, name)                                 \
+    constexpr ::gridtools::stencil::expandable<                                           \
         ::gridtools::stencil::cartesian::tmp_arg<__COUNTER__, GT_PP_REMOVE_PARENS(type)>> \
         name = {};
 
-#define GT_DECLARE_EXPANDABLE_TMP(type, ...)                                                               \
+#define GT_DECLARE_EXPANDABLE_TMP(type, ...)                                                         \
     GT_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_EXPANDABLE_TMP, type, GT_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
     static_assert(1)
 
@@ -44,5 +44,5 @@ namespace gridtools {
                 using tmp_tag = std::true_type;
             };
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

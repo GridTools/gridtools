@@ -16,5 +16,5 @@ namespace gridtools {
             template <class... Ts>
             struct inherit : Ts... {};
         } // namespace internal
-    }     // namespace meta
+    } // namespace meta
 } // namespace gridtools

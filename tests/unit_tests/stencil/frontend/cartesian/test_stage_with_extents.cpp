@@ -41,6 +41,6 @@ namespace gridtools {
                 static_assert(testee<c, -3, 3>);
                 static_assert(testee<d>);
             } // namespace
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

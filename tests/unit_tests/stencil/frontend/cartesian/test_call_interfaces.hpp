@@ -68,5 +68,5 @@ namespace gridtools {
                 fun_t shifted = [this](int i, int j, int k) { return input(i + 1, j + 1, k); };
             };
         } // namespace cartesian
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

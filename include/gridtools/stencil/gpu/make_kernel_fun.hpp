@@ -157,5 +157,5 @@ namespace gridtools {
             } // namespace make_kernel_fun_impl_
             using make_kernel_fun_impl_::make_kernel_fun;
         } // namespace gpu_backend
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

@@ -473,7 +473,7 @@ namespace gridtools {
             template <class T,
                 class Stride,
                 class Offset,
-                int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
+                int_t PtrOffset = get_static_const_value<Stride>::value * Offset::value>
             GT_FUNCTION
                 std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                  !(has_inc<T>::value && PtrOffset == 1) && !(has_dec<T>::value && PtrOffset == -1)>
@@ -487,7 +487,7 @@ namespace gridtools {
             template <class T,
                 class Stride,
                 class Offset,
-                int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
+                int_t PtrOffset = get_static_const_value<Stride>::value * Offset::value>
             GT_FUNCTION std::enable_if_t<need_shift<T, Stride, Offset>::value &&
                                          is_default_shiftable<T, Stride>::value && has_inc<T>::value && PtrOffset == 1>
             shift(T &obj, Stride, Offset) {
@@ -500,7 +500,7 @@ namespace gridtools {
             template <class T,
                 class Stride,
                 class Offset,
-                int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
+                int_t PtrOffset = get_static_const_value<Stride>::value * Offset::value>
             GT_FUNCTION std::enable_if_t<need_shift<T, Stride, Offset>::value &&
                                          is_default_shiftable<T, Stride>::value && has_dec<T>::value && PtrOffset == -1>
             shift(T &obj, Stride, Offset) {

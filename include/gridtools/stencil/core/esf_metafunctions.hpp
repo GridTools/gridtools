@@ -73,5 +73,5 @@ namespace gridtools {
                 class AllRwArgs = meta::transform<meta::first, AllRwItems>>
             using compute_readwrite_args = meta::dedup<AllRwArgs>;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

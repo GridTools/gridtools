@@ -19,5 +19,5 @@ namespace gridtools {
                 using cache_map_t = CacheMap;
             };
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

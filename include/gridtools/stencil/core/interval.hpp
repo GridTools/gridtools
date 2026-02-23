@@ -121,5 +121,5 @@ namespace gridtools {
             template <class... Ts>
             using enclosing_interval = typename interval_impl::enclosing_interval<Ts...>::type;
         } // namespace core
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

@@ -37,5 +37,5 @@ namespace gridtools {
             template <uint_t ID, typename LocationType>
             using inout_accessor = accessor<ID, intent::inout, LocationType, extent<>>;
         } // namespace icosahedral
-    }     // namespace stencil
+    } // namespace stencil
 } // namespace gridtools

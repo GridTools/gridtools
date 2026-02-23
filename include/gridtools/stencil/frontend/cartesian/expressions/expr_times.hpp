@@ -29,6 +29,6 @@ namespace gridtools {
                     return make_expr(times_f(), lhs, rhs);
                 }
             } // namespace expressions
-        }     // namespace cartesian
-    }         // namespace stencil
+        } // namespace cartesian
+    } // namespace stencil
 } // namespace gridtools

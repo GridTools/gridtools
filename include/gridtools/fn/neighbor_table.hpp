@@ -61,8 +61,8 @@ namespace gridtools::fn::neighbor_table {
         }
 
         template <class NeighborTable>
-        GT_FUNCTION constexpr auto neighbors(
-            NeighborTable const &nt, int index) -> decltype(neighbor_table_neighbors(nt, index)) {
+        GT_FUNCTION constexpr auto neighbors(NeighborTable const &nt, int index)
+            -> decltype(neighbor_table_neighbors(nt, index)) {
             return neighbor_table_neighbors(nt, index);
         }
 
