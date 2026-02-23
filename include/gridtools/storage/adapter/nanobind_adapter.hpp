@@ -76,7 +76,8 @@ namespace gridtools {
             array_size_t... Sizes,
             class... Args,
             class Strides = fully_dynamic_strides<sizeof...(Sizes)>,
-            class StridesKind = sid::unknown_kind>
+            class StridesKind = sid::unknown_kind,
+            class SizeType = int>
         auto as_sid(nanobind::ndarray<T, nanobind::shape<Sizes...>, Args...> ndarray,
             Strides stride_spec = {},
             StridesKind = {}) {
@@ -84,7 +85,7 @@ namespace gridtools {
             const auto ptr = ndarray.data();
             constexpr auto ndim = sizeof...(Sizes);
             assert(ndim == ndarray.ndim());
-            gridtools::array<std::size_t, ndim> shape;
+            gridtools::array<SizeType, ndim> shape;
             std::copy_n(ndarray.shape_ptr(), ndim, shape.begin());
             gridtools::array<std::size_t, ndim> strides;
             std::copy_n(ndarray.stride_ptr(), ndim, strides.begin());
@@ -94,7 +95,7 @@ namespace gridtools {
                 .template set<property::origin>(sid::host_device::simple_ptr_holder{ptr})
                 .template set<property::strides>(static_strides)
                 .template set<property::strides_kind, StridesKind>()
-                .template set<property::lower_bounds>(gridtools::array<integral_constant<std::size_t, 0>, ndim>())
+                .template set<property::lower_bounds>(gridtools::array<integral_constant<SizeType, 0>, ndim>())
                 .template set<property::upper_bounds>(shape);
         }
     } // namespace nanobind_sid_adapter_impl_
