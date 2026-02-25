@@ -21,7 +21,7 @@ namespace gridtools {
                 struct pow_f {
                     template <class Arg>
                     GT_FUNCTION constexpr auto operator()(Arg const &arg) const {
-                        return gt_pow<I>::template apply(arg);
+                        return gt_pow<I>::apply(arg);
                     }
                 };
 
