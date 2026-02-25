@@ -34,11 +34,11 @@ namespace {
         run(spec,
             stencil_backend_t(),
             TypeParam ::make_grid(),
-            TypeParam ::icosahedral_make_storage(edges(), repo.u),
-            TypeParam ::icosahedral_make_storage(edges(), repo.edge_length),
-            TypeParam ::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
+            TypeParam ::icosahedral_make_storage(edges(), repo.u()),
+            TypeParam ::icosahedral_make_storage(edges(), repo.edge_length()),
+            TypeParam ::icosahedral_make_storage(cells(), repo.cell_area_reciprocal()),
             out);
-        TypeParam ::verify(repo.div_u, out);
+        TypeParam ::verify(repo.div_u(), out);
     }
 
     GT_REGRESSION_TEST(div_flow_convention, icosahedral_test_environment<2>, stencil_backend_t) {
@@ -47,10 +47,10 @@ namespace {
         run_single_stage(div_functor_flow_convention_connectivity(),
             stencil_backend_t(),
             TypeParam::make_grid(),
-            TypeParam ::icosahedral_make_storage(edges(), repo.u),
-            TypeParam ::icosahedral_make_storage(edges(), repo.edge_length),
-            TypeParam ::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
+            TypeParam ::icosahedral_make_storage(edges(), repo.u()),
+            TypeParam ::icosahedral_make_storage(edges(), repo.edge_length()),
+            TypeParam ::icosahedral_make_storage(cells(), repo.cell_area_reciprocal()),
             out);
-        TypeParam ::verify(repo.div_u, out);
+        TypeParam ::verify(repo.div_u(), out);
     }
 } // namespace

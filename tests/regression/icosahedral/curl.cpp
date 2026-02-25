@@ -41,11 +41,11 @@ namespace {
         run(spec,
             stencil_backend_t(),
             TypeParam ::make_grid(),
-            TypeParam ::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal),
-            TypeParam ::icosahedral_make_storage(edges(), repo.dual_edge_length),
-            TypeParam ::icosahedral_make_storage(edges(), repo.u),
+            TypeParam ::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal()),
+            TypeParam ::icosahedral_make_storage(edges(), repo.dual_edge_length()),
+            TypeParam ::icosahedral_make_storage(edges(), repo.u()),
             out);
-        TypeParam::verify(repo.curl_u, out, eq<TypeParam>);
+        TypeParam::verify(repo.curl_u(), out, eq<TypeParam>);
     }
 
     GT_REGRESSION_TEST(curl_flow_convention, icosahedral_test_environment<2>, stencil_backend_t) {
@@ -54,10 +54,10 @@ namespace {
         run_single_stage(curl_functor_flow_convention(),
             stencil_backend_t(),
             TypeParam ::make_grid(),
-            TypeParam ::icosahedral_make_storage(edges(), repo.u),
-            TypeParam ::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal),
-            TypeParam ::icosahedral_make_storage(edges(), repo.dual_edge_length),
+            TypeParam ::icosahedral_make_storage(edges(), repo.u()),
+            TypeParam ::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal()),
+            TypeParam ::icosahedral_make_storage(edges(), repo.dual_edge_length()),
             out);
-        TypeParam ::verify(repo.curl_u, out, eq<TypeParam>);
+        TypeParam ::verify(repo.curl_u(), out, eq<TypeParam>);
     }
 } // namespace

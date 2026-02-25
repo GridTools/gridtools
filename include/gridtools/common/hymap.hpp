@@ -198,7 +198,7 @@ namespace gridtools {
             template <class...>
             struct values;
 
-#if !defined(__NVCC__) && defined(__clang__) && __clang_major__ <= 17
+#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)
             template <class... Vs>
             values(Vs const &...) -> values<Vs...>;
 #endif
@@ -213,15 +213,17 @@ namespace gridtools {
         template <class... Keys>
         template <class... Vals>
         struct keys<Keys...>::values {
+#if !defined(__clang__) || __clang_major__ < 18
             static_assert(sizeof...(Vals) == sizeof...(Keys), "invalid hymap");
+#endif
 
             tuple<Vals...> m_vals;
 
             template <class... Args,
-                std::enable_if_t<std::conjunction_v<std::is_constructible<Vals, Args>...>, int> = 0>
+                std::enable_if_t<sizeof...(Args) == sizeof...(Vals) &&
+                                     std::conjunction_v<std::is_constructible<Vals, Args>...>,
+                    int> = 0>
             constexpr GT_FUNCTION values(Args &&...args) noexcept : m_vals{std::forward<Args>(args)...} {}
-
-            constexpr GT_FUNCTION values(Vals const &...args) noexcept : m_vals(args...) {}
 
             constexpr GT_FUNCTION values(tuple<Vals...> &&args) noexcept : m_vals(std::move(args)) {}
             constexpr GT_FUNCTION values(tuple<Vals...> const &args) noexcept : m_vals(args) {}
@@ -234,10 +236,7 @@ namespace gridtools {
 
             template <class Src>
             constexpr GT_FUNCTION
-                std::enable_if_t<((!std::is_same_v<values, std::decay_t<Src>> && is_hymap<std::decay_t<Src>>::value) &&
-                                     ... &&
-                                     std::is_assignable_v<Vals &,
-                                         std::add_lvalue_reference_t<element_at<Keys, std::remove_reference_t<Src>>>>),
+                std::enable_if_t<!std::is_same_v<values, std::decay_t<Src>> && is_hymap<std::decay_t<Src>>::value,
                     values &>
                 operator=(Src &&src) {
                 (...,

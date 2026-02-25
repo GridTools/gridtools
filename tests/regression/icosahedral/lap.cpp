@@ -81,15 +81,15 @@ namespace {
         run(spec,
             stencil_backend_t(),
             TypeParam::make_grid(),
-            TypeParam::icosahedral_make_storage(edges(), repo.edge_length),
-            TypeParam::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
-            TypeParam::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal),
-            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length),
-            TypeParam::icosahedral_make_storage(edges(), repo.u),
-            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length_reciprocal),
-            TypeParam::icosahedral_make_storage(edges(), repo.edge_length_reciprocal),
+            TypeParam::icosahedral_make_storage(edges(), repo.edge_length()),
+            TypeParam::icosahedral_make_storage(cells(), repo.cell_area_reciprocal()),
+            TypeParam::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal()),
+            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length()),
+            TypeParam::icosahedral_make_storage(edges(), repo.u()),
+            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length_reciprocal()),
+            TypeParam::icosahedral_make_storage(edges(), repo.edge_length_reciprocal()),
             out);
-        TypeParam::verify(TypeParam::icosahedral_make_storage(edges(), repo.lap), out);
+        TypeParam::verify(TypeParam::icosahedral_make_storage(edges(), repo.lap()), out);
     }
 
     GT_REGRESSION_TEST(lap_flow_convention, icosahedral_test_environment<2>, stencil_backend_t) {
@@ -125,14 +125,14 @@ namespace {
         run(spec,
             stencil_backend_t(),
             TypeParam::make_grid(),
-            TypeParam::icosahedral_make_storage(edges(), repo.u),
-            TypeParam::icosahedral_make_storage(edges(), repo.edge_length),
-            TypeParam::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
-            TypeParam::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal),
-            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length),
-            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length_reciprocal),
-            TypeParam::icosahedral_make_storage(edges(), repo.edge_length_reciprocal),
+            TypeParam::icosahedral_make_storage(edges(), repo.u()),
+            TypeParam::icosahedral_make_storage(edges(), repo.edge_length()),
+            TypeParam::icosahedral_make_storage(cells(), repo.cell_area_reciprocal()),
+            TypeParam::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal()),
+            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length()),
+            TypeParam::icosahedral_make_storage(edges(), repo.dual_edge_length_reciprocal()),
+            TypeParam::icosahedral_make_storage(edges(), repo.edge_length_reciprocal()),
             out);
-        TypeParam::verify(TypeParam::icosahedral_make_storage(edges(), repo.lap), out);
+        TypeParam::verify(TypeParam::icosahedral_make_storage(edges(), repo.lap()), out);
     }
 } // namespace

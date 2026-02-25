@@ -96,7 +96,7 @@ namespace gridtools {
             EXPECT_EQ(7.3, at_key<b>(dst));
         }
 
-#if !defined(__NVCC__)
+#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)
         TEST(deduction, smoke) {
             auto testee = hymap::keys<a, b>::values(42, 5.3);
 

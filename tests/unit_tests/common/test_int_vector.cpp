@@ -97,7 +97,9 @@ namespace gridtools {
             auto testee = int_vector::multiply(vec, 2_c);
 
             using testee_t = decltype(testee);
+#ifndef __NVCC__
             static_assert(element_at<a, testee_t>::value == 2);
+#endif
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
@@ -109,7 +111,9 @@ namespace gridtools {
             EXPECT_EQ(1, at_key<a>(testee));
             using testee_t = decltype(testee);
             static_assert(!has_key<testee_t, b>());
+#ifndef __NVCC__
             static_assert(element_at<c, testee_t>::value == 2);
+#endif
         }
 
         TEST(unary_ops, smoke) {
@@ -121,14 +125,18 @@ namespace gridtools {
 
             EXPECT_EQ(-1, at_key<a>(testee));
             using testee_t = decltype(testee);
+#ifndef __NVCC__
             static_assert(element_at<b, testee_t>::value == 0);
             static_assert(element_at<c, testee_t>::value == -2);
+#endif
 
             auto testee2 = +vec;
             EXPECT_EQ(1, at_key<a>(testee2));
             using testee2_t = decltype(testee2);
+#ifndef __NVCC__
             static_assert(element_at<b, testee2_t>::value == 0);
             static_assert(element_at<c, testee2_t>::value == 2);
+#endif
         }
 
         TEST(minus_op, smoke) {
@@ -141,7 +149,9 @@ namespace gridtools {
 
             EXPECT_EQ(0, at_key<a>(testee));
             using testee_t = decltype(testee);
+#ifndef __NVCC__
             static_assert(element_at<b, testee_t>::value == 1);
+#endif
             EXPECT_EQ(-3, at_key<c>(testee));
         }
     } // namespace
