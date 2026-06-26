@@ -47,6 +47,7 @@ __pycache__
 !LICENSE
 !mainpage.dox
 !modules
+!pyproject.toml
 !README.md
 !Vagrant_bootstrap.sh
 !Vagrantfile

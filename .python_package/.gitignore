@@ -1,7 +1,4 @@
 .nox/
-LICENSE
 dist/
-setup.cfg
 *.egg-info/
-src/gridtools_cpp/data
 build/

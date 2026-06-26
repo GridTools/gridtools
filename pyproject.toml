@@ -1,0 +1,42 @@
+[build-system]
+requires = ["scikit-build-core>=0.11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "gridtools-cpp"
+dynamic = ["version"]
+description = "Python package for GridTools headers and CMake files"
+readme = ".python_package/README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [{ name = "ETH Zurich", email = "gridtools@cscs.ch" }]
+requires-python = ">=3.8"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Atmospheric Science",
+  "Topic :: Scientific/Engineering :: Mathematics",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.urls]
+Homepage = "https://gridtools.github.io"
+"Source Code" = "https://github.com/GridTools/gridtools"
+
+[tool.scikit-build]
+cmake.version = ">=3.21"
+wheel.py-api = "py3"
+wheel.platlib = false
+wheel.packages = ["src/gridtools_cpp"]
+wheel.install-dir = "gridtools_cpp/data"
+
+[tool.scikit-build.cmake.define]
+BUILD_TESTING = "OFF"
+GT_INSTALL_EXAMPLES = "OFF"
+
+[tool.scikit-build.metadata.version]
+provider = "scikit_build_core.metadata.regex"
+input = "version.txt"
+regex = "(?P<value>.+)"
