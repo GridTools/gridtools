@@ -122,7 +122,6 @@ namespace gridtools {
                 template <class LazyT>
                 friend auto allocate(allocator &self, LazyT, size_t size) {
                     using type = typename LazyT::type;
-                    auto ptr = self.m_impl(sizeof(type) * size);
                     self.m_buffers.push_back(self.m_impl(sizeof(type) * size));
                     return simple_ptr_holder(reinterpret_cast<type *>(self.m_buffers.back().get()));
                 }

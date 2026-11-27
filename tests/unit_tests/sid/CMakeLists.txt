@@ -1,3 +1,4 @@
+gridtools_add_unit_test(test_sid_allocator SOURCES test_sid_allocator.cpp)
 gridtools_add_unit_test(test_sid_as_const SOURCES test_sid_as_const.cpp)
 gridtools_add_unit_test(test_sid_block SOURCES test_sid_block.cpp)
 gridtools_add_unit_test(test_sid_composite SOURCES test_sid_composite.cpp)
